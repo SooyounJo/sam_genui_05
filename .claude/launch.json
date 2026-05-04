@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "oneui-node",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "oneui-static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "$PORT"],
+      "port": 3005,
+      "autoPort": true
+    }
+  ]
+}

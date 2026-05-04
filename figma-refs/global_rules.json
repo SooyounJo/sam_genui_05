@@ -1,0 +1,32 @@
+{
+  "rules": [
+    {
+      "id": "spacing_scale_rule",
+      "description": "All spacing values (gap, itemSpacing, padding) must land on the 4dp grid.",
+      "allowedValues": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 72, 80, 88, 96],
+      "snapWithin": 3,
+      "severity": "medium"
+    },
+    {
+      "id": "touch_target_min",
+      "description": "Interactive elements must be at least 48dp on both axes (Samsung One UI minimum).",
+      "min": 48,
+      "severity": "high"
+    },
+    {
+      "id": "border_min",
+      "description": "Visible borders must be at least 0.5dp to render reliably across densities.",
+      "min": 0.5,
+      "severity": "medium"
+    },
+    {
+      "id": "pill_radius_token",
+      "description": "When a radius visually behaves like a pill (>= height/2), it must be represented with the pill token, not a numeric value.",
+      "property": "cornerRadius",
+      "when": { "shapeIntent": "pill" },
+      "expect": { "token": "pill" },
+      "severity": "medium",
+      "mode": "semantic-review"
+    }
+  ]
+}

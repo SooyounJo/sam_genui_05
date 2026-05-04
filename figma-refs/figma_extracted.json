@@ -1,0 +1,1346 @@
+[
+  {
+    "frame": "Quick Settings Panel",
+    "raw": {
+      "nodeId": "3010:2142",
+      "name": "Quick Settings Panel",
+      "type": "FRAME",
+      "width": 450,
+      "height": 978,
+      "cornerRadius": 40,
+      "radiusToken": null
+    },
+    "slim": {
+      "name": "Quick Settings Panel",
+      "type": "frame",
+      "width": 450,
+      "height": 978
+    },
+    "children": [
+      {
+        "raw": {
+          "nodeId": "989:22463",
+          "name": "Quick Settings",
+          "type": "FRAME",
+          "cornerRadius": 40,
+          "radiusToken": null,
+          "layoutMode": "NONE",
+          "fills": "image + rgba(23,23,26,0.3) overlay, backdrop-blur 25"
+        },
+        "slim": {
+          "name": "Quick Settings",
+          "type": "container"
+        },
+        "children": [
+          {
+            "raw": {
+              "nodeId": "544:2748",
+              "name": "Background",
+              "type": "RECTANGLE",
+              "cornerRadius": 40,
+              "radiusToken": null,
+              "fills": "image"
+            },
+            "slim": {
+              "name": "Background",
+              "type": "other"
+            },
+            "children": []
+          },
+          {
+            "raw": {
+              "nodeId": "989:22465",
+              "name": "QS Grid",
+              "type": "FRAME",
+              "width": 451,
+              "height": 978,
+              "cornerRadius": 40,
+              "radiusToken": null,
+              "itemSpacing": 18,
+              "padding": {
+                "left": 22,
+                "right": 22,
+                "top": 18,
+                "bottom": 0
+              },
+              "layoutMode": "HORIZONTAL",
+              "fills": "rgba(23,23,26,0.3) + backdrop-blur 25"
+            },
+            "slim": {
+              "name": "QS Grid",
+              "type": "container",
+              "width": 451,
+              "height": 978,
+              "itemSpacing": 18,
+              "padding": {
+                "left": 22,
+                "right": 22,
+                "top": 18,
+                "bottom": 0
+              }
+            },
+            "children": [
+              {
+                "raw": {
+                  "nodeId": "I989:22470;452:643",
+                  "name": "Status Bar",
+                  "type": "INSTANCE",
+                  "height": 44,
+                  "padding": {
+                    "left": 10,
+                    "right": 10,
+                    "top": 16,
+                    "bottom": 16
+                  }
+                },
+                "slim": {
+                  "name": "Status Bar",
+                  "type": "appbar",
+                  "height": 44,
+                  "padding": {
+                    "left": 10,
+                    "right": 10,
+                    "top": 16,
+                    "bottom": 16
+                  }
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "nodeId": "989:22471",
+                  "name": "Top action row",
+                  "type": "FRAME",
+                  "height": 25,
+                  "itemSpacing": 28
+                },
+                "slim": {
+                  "name": "Top action row",
+                  "type": "group",
+                  "height": 25,
+                  "itemSpacing": 28
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "nodeId": "987:17561",
+                  "name": "Single Toggle (Square)",
+                  "type": "COMPONENT",
+                  "width": 88,
+                  "height": 88,
+                  "cornerRadius": 50,
+                  "radiusToken": null,
+                  "borderWidth": 1,
+                  "padding": {
+                    "left": 0,
+                    "right": 0,
+                    "top": 10,
+                    "bottom": 10
+                  },
+                  "layoutMode": "VERTICAL",
+                  "fills": "rgba(23,23,26,0.3)",
+                  "strokes": "rgba(255,255,255,0.2)"
+                },
+                "slim": {
+                  "name": "Single Toggle (Square)",
+                  "type": "toggle",
+                  "width": 88,
+                  "height": 88,
+                  "padding": {
+                    "left": 0,
+                    "right": 0,
+                    "top": 10,
+                    "bottom": 10
+                  }
+                },
+                "children": [
+                  {
+                    "raw": {
+                      "name": "Toggle Icon",
+                      "type": "FRAME",
+                      "width": 56,
+                      "height": 56,
+                      "cornerRadius": 63.636,
+                      "radiusToken": null,
+                      "padding": {
+                        "left": 13,
+                        "right": 13,
+                        "top": 13,
+                        "bottom": 13
+                      }
+                    },
+                    "slim": {
+                      "name": "Toggle Icon",
+                      "type": "icon",
+                      "width": 56,
+                      "height": 56,
+                      "padding": {
+                        "left": 13,
+                        "right": 13,
+                        "top": 13,
+                        "bottom": 13
+                      }
+                    },
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "raw": {
+                  "nodeId": "544:1012",
+                  "name": "Single Toggle (Half)",
+                  "type": "COMPONENT",
+                  "width": 199,
+                  "height": 88,
+                  "cornerRadius": 50,
+                  "radiusToken": null,
+                  "borderWidth": 1,
+                  "itemSpacing": 10,
+                  "padding": {
+                    "left": 17,
+                    "right": 17,
+                    "top": 24,
+                    "bottom": 24
+                  },
+                  "layoutMode": "HORIZONTAL",
+                  "fills": "rgba(23,23,26,0.3)",
+                  "strokes": "rgba(255,255,255,0.2)"
+                },
+                "slim": {
+                  "name": "Single Toggle (Half)",
+                  "type": "toggle",
+                  "width": 199,
+                  "height": 88,
+                  "itemSpacing": 10,
+                  "padding": {
+                    "left": 17,
+                    "right": 17,
+                    "top": 24,
+                    "bottom": 24
+                  }
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "nodeId": "544:1044",
+                  "name": "Shortcut (Half)",
+                  "type": "COMPONENT",
+                  "width": 199,
+                  "height": 88,
+                  "cornerRadius": 50,
+                  "radiusToken": null,
+                  "padding": {
+                    "left": 20,
+                    "right": 25,
+                    "top": 24,
+                    "bottom": 24
+                  }
+                },
+                "slim": {
+                  "name": "Shortcut (Half)",
+                  "type": "button",
+                  "width": 199,
+                  "height": 88,
+                  "padding": {
+                    "left": 20,
+                    "right": 25,
+                    "top": 24,
+                    "bottom": 24
+                  }
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "nodeId": "544:865",
+                  "name": "Icons row",
+                  "type": "FRAME",
+                  "width": 415,
+                  "cornerRadius": 50,
+                  "radiusToken": null,
+                  "itemSpacing": 20,
+                  "padding": {
+                    "left": 25,
+                    "right": 25,
+                    "top": 24,
+                    "bottom": 24
+                  },
+                  "layoutMode": "VERTICAL"
+                },
+                "slim": {
+                  "name": "Icons row",
+                  "type": "container",
+                  "width": 415,
+                  "itemSpacing": 20,
+                  "padding": {
+                    "left": 25,
+                    "right": 25,
+                    "top": 24,
+                    "bottom": 24
+                  }
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "nodeId": "1109:10261",
+                  "name": "Vertical Slider",
+                  "type": "COMPONENT",
+                  "width": 88,
+                  "height": 300,
+                  "cornerRadius": 50,
+                  "radiusToken": null,
+                  "itemSpacing": 10,
+                  "padding": {
+                    "left": 18,
+                    "right": 18,
+                    "top": 18,
+                    "bottom": 18
+                  },
+                  "layoutMode": "VERTICAL"
+                },
+                "slim": {
+                  "name": "Vertical Slider",
+                  "type": "slider",
+                  "width": 88,
+                  "height": 300,
+                  "itemSpacing": 10,
+                  "padding": {
+                    "left": 18,
+                    "right": 18,
+                    "top": 18,
+                    "bottom": 18
+                  }
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "nodeId": "1109:10246",
+                  "name": "Vertical Slider 2",
+                  "type": "COMPONENT",
+                  "width": 88,
+                  "height": 300,
+                  "cornerRadius": 50,
+                  "radiusToken": null,
+                  "itemSpacing": 10,
+                  "padding": {
+                    "left": 18,
+                    "right": 18,
+                    "top": 18,
+                    "bottom": 18
+                  }
+                },
+                "slim": {
+                  "name": "Vertical Slider 2",
+                  "type": "slider",
+                  "width": 88,
+                  "height": 300,
+                  "itemSpacing": 10,
+                  "padding": {
+                    "left": 18,
+                    "right": 18,
+                    "top": 18,
+                    "bottom": 18
+                  }
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "nodeId": "1109:10416",
+                  "name": "SmartThings card",
+                  "type": "COMPONENT",
+                  "width": 408,
+                  "height": 86,
+                  "cornerRadius": 50,
+                  "radiusToken": null,
+                  "itemSpacing": 20,
+                  "padding": {
+                    "left": 20,
+                    "right": 17,
+                    "top": 24,
+                    "bottom": 24
+                  },
+                  "layoutMode": "HORIZONTAL"
+                },
+                "slim": {
+                  "name": "SmartThings card",
+                  "type": "card",
+                  "width": 408,
+                  "height": 86,
+                  "itemSpacing": 20,
+                  "padding": {
+                    "left": 20,
+                    "right": 17,
+                    "top": 24,
+                    "bottom": 24
+                  }
+                },
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "frame": "Lock Screen",
+    "raw": {
+      "nodeId": "3010:2143",
+      "name": "Lock Screen",
+      "type": "FRAME",
+      "width": 451,
+      "height": 978,
+      "cornerRadius": 40,
+      "radiusToken": null
+    },
+    "slim": {
+      "name": "Lock Screen",
+      "type": "frame",
+      "width": 451,
+      "height": 978
+    },
+    "children": [
+      {
+        "raw": {
+          "nodeId": "989:22979",
+          "name": "Lock Screen Outer",
+          "type": "FRAME",
+          "cornerRadius": 40,
+          "radiusToken": null,
+          "layoutMode": "NONE",
+          "fills": "image wallpaper"
+        },
+        "slim": {
+          "name": "Lock Screen Outer",
+          "type": "container"
+        },
+        "children": [
+          {
+            "raw": {
+              "nodeId": "745:7949",
+              "name": "Clock stack",
+              "type": "FRAME"
+            },
+            "slim": {
+              "name": "Clock stack",
+              "type": "group"
+            },
+            "children": [
+              {
+                "raw": {
+                  "nodeId": "746:3229",
+                  "name": "Clock",
+                  "type": "FRAME",
+                  "width": 192,
+                  "itemSpacing": 26,
+                  "layoutMode": "VERTICAL"
+                },
+                "slim": {
+                  "name": "Clock",
+                  "type": "text",
+                  "width": 192,
+                  "itemSpacing": 26
+                },
+                "children": []
+              }
+            ]
+          },
+          {
+            "raw": {
+              "nodeId": "746:2420",
+              "name": "Health widgets row",
+              "type": "FRAME",
+              "itemSpacing": 16
+            },
+            "slim": {
+              "name": "Health widgets row",
+              "type": "group",
+              "itemSpacing": 16
+            },
+            "children": [
+              {
+                "raw": {
+                  "nodeId": "746:2266",
+                  "name": "Battery widget card",
+                  "type": "COMPONENT",
+                  "width": 138,
+                  "height": 62,
+                  "cornerRadius": 20,
+                  "radiusToken": null,
+                  "itemSpacing": 10,
+                  "layoutMode": "HORIZONTAL",
+                  "fills": "rgba(23,23,26,0.3) + backdrop-blur 6"
+                },
+                "slim": {
+                  "name": "Battery widget card",
+                  "type": "widget",
+                  "width": 138,
+                  "height": 62,
+                  "itemSpacing": 10
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "nodeId": "746:2278",
+                  "name": "Daily activity card",
+                  "type": "COMPONENT",
+                  "width": 138,
+                  "height": 62,
+                  "cornerRadius": 20,
+                  "radiusToken": null,
+                  "padding": {
+                    "left": 10,
+                    "right": 14,
+                    "top": 0,
+                    "bottom": 0
+                  }
+                },
+                "slim": {
+                  "name": "Daily activity card",
+                  "type": "widget",
+                  "width": 138,
+                  "height": 62,
+                  "padding": {
+                    "left": 10,
+                    "right": 14,
+                    "top": 0,
+                    "bottom": 0
+                  }
+                },
+                "children": []
+              }
+            ]
+          },
+          {
+            "raw": {
+              "nodeId": "744:5659",
+              "name": "Shortcut row",
+              "type": "FRAME",
+              "width": 389
+            },
+            "slim": {
+              "name": "Shortcut row",
+              "type": "group",
+              "width": 389
+            },
+            "children": [
+              {
+                "raw": {
+                  "nodeId": "769:10183",
+                  "name": "Lock Screen Shortcut",
+                  "type": "COMPONENT",
+                  "width": 47,
+                  "height": 47,
+                  "cornerRadius": 61,
+                  "radiusToken": null,
+                  "borderWidth": 0.25,
+                  "fills": "rgba(55,55,55,0.3) + backdrop-blur 6",
+                  "strokes": "rgba(55,55,55,0.3)"
+                },
+                "slim": {
+                  "name": "Lock Screen Shortcut",
+                  "type": "button",
+                  "width": 47,
+                  "height": 47
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "nodeId": "752:7982",
+                  "name": "Now Bar",
+                  "type": "COMPONENT",
+                  "width": 248,
+                  "height": 64,
+                  "cornerRadius": 53,
+                  "radiusToken": null,
+                  "borderWidth": 0.25,
+                  "itemSpacing": 14,
+                  "padding": {
+                    "left": 12,
+                    "right": 18,
+                    "top": 12,
+                    "bottom": 12
+                  },
+                  "layoutMode": "HORIZONTAL",
+                  "fills": "rgba(23,23,26,0.3) + backdrop-blur 12",
+                  "strokes": "rgba(55,55,55,0.3)"
+                },
+                "slim": {
+                  "name": "Now Bar",
+                  "type": "widget",
+                  "width": 248,
+                  "height": 64,
+                  "itemSpacing": 14,
+                  "padding": {
+                    "left": 12,
+                    "right": 18,
+                    "top": 12,
+                    "bottom": 12
+                  }
+                },
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "frame": "Notifications",
+    "raw": {
+      "nodeId": "989:22754",
+      "name": "Notifications",
+      "type": "FRAME",
+      "width": 451,
+      "height": 978,
+      "cornerRadius": 40,
+      "radiusToken": null,
+      "fills": "image + rgba(23,23,26,0.3) + backdrop-blur 25"
+    },
+    "slim": {
+      "name": "Notifications",
+      "type": "frame",
+      "width": 451,
+      "height": 978
+    },
+    "children": [
+      {
+        "raw": {
+          "nodeId": "989:22755",
+          "name": "Background",
+          "type": "RECTANGLE"
+        },
+        "slim": {
+          "name": "Background",
+          "type": "other"
+        },
+        "children": []
+      },
+      {
+        "raw": {
+          "nodeId": "989:22758",
+          "name": "Grid",
+          "type": "FRAME",
+          "width": 451,
+          "cornerRadius": 40,
+          "radiusToken": null,
+          "itemSpacing": 10,
+          "padding": {
+            "left": 18,
+            "right": 18,
+            "top": 18,
+            "bottom": 0
+          },
+          "layoutMode": "VERTICAL",
+          "fills": "rgba(23,23,26,0.3) + backdrop-blur 25"
+        },
+        "slim": {
+          "name": "Grid",
+          "type": "container",
+          "width": 451,
+          "itemSpacing": 10,
+          "padding": {
+            "left": 18,
+            "right": 18,
+            "top": 18,
+            "bottom": 0
+          }
+        },
+        "children": [
+          {
+            "raw": {
+              "nodeId": "989:22759",
+              "name": "Header stack",
+              "type": "FRAME"
+            },
+            "slim": {
+              "name": "Header stack",
+              "type": "group"
+            },
+            "children": [
+              {
+                "raw": {
+                  "nodeId": "989:22761",
+                  "name": "Top",
+                  "type": "FRAME"
+                },
+                "slim": {
+                  "name": "Top",
+                  "type": "group"
+                },
+                "children": []
+              }
+            ]
+          },
+          {
+            "raw": {
+              "nodeId": "989:22768",
+              "name": "Media card",
+              "type": "COMPONENT",
+              "width": 408,
+              "height": 180,
+              "cornerRadius": 36,
+              "radiusToken": null,
+              "padding": {
+                "left": 29,
+                "right": 29,
+                "top": 14,
+                "bottom": 14
+              },
+              "fills": "image album art"
+            },
+            "slim": {
+              "name": "Media card",
+              "type": "media-card",
+              "width": 408,
+              "height": 180,
+              "padding": {
+                "left": 29,
+                "right": 29,
+                "top": 14,
+                "bottom": 14
+              }
+            },
+            "children": []
+          },
+          {
+            "raw": {
+              "nodeId": "544:1110",
+              "name": "Live notification",
+              "type": "COMPONENT",
+              "width": 415,
+              "height": 86,
+              "cornerRadius": 50,
+              "radiusToken": null,
+              "itemSpacing": 15,
+              "padding": {
+                "left": 16,
+                "right": 16,
+                "top": 0,
+                "bottom": 0
+              },
+              "layoutMode": "HORIZONTAL",
+              "fills": "linear -89.72deg rgba(23,23,26,0.3)@31% to #000@118% + backdrop-blur 12"
+            },
+            "slim": {
+              "name": "Live notification",
+              "type": "notification",
+              "width": 415,
+              "height": 86,
+              "itemSpacing": 15,
+              "padding": {
+                "left": 16,
+                "right": 16,
+                "top": 0,
+                "bottom": 0
+              }
+            },
+            "children": []
+          },
+          {
+            "raw": {
+              "nodeId": "1109:9522",
+              "name": "AI Regular notification",
+              "type": "COMPONENT",
+              "width": 415,
+              "height": 86,
+              "cornerRadius": 50,
+              "radiusToken": null,
+              "itemSpacing": 10,
+              "padding": {
+                "left": 16,
+                "right": 20,
+                "top": 15,
+                "bottom": 15
+              },
+              "layoutMode": "HORIZONTAL",
+              "fills": "linear-gradient to right rgba(102,161,243,0.4) 0% to rgba(34,201,166,0.4) 100%"
+            },
+            "slim": {
+              "name": "AI Regular notification",
+              "type": "notification",
+              "width": 415,
+              "height": 86,
+              "itemSpacing": 10,
+              "padding": {
+                "left": 16,
+                "right": 20,
+                "top": 15,
+                "bottom": 15
+              }
+            },
+            "children": []
+          },
+          {
+            "raw": {
+              "nodeId": "544:1097",
+              "name": "Stack notification",
+              "type": "COMPONENT",
+              "width": 415,
+              "height": 91,
+              "cornerRadius": 50,
+              "radiusToken": null,
+              "padding": {
+                "left": 0,
+                "right": 0,
+                "top": 15,
+                "bottom": 15
+              }
+            },
+            "slim": {
+              "name": "Stack notification",
+              "type": "notification",
+              "width": 415,
+              "height": 91,
+              "padding": {
+                "left": 0,
+                "right": 0,
+                "top": 15,
+                "bottom": 15
+              }
+            },
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "frame": "Share Bottom Sheet",
+    "raw": {
+      "nodeId": "3010:2144",
+      "name": "Share Bottom Sheet",
+      "type": "FRAME",
+      "width": 451,
+      "height": 978,
+      "radiusToken": null
+    },
+    "slim": {
+      "name": "Share Bottom Sheet",
+      "type": "frame",
+      "width": 451,
+      "height": 978
+    },
+    "children": [
+      {
+        "raw": {
+          "nodeId": "989:23707",
+          "name": "Add a dialog",
+          "type": "FRAME"
+        },
+        "slim": {
+          "name": "Add a dialog",
+          "type": "dialog"
+        },
+        "children": [
+          {
+            "raw": {
+              "nodeId": "645:3079",
+              "name": "Internet Pop-Out Menu",
+              "type": "COMPONENT",
+              "width": 473,
+              "cornerRadius": 32,
+              "radiusToken": null,
+              "itemSpacing": 20,
+              "padding": {
+                "left": 16,
+                "right": 16,
+                "top": 16,
+                "bottom": 16
+              },
+              "layoutMode": "VERTICAL",
+              "fills": "rgba(23,23,26,0.6) + backdrop-blur 24"
+            },
+            "slim": {
+              "name": "Internet Pop-Out Menu",
+              "type": "dialog",
+              "width": 473,
+              "itemSpacing": 20,
+              "padding": {
+                "left": 16,
+                "right": 16,
+                "top": 16,
+                "bottom": 16
+              }
+            },
+            "children": [
+              {
+                "raw": {
+                  "nodeId": "645:4384",
+                  "name": "WebsiteShareHeader",
+                  "type": "FRAME",
+                  "width": 419,
+                  "itemSpacing": 20,
+                  "padding": {
+                    "left": 8,
+                    "right": 8,
+                    "top": 8,
+                    "bottom": 0
+                  },
+                  "layoutMode": "VERTICAL"
+                },
+                "slim": {
+                  "name": "WebsiteShareHeader",
+                  "type": "group",
+                  "width": 419,
+                  "itemSpacing": 20,
+                  "padding": {
+                    "left": 8,
+                    "right": 8,
+                    "top": 8,
+                    "bottom": 0
+                  }
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "nodeId": "645:3292",
+                  "name": "BrowserTopBar",
+                  "type": "FRAME"
+                },
+                "slim": {
+                  "name": "BrowserTopBar",
+                  "type": "group"
+                },
+                "children": [
+                  {
+                    "raw": {
+                      "name": "Contained icon+label",
+                      "type": "COMPONENT",
+                      "width": 54,
+                      "itemSpacing": 8,
+                      "layoutMode": "VERTICAL"
+                    },
+                    "slim": {
+                      "name": "Contained icon+label",
+                      "type": "button",
+                      "width": 54,
+                      "itemSpacing": 8
+                    },
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "raw": {
+                  "nodeId": "645:2944",
+                  "name": "Browser icon box",
+                  "type": "FRAME",
+                  "height": 202,
+                  "cornerRadius": 24,
+                  "radiusToken": null,
+                  "padding": {
+                    "left": 25,
+                    "right": 25,
+                    "top": 21,
+                    "bottom": 21
+                  },
+                  "layoutMode": "VERTICAL",
+                  "fills": "rgba(23,23,26,0.6)"
+                },
+                "slim": {
+                  "name": "Browser icon box",
+                  "type": "container",
+                  "height": 202,
+                  "padding": {
+                    "left": 25,
+                    "right": 25,
+                    "top": 21,
+                    "bottom": 21
+                  }
+                },
+                "children": [
+                  {
+                    "raw": {
+                      "nodeId": "645:2804",
+                      "name": "Icon+label card",
+                      "type": "COMPONENT",
+                      "width": 54,
+                      "itemSpacing": 6,
+                      "layoutMode": "VERTICAL"
+                    },
+                    "slim": {
+                      "name": "Icon+label card",
+                      "type": "button",
+                      "width": 54,
+                      "itemSpacing": 6
+                    },
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "raw": {
+              "nodeId": "452:1121",
+              "name": "LiveActivity pill",
+              "type": "COMPONENT",
+              "cornerRadius": 10,
+              "radiusToken": null,
+              "itemSpacing": 4,
+              "padding": {
+                "left": 4,
+                "right": 8,
+                "top": 4,
+                "bottom": 4
+              },
+              "layoutMode": "HORIZONTAL",
+              "fills": "#0fcf6e"
+            },
+            "slim": {
+              "name": "LiveActivity pill",
+              "type": "chip",
+              "itemSpacing": 4,
+              "padding": {
+                "left": 4,
+                "right": 8,
+                "top": 4,
+                "bottom": 4
+              }
+            },
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "frame": "Component Trees",
+    "raw": {
+      "name": "Component Trees",
+      "type": "GROUP",
+      "radiusToken": null
+    },
+    "slim": {
+      "name": "Component Trees",
+      "type": "group"
+    },
+    "children": [
+      {
+        "raw": {
+          "nodeId": "3011:4240",
+          "name": "DialogBlurred",
+          "type": "COMPONENT",
+          "width": 328,
+          "cornerRadius": 28,
+          "radiusToken": null,
+          "itemSpacing": 20,
+          "padding": {
+            "left": 20,
+            "right": 20,
+            "top": 20,
+            "bottom": 20
+          },
+          "fills": "rgba(23,23,26,0.6) dark / rgba(252,252,255,0.5) light + backdrop-blur 24"
+        },
+        "slim": {
+          "name": "DialogBlurred",
+          "type": "dialog",
+          "width": 328,
+          "itemSpacing": 20,
+          "padding": {
+            "left": 20,
+            "right": 20,
+            "top": 20,
+            "bottom": 20
+          }
+        },
+        "children": []
+      },
+      {
+        "raw": {
+          "nodeId": "645:3080",
+          "name": "InternetPopOutMenu",
+          "type": "COMPONENT",
+          "width": 473,
+          "cornerRadius": 32,
+          "radiusToken": null,
+          "itemSpacing": 20,
+          "padding": {
+            "left": 16,
+            "right": 16,
+            "top": 16,
+            "bottom": 16
+          },
+          "fills": "rgba(23,23,26,0.6) / rgba(252,252,255,0.6) + backdrop-blur 24"
+        },
+        "slim": {
+          "name": "InternetPopOutMenu",
+          "type": "dialog",
+          "width": 473,
+          "itemSpacing": 20,
+          "padding": {
+            "left": 16,
+            "right": 16,
+            "top": 16,
+            "bottom": 16
+          }
+        },
+        "children": []
+      },
+      {
+        "raw": {
+          "nodeId": "645:4429",
+          "name": "GalleryPopOutMenu",
+          "type": "COMPONENT",
+          "width": 415,
+          "cornerRadius": 28,
+          "radiusToken": null,
+          "itemSpacing": 20,
+          "padding": {
+            "left": 24,
+            "right": 24,
+            "top": 24,
+            "bottom": 24
+          },
+          "fills": "glass + backdrop-blur 24"
+        },
+        "slim": {
+          "name": "GalleryPopOutMenu",
+          "type": "dialog",
+          "width": 415,
+          "itemSpacing": 20,
+          "padding": {
+            "left": 24,
+            "right": 24,
+            "top": 24,
+            "bottom": 24
+          }
+        },
+        "children": []
+      },
+      {
+        "raw": {
+          "nodeId": "479:8075",
+          "name": "Toast",
+          "type": "COMPONENT",
+          "width": 328,
+          "cornerRadius": 54,
+          "radiusToken": null,
+          "itemSpacing": 10,
+          "padding": {
+            "left": 10,
+            "right": 10,
+            "top": 8,
+            "bottom": 8
+          },
+          "fills": "#010102 dark / #F1F1F3 light"
+        },
+        "slim": {
+          "name": "Toast",
+          "type": "snackbar",
+          "width": 328,
+          "itemSpacing": 10,
+          "padding": {
+            "left": 10,
+            "right": 10,
+            "top": 8,
+            "bottom": 8
+          }
+        },
+        "children": []
+      },
+      {
+        "raw": {
+          "nodeId": "390:427",
+          "name": "Container Scaffold",
+          "type": "COMPONENT",
+          "width": 412,
+          "cornerRadius": 16,
+          "radiusToken": null,
+          "fills": "#010102"
+        },
+        "slim": {
+          "name": "Container Scaffold",
+          "type": "container",
+          "width": 412
+        },
+        "children": [
+          {
+            "raw": {
+              "name": "InnerStack",
+              "type": "FRAME",
+              "cornerRadius": 38,
+              "radiusToken": null,
+              "itemSpacing": 20,
+              "padding": {
+                "left": 10,
+                "right": 10,
+                "top": 10,
+                "bottom": 10
+              }
+            },
+            "slim": {
+              "name": "InnerStack",
+              "type": "container",
+              "itemSpacing": 20,
+              "padding": {
+                "left": 10,
+                "right": 10,
+                "top": 10,
+                "bottom": 10
+              }
+            },
+            "children": [
+              {
+                "raw": {
+                  "name": "HeaderContainer",
+                  "type": "FRAME"
+                },
+                "slim": {
+                  "name": "HeaderContainer",
+                  "type": "appbar"
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "name": "Card",
+                  "type": "FRAME"
+                },
+                "slim": {
+                  "name": "Card",
+                  "type": "card"
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "name": "TextContainer",
+                  "type": "FRAME"
+                },
+                "slim": {
+                  "name": "TextContainer",
+                  "type": "text"
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "name": "MenuItemCard",
+                  "type": "FRAME"
+                },
+                "slim": {
+                  "name": "MenuItemCard",
+                  "type": "list-item"
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "name": "MenuItemWithBodyCard",
+                  "type": "FRAME"
+                },
+                "slim": {
+                  "name": "MenuItemWithBodyCard",
+                  "type": "list-item"
+                },
+                "children": []
+              },
+              {
+                "raw": {
+                  "name": "SliderCard",
+                  "type": "FRAME"
+                },
+                "slim": {
+                  "name": "SliderCard",
+                  "type": "slider"
+                },
+                "children": []
+              }
+            ]
+          },
+          {
+            "raw": {
+              "name": "NavigationBar",
+              "type": "FRAME"
+            },
+            "slim": {
+              "name": "NavigationBar",
+              "type": "bottomnav"
+            },
+            "children": []
+          }
+        ]
+      },
+      {
+        "raw": {
+          "nodeId": "836:4040",
+          "name": "Now Bar / Navigation",
+          "type": "COMPONENT",
+          "width": 415,
+          "cornerRadius": 50,
+          "radiusToken": null,
+          "borderWidth": 0.5,
+          "itemSpacing": 8,
+          "padding": {
+            "left": 20,
+            "right": 20,
+            "top": 20,
+            "bottom": 20
+          },
+          "fills": "rgba(55,55,55,0.3) + backdrop-blur 25",
+          "strokes": "rgba(150,150,150,0.6)"
+        },
+        "slim": {
+          "name": "Now Bar / Navigation",
+          "type": "widget",
+          "width": 415,
+          "itemSpacing": 8,
+          "padding": {
+            "left": 20,
+            "right": 20,
+            "top": 20,
+            "bottom": 20
+          }
+        },
+        "children": []
+      },
+      {
+        "raw": {
+          "nodeId": "838:4076",
+          "name": "Now Bar / Activity",
+          "type": "COMPONENT",
+          "width": 415,
+          "height": 180,
+          "cornerRadius": 50,
+          "radiusToken": null,
+          "borderWidth": 0.5,
+          "itemSpacing": 8,
+          "padding": {
+            "left": 20,
+            "right": 20,
+            "top": 20,
+            "bottom": 20
+          },
+          "fills": "rgba(55,55,55,0.3) + backdrop-blur 25",
+          "strokes": "rgba(150,150,150,0.6)"
+        },
+        "slim": {
+          "name": "Now Bar / Activity",
+          "type": "widget",
+          "width": 415,
+          "height": 180,
+          "itemSpacing": 8,
+          "padding": {
+            "left": 20,
+            "right": 20,
+            "top": 20,
+            "bottom": 20
+          }
+        },
+        "children": []
+      }
+    ]
+  }
+]

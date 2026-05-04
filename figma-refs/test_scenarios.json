@@ -1,0 +1,230 @@
+{
+  "_doc": "Fixed scenario suite for the self-improving system. Each scenario carries expected qualities the test runner uses to score the pipeline output. New scenarios should follow the same shape; remove ones that prove unreliable or duplicate signal.\n\nHELD-OUT VALIDATION: scenarios with `holdout: true` are NEVER shown to the pattern-extraction LLM. They're only used to score after a rule is applied. A rule must improve BOTH training and validation scores to be accepted. This catches overfit — rules that fit the 15 training scenarios but break the 5 validation scenarios are auto-rejected.",
+  "_version": 1,
+  "_scoring": {
+    "weights": {
+      "violation_high":    -10,
+      "violation_medium":  -3,
+      "violation_low":     -1,
+      "richness_per_card": 4,
+      "richness_cap":      32,
+      "expected_component_present": 6,
+      "expected_component_missing": -4,
+      "expected_surface_match": 8,
+      "expected_surface_mismatch": -8,
+      "no_silent_drops":   3
+    },
+    "thresholds": {
+      "improvement_required_pct": 5,
+      "regression_alert_pct":    -3
+    }
+  },
+  "scenarios": [
+    {
+      "id": "morning-briefing-lock",
+      "scenarioText": "morning briefing on lock screen with weather and meetings",
+      "expectedSurface": "lock",
+      "expectedComponents": ["status-bar.default", "lock-screen.clock", "weather_glance_card", "calendar_summary_card"],
+      "expectedMinComponents": 4,
+      "expectedFeatures": ["has_clock", "has_weather", "has_calendar"],
+      "weight": 3,
+      "tag": "ambient-briefing"
+    },
+    {
+      "id": "low-battery-alert",
+      "scenarioText": "low battery alert with charging suggestion on lock screen",
+      "expectedSurface": "lock",
+      "expectedComponents": ["status-bar.default", "lock-screen.clock"],
+      "expectedMinComponents": 3,
+      "expectedFeatures": ["has_clock", "has_status_signal"],
+      "weight": 2,
+      "tag": "alert",
+      "holdout": true
+    },
+    {
+      "id": "media-on-lock",
+      "scenarioText": "playing music on lock screen with album art and playback controls",
+      "expectedSurface": "lock",
+      "expectedComponents": ["status-bar.default", "lock-screen.clock"],
+      "expectedMinComponents": 3,
+      "expectedFeatures": ["has_clock", "has_media"],
+      "weight": 2,
+      "tag": "media"
+    },
+    {
+      "id": "navigation-driving",
+      "scenarioText": "driving home with navigation directions and ETA",
+      "expectedSurface": "app",
+      "expectedComponents": ["container.status-bar-app", "container.header"],
+      "expectedMinComponents": 4,
+      "expectedFeatures": ["has_eta_or_nav"],
+      "weight": 2,
+      "tag": "navigation"
+    },
+    {
+      "id": "messages-summary",
+      "scenarioText": "checking new messages from Alex during a meeting",
+      "expectedSurface": "app",
+      "expectedComponents": ["container.status-bar-app"],
+      "expectedMinComponents": 3,
+      "expectedFeatures": ["has_message_or_notif"],
+      "weight": 2,
+      "tag": "messages",
+      "holdout": true
+    },
+    {
+      "id": "incoming-call",
+      "scenarioText": "incoming call from contact on lock screen",
+      "expectedSurface": "lock",
+      "expectedComponents": ["status-bar.default", "lock-screen.clock"],
+      "expectedMinComponents": 3,
+      "expectedFeatures": ["has_clock"],
+      "weight": 2,
+      "tag": "alert"
+    },
+    {
+      "id": "home-widgets",
+      "scenarioText": "home screen with weather and calendar widgets",
+      "expectedSurface": "home",
+      "expectedComponents": ["status-bar.default"],
+      "expectedMinComponents": 4,
+      "expectedFeatures": ["has_weather", "has_calendar_or_widget"],
+      "weight": 2,
+      "tag": "home-grid",
+      "holdout": true
+    },
+    {
+      "id": "cooking-timer",
+      "scenarioText": "cooking dinner with a 25 minute timer running",
+      "expectedSurface": "app",
+      "expectedComponents": ["container.status-bar-app", "container.header"],
+      "expectedMinComponents": 4,
+      "expectedFeatures": ["has_timer_or_subject"],
+      "weight": 1,
+      "tag": "task"
+    },
+    {
+      "id": "weather-forecast",
+      "scenarioText": "weather forecast for tomorrow with hourly breakdown",
+      "expectedSurface": "app",
+      "expectedComponents": ["container.status-bar-app", "container.header"],
+      "expectedMinComponents": 3,
+      "expectedFeatures": ["has_weather"],
+      "weight": 1,
+      "tag": "ambient"
+    },
+    {
+      "id": "settings-toggle-list",
+      "scenarioText": "settings page with toggle list for notifications",
+      "expectedSurface": "app",
+      "expectedComponents": ["container.status-bar-app", "container.header"],
+      "expectedMinComponents": 3,
+      "expectedFeatures": ["has_toggle_or_action"],
+      "weight": 1,
+      "tag": "settings"
+    },
+
+    {
+      "id": "notification-shade-pulldown",
+      "scenarioText": "pulling down the notification shade to see all recent alerts and messages",
+      "expectedSurface": "home",
+      "expectedComponents": ["status-bar.default"],
+      "expectedMinComponents": 4,
+      "expectedFeatures": ["has_message_or_notif", "has_status_signal"],
+      "weight": 2,
+      "tag": "overlay-shade"
+    },
+    {
+      "id": "quick-settings-overlay",
+      "scenarioText": "quick settings panel showing toggles for wifi, bluetooth, and flashlight",
+      "expectedSurface": "home",
+      "expectedComponents": ["status-bar.default"],
+      "expectedMinComponents": 3,
+      "expectedFeatures": ["has_toggle_or_action"],
+      "weight": 2,
+      "tag": "overlay-quick-settings"
+    },
+    {
+      "id": "charging-state-lock",
+      "scenarioText": "phone charging on lock screen showing battery percentage and charging speed",
+      "expectedSurface": "lock",
+      "expectedComponents": ["status-bar.default", "lock-screen.clock"],
+      "expectedMinComponents": 3,
+      "expectedFeatures": ["has_clock", "has_charging_or_battery"],
+      "weight": 2,
+      "tag": "lock-charging"
+    },
+    {
+      "id": "always-on-display",
+      "scenarioText": "always-on display at night showing just the time and notification dots",
+      "expectedSurface": "lock",
+      "expectedComponents": ["lock-screen.clock"],
+      "expectedMinComponents": 2,
+      "expectedFeatures": ["has_clock"],
+      "weight": 1,
+      "tag": "ambient-aod"
+    },
+    {
+      "id": "workout-tracking",
+      "scenarioText": "running workout tracker showing heart rate, distance, and elapsed time",
+      "expectedSurface": "app",
+      "expectedComponents": ["container.status-bar-app", "container.header"],
+      "expectedMinComponents": 4,
+      "expectedFeatures": ["has_status_signal", "has_timer_or_subject", "has_workout_or_activity"],
+      "weight": 2,
+      "tag": "fitness"
+    },
+    {
+      "id": "camera-capture",
+      "scenarioText": "camera app in photo mode with mode chips for portrait, video, and pro",
+      "expectedSurface": "app",
+      "expectedComponents": ["container.status-bar-app"],
+      "expectedMinComponents": 3,
+      "expectedFeatures": ["has_toggle_or_action", "has_camera_or_capture"],
+      "weight": 2,
+      "tag": "camera",
+      "holdout": true
+    },
+    {
+      "id": "gallery-photo-detail",
+      "scenarioText": "gallery viewing a single photo with edit, share, and delete actions",
+      "expectedSurface": "app",
+      "expectedComponents": ["container.status-bar-app", "container.header"],
+      "expectedMinComponents": 3,
+      "expectedFeatures": ["has_toggle_or_action"],
+      "weight": 1,
+      "tag": "gallery"
+    },
+    {
+      "id": "evening-commute-eta",
+      "scenarioText": "evening commute home with ETA and traffic info on lock screen",
+      "expectedSurface": "lock",
+      "expectedComponents": ["status-bar.default", "lock-screen.clock"],
+      "expectedMinComponents": 4,
+      "expectedFeatures": ["has_clock", "has_eta_or_nav"],
+      "weight": 2,
+      "tag": "lock-commute",
+      "holdout": true
+    },
+    {
+      "id": "bedtime-mode-lock",
+      "scenarioText": "bedtime mode active showing only the alarm time and Do Not Disturb status",
+      "expectedSurface": "lock",
+      "expectedComponents": ["lock-screen.clock"],
+      "expectedMinComponents": 2,
+      "expectedFeatures": ["has_clock"],
+      "weight": 1,
+      "tag": "bedtime"
+    },
+    {
+      "id": "bixby-voice-overlay",
+      "scenarioText": "Bixby voice assistant listening with waveform and suggested replies",
+      "expectedSurface": "app",
+      "expectedComponents": ["container.status-bar-app"],
+      "expectedMinComponents": 3,
+      "expectedFeatures": ["has_voice_or_assistant", "has_toggle_or_action"],
+      "weight": 1,
+      "tag": "voice-overlay"
+    }
+  ]
+}

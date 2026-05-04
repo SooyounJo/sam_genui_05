@@ -1,0 +1,140 @@
+{
+  "$schema": "design-rules-v1",
+  "description": "Unified design rules extracted from Figma nodes 3010:2143 (lock), 989:22754 (notif), 3010:2142 (qs). These tokens are the authoritative source. Any hardcoded font/color/radius/spacing value in templates.js or atomics.js should be replaced with a Generator.* helper call that reads this file.",
+  "source": {
+    "figmaFileKey": "kxDvBUif6pV502Si4RPidK",
+    "frames": ["3010:2143 Lock Screen", "989:22754 Notifications", "3010:2142 Quick Settings"]
+  },
+
+  "typography": {
+    "family": {
+      "system": "'One UI Sans APP VF', Inter, system-ui, sans-serif",
+      "clock":  "'Space Grotesk', Inter, system-ui, sans-serif"
+    },
+    "weight": {
+      "regular":  400,
+      "medium":   500,
+      "semibold": 600,
+      "bold":     700
+    },
+    "size": {
+      "micro":   10,
+      "caption": 12,
+      "label":   14,
+      "body":    15,
+      "title":   16,
+      "heading": 18,
+      "large":   20,
+      "date":    24,
+      "headline":26,
+      "hero":    112
+    },
+    "lineHeight": {
+      "tight":   12,
+      "snug":    14,
+      "normal":  20,
+      "hero":    82
+    },
+    "letterSpacing": {
+      "tight":   -2,
+      "normal":   0,
+      "micro":    0.1,
+      "small":    0.15,
+      "wide":     0.24
+    },
+    "color": {
+      "primary":          "#FFFFFF",
+      "secondary":        "#CFCCCF",
+      "tertiary":         "#D5D5D5",
+      "heading":          "#EFEEF2",
+      "statusBar":        "rgba(255,255,255,0.8)",
+      "widgetLabel":      "rgba(255,255,255,0.86)",
+      "sectionLabel":     "rgba(255,255,255,0.5)",
+      "translucentLabel": "rgba(255,255,255,0.75)"
+    }
+  },
+
+  "glass": {
+    "shortcutCircle": {
+      "bg":     "rgba(55,55,55,0.3)",
+      "blur":   6,
+      "border": "0.25px solid rgba(55,55,55,0.3)",
+      "_usage": "lock screen shortcut icons (phone/camera buttons)"
+    },
+    "widgetPill": {
+      "bg":     "rgba(23,23,26,0.3)",
+      "blur":   6,
+      "border": "0.25px solid rgba(55,55,55,0.3)",
+      "_usage": "lock screen widgets (battery arc, heart activity)"
+    },
+    "nowBar": {
+      "bg":     "rgba(23,23,26,0.3)",
+      "blur":   12,
+      "border": "0.25px solid rgba(55,55,55,0.3)",
+      "_usage": "live-activity bars (delivery, media, voice)"
+    },
+    "panel": {
+      "bg":     "rgba(23,23,26,0.3)",
+      "blur":   25,
+      "border": "1px solid rgba(255,255,255,0.2)",
+      "_usage": "QS grid panel, notif shade panel"
+    }
+  },
+
+  "radius": {
+    "small":     10,
+    "card":      14,
+    "medium":    18,
+    "widget":    20,
+    "pill":      32,
+    "dialog":    36,
+    "panel":     40,
+    "container": 50,
+    "circle":    63.636,
+    "_usage": "small=thumbnails, card=notifications, widget=lock widgets, pill=now-bar, dialog=media cards, panel=surface shells, container=QS tiles, circle=toggle buttons"
+  },
+
+  "spacing": {
+    "xs":  4,
+    "sm":  6,
+    "md":  8,
+    "base":10,
+    "lg":  12,
+    "xl":  14,
+    "xxl": 16,
+    "3xl": 18,
+    "4xl": 20,
+    "_usage": "xs=battery spacing, sm=status bar gap, md=toggle gap, base=notif flex gap, lg=status/time gap, xl=now-bar gap, xxl=card padding, 3xl=QS outer padding, 4xl=section gap"
+  },
+
+  "statusBar": {
+    "height":        44,
+    "paddingX":      10,
+    "paddingY":      16,
+    "gap":            6,
+    "carrierFontSize": 15,
+    "carrierWeight":  "bold",
+    "iconSize":       18,
+    "battery": {
+      "leftWidth":  15.414,
+      "rightWidth":  8.808,
+      "height":     16.515
+    },
+    "_usage": "same header structure on QS, Notif, Dialog. Lock is slightly different (51h, padding top-only) because it has no outer grid padding."
+  },
+
+  "wallpaper": {
+    "radius":     40,
+    "objectFit":  "cover",
+    "scrimAlpha": 0.2,
+    "_usage": "each surface has a wallpaper PNG at z=0, optional rgba(0,0,0,scrimAlpha) scrim for focal dialogs"
+  },
+
+  "surface": {
+    "width":  451,
+    "height": 978,
+    "radius": 40,
+    "outerPaddingX": 18,
+    "outerPaddingTop": 18
+  }
+}

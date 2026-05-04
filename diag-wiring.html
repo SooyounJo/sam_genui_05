@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Wiring Diagnostic — Rules Dispatch Path</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0b0b0e; color:#eaeaea; font-family:ui-monospace,monospace; padding:24px; min-height:100vh; font-size:13px; }
+  h1 { font-size:16px; margin-bottom:10px; }
+  .sub { color:#9a9aa2; margin-bottom:16px; }
+  button {
+    padding:8px 14px; margin:4px; border-radius:6px;
+    background:#0381fe; border:none; color:#fff; cursor:pointer;
+    font-family:inherit; font-size:13px;
+  }
+  button.secondary { background:#333; }
+  #log {
+    margin-top:16px; padding:12px; background:#000;
+    border-radius:6px; min-height:200px; white-space:pre-wrap;
+    color:#0FCF6E; max-height:70vh; overflow:auto;
+  }
+  #log .err { color:#E74C3C; }
+  #log .warn { color:#F79009; }
+  #log .info { color:#3E91FF; }
+
+  /* Simulate the genui.html canvas structure */
+  .test-frame {
+    position:relative; width:360px; height:780px;
+    border-radius:44px; overflow:hidden;
+    background:#171717; margin:16px 0;
+    box-shadow:0 16px 40px rgba(0,0,0,0.4);
+    border:2px solid rgba(60,60,66,0.9);
+  }
+  .test-inner {
+    position:absolute; inset:0;
+    padding:28px 0 0; overflow-y:auto;
+    display:flex; flex-direction:column;
+    zoom:0.78;
+  }
+</style>
+</head>
+<body>
+  <h1>🔌 Wiring Diagnostic — why rules don't show in genui.html</h1>
+  <p class="sub">This page loads the SAME scripts as genui.html, then tries each dispatch path.</p>
+
+  <div>
+    <button onclick="test1_checkLoad()">1. Check scripts loaded</button>
+    <button onclick="test2_callRules()">2. Call rules directly</button>
+    <button onclick="test3_renderFromRules()">3. Call renderFromRules</button>
+    <button onclick="test4_generateScenario()">4. Call generateScenario</button>
+    <button onclick="test5_generateVariants()">5. Full path: generateVariants</button>
+    <button class="secondary" onclick="document.getElementById('log').textContent=''">Clear</button>
+  </div>
+
+  <div class="test-frame" id="testFrame">
+    <div class="test-inner" id="canvas"></div>
+  </div>
+
+  <div id="log"></div>
+
+<!-- Load same scripts as genui.html, in same order -->
+<script src="ui-state.js"></script>
+<script src="figma-refs/icon_library.js"></script>
+<script src="generator.js"></script>
+<script src="design_memory.js"></script>
+<script src="app/state.js"></script>
+<script src="app/agent.js"></script>
+<script src="app/templates.js"></script>
+<script src="app/canvas.js"></script>
+<script src="app/settings.js"></script>
+<script src="app/atomics.js"></script>
+<script src="app/rules-renderer.js"></script>
+<script src="app/scenes.js"></script>
+<script src="app/ui-panels.js"></script>
+<script src="app/main.js"></script>
+
+<script>
+  var logEl = document.getElementById('log');
+  function log(msg, cls) {
+    var line = document.createElement('div');
+    if (cls) line.className = cls;
+    line.textContent = msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+    console.log(msg);
+  }
+  function logJSON(label, obj) {
+    try { log(label + ' ' + JSON.stringify(obj, null, 2).substring(0, 400)); }
+    catch(e) { log(label + ' [unserializable]'); }
+  }
+
+  // Intercept console.log temporarily so we can capture rules-renderer output
+  var origLog = console.log;
+  console.log = function () {
+    var msg = Array.prototype.slice.call(arguments).map(function (a) {
+      return typeof a === 'string' ? a : JSON.stringify(a);
+    }).join(' ');
+    if (msg.indexOf('[rules-renderer]') === 0 || msg.indexOf('[generateScenario]') === 0) {
+      var line = document.createElement('div');
+      line.className = 'info';
+      line.textContent = msg;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    origLog.apply(console, arguments);
+  };
+  window.addEventListener('error', function (e) {
+    log('ERROR: ' + e.message + '  at ' + e.filename + ':' + e.lineno, 'err');
+  });
+
+  function test1_checkLoad() {
+    log('--- Test 1: Script load check ---');
+    log('window.Generator: ' + typeof window.Generator);
+    log('Generator.lockScreenRules: ' + typeof (window.Generator && window.Generator.lockScreenRules));
+    log('Generator.quickSettingsRules: ' + typeof (window.Generator && window.Generator.quickSettingsRules));
+    log('Generator.notificationShadeRules: ' + typeof (window.Generator && window.Generator.notificationShadeRules));
+    log('window.GalaxyAtomics: ' + typeof window.GalaxyAtomics);
+    log('GalaxyAtomics.QSScreen: ' + typeof (window.GalaxyAtomics && window.GalaxyAtomics.QSScreen));
+    log('GalaxyAtomics.NotifScreen: ' + typeof (window.GalaxyAtomics && window.GalaxyAtomics.NotifScreen));
+    log('GalaxyAtomics.StatusBar: ' + typeof (window.GalaxyAtomics && window.GalaxyAtomics.StatusBar));
+    log('window.renderFromRules: ' + typeof window.renderFromRules);
+    log('window.isRulesScenario: ' + typeof window.isRulesScenario);
+    log('window.generateScenario: ' + typeof window.generateScenario);
+    log('window.generateVariants: ' + typeof window.generateVariants);
+    log('agentSession: ' + (typeof agentSession !== 'undefined' ? agentSession.mode : '(undefined)'));
+  }
+
+  function test2_callRules() {
+    log('--- Test 2: Call rules directly ---');
+    try {
+      var plan = window.Generator.quickSettingsRules({});
+      log('QS plan components: ' + plan.components.length, 'info');
+      log('  role: ' + plan.components[0].role);
+    } catch (e) { log('ERROR: ' + e.message, 'err'); }
+    try {
+      var plan2 = window.Generator.notificationShadeRules({});
+      log('Notif plan components: ' + plan2.components.length, 'info');
+      log('  role: ' + plan2.components[0].role);
+    } catch (e) { log('ERROR: ' + e.message, 'err'); }
+    try {
+      var plan3 = window.Generator.lockScreenRules({});
+      log('Lock plan components: ' + plan3.components.length, 'info');
+      plan3.components.forEach(function (c) { log('  ' + c.role + ' @ ' + c.position.x + ',' + c.position.y); });
+    } catch (e) { log('ERROR: ' + e.message, 'err'); }
+  }
+
+  function test3_renderFromRules() {
+    log('--- Test 3: renderFromRules(quicksettings) ---');
+    try {
+      var result = window.renderFromRules('quicksettings');
+      log('renderFromRules returned: ' + result, result ? 'info' : 'err');
+      log('canvas children: ' + document.getElementById('canvas').children.length);
+    } catch (e) { log('ERROR: ' + e.message + '\n' + (e.stack||''), 'err'); }
+  }
+
+  function test4_generateScenario() {
+    log('--- Test 4: generateScenario(quicksettings) ---');
+    try {
+      window.generateScenario('quicksettings');
+      var canvas = document.getElementById('canvas');
+      var badge = canvas.querySelector('[data-rules-badge]');
+      log('RULES badge present? ' + (badge ? 'YES' : 'NO'), badge ? 'info' : 'err');
+      log('canvas children count: ' + canvas.children.length);
+      // Dump direct children
+      Array.prototype.forEach.call(canvas.children, function (c, i) {
+        log('  child[' + i + ']: ' + c.tagName + (c.className ? ' .' + c.className : '') + (c.id ? ' #' + c.id : ''));
+      });
+      log('canvas innerHTML length: ' + canvas.innerHTML.length);
+      log('canvas computed display: ' + getComputedStyle(canvas).display + ' size: ' + canvas.offsetWidth + 'x' + canvas.offsetHeight);
+      log('canvas dataset.rulesMode: ' + canvas.dataset.rulesMode);
+      log('rulesInner present? ' + !!canvas._rulesInner + ' children: ' + (canvas._rulesInner ? canvas._rulesInner.children.length : 'n/a'));
+    } catch (e) { log('ERROR: ' + e.message + '\n' + (e.stack||''), 'err'); }
+  }
+
+  function test5_generateVariants() {
+    log('--- Test 5: generateVariants(quicksettings) — full path ---');
+    log('agentSession.mode = ' + agentSession.mode);
+    if (agentSession.mode === 'agent') {
+      log('Switching to local for this test', 'warn');
+      agentSession.mode = 'local';
+    }
+    try {
+      window.generateVariants('quicksettings');
+      log('canvas children after: ' + document.getElementById('canvas').children.length);
+      var rulesItems = document.querySelectorAll('.rules-item');
+      log('.rules-item count: ' + rulesItems.length, rulesItems.length > 0 ? 'info' : 'err');
+    } catch (e) { log('ERROR: ' + e.message + '\n' + (e.stack||''), 'err'); }
+  }
+
+  // Auto-run test 1 on load
+  window.addEventListener('load', function () {
+    setTimeout(test1_checkLoad, 100);
+  });
+</script>
+</body>
+</html>

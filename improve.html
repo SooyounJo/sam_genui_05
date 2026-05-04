@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>System Improvement Dashboard · One UI GenUI</title>
+<!-- Theme bootstrap — see genui.html for full doc. -->
+<style id="theme-vars"></style>
+<script>
+  (function _bootApplyTheme() {
+    fetch('/api/themes', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => {
+        if (!data || !data.themes) return;
+        const active = data.themes.find(t => t.id === data._active) || data.themes[0];
+        if (!active || !active.vars) return;
+        const css = ':root {\n' +
+          Object.entries(active.vars).map(([k, v]) => '  ' + k + ': ' + v + ';').join('\n') +
+        '\n}';
+        const style = document.getElementById('theme-vars');
+        if (style) style.textContent = css;
+      })
+      .catch(() => {});
+  })();
+</script>
+<style>
+  :root {
+    --bg:        #0a0a0c;
+    --panel:     rgba(23, 23, 26, 0.6);
+    --panel-2:   rgba(35, 35, 40, 0.7);
+    --border:    rgba(255, 255, 255, 0.08);
+    --text:      #efeef2;
+    --text-2:    rgba(239, 238, 242, 0.7);
+    --text-3:    rgba(239, 238, 242, 0.45);
+    --primary:   #0381FE;
+    --accent:    #A78BFA;
+    --positive:  #34D399;
+    --negative:  #EF4444;
+    --warning:   #F59E0B;
+    --font:      -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.45;
+    min-height: 100vh;
+  }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 16px;
+  }
+  header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  header .sub { color: var(--text-3); font-size: 13px; }
+  header .nav { margin-left: auto; display: flex; gap: 12px; }
+  header .nav a {
+    padding: 6px 12px; border-radius: 8px;
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text-2); font-size: 13px;
+  }
+
+  main { padding: 24px 32px 80px; max-width: 1200px; margin: 0 auto; }
+
+  .grid { display: grid; gap: 16px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .panel h2 {
+    margin: 0 0 12px; font-size: 13px; font-weight: 600;
+    color: var(--text-3); text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .panel .big {
+    font-size: 36px; font-weight: 600; line-height: 1; letter-spacing: -0.5px;
+  }
+  .panel .delta {
+    margin-left: 8px; font-size: 14px; font-weight: 500;
+  }
+  .delta.positive { color: var(--positive); }
+  .delta.negative { color: var(--negative); }
+  .delta.neutral  { color: var(--text-3); }
+
+  button {
+    background: var(--primary); color: #fff;
+    border: 0; border-radius: 10px;
+    padding: 10px 18px; font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: inherit;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  button:hover  { opacity: 0.9; }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
+  button.danger    { background: var(--negative); }
+
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .spacer { flex: 1; }
+
+  .rule-list { display: flex; flex-direction: column; gap: 8px; }
+  .rule-item {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .rule-item .badge {
+    padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
+    background: rgba(167, 139, 250, 0.18); color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  .rule-item .badge.evolve   { background: rgba(167, 139, 250, 0.18); color: var(--accent); }
+  .rule-item .badge.context  { background: rgba(52, 211, 153, 0.18); color: var(--positive); }
+  .rule-item .badge.composer,
+  .rule-item .badge.selector { background: rgba(245, 158, 11, 0.18); color: var(--warning); }
+  .rule-item .body { flex: 1; min-width: 0; }
+  .rule-item .body .top {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px; font-size: 13px;
+  }
+  .rule-item .body .top strong { font-weight: 600; }
+  .rule-item .body .reason { color: var(--text-2); font-size: 12.5px; line-height: 1.45; }
+  .rule-item .body .meta {
+    margin-top: 6px; color: var(--text-3); font-size: 11.5px;
+    display: flex; gap: 12px;
+  }
+  .rule-item .body .meta .delta-pct.positive { color: var(--positive); }
+  .rule-item .body .meta .delta-pct.negative { color: var(--negative); }
+
+  .empty { color: var(--text-3); font-size: 13px; padding: 12px 0; text-align: center; }
+
+  .log {
+    background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+    font-family: 'SF Mono', Menlo, monospace; font-size: 12.5px;
+    color: var(--text-2); line-height: 1.55;
+    max-height: 240px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word;
+  }
+
+  /* Score chart — minimal sparkline */
+  .chart {
+    height: 80px; position: relative;
+    display: flex; align-items: flex-end; gap: 6px;
+  }
+  .chart .bar {
+    flex: 1; background: linear-gradient(180deg, var(--primary), rgba(3, 129, 254, 0.3));
+    border-radius: 3px 3px 0 0; min-height: 4px;
+    position: relative;
+  }
+  .chart .bar:hover::after {
+    content: attr(data-label);
+    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    background: #000; color: #fff; padding: 3px 6px; border-radius: 4px;
+    font-size: 11px; white-space: nowrap; z-index: 10;
+  }
+
+  table.runs {
+    width: 100%; border-collapse: collapse; font-size: 12.5px;
+  }
+  table.runs th, table.runs td {
+    padding: 8px 10px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  table.runs th {
+    color: var(--text-3); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.4px; font-size: 11px;
+  }
+  table.runs td.score { font-weight: 600; }
+  table.runs td.score.high { color: var(--positive); }
+  table.runs td.score.mid  { color: var(--warning); }
+  table.runs td.score.low  { color: var(--negative); }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    background: rgba(255,255,255,0.08); font-size: 11.5px; font-weight: 500;
+  }
+  .status-pill.idle    { color: var(--text-3); }
+  .status-pill.running { color: var(--warning); background: rgba(245, 158, 11, 0.15); }
+  .status-pill.running::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--warning); animation: pulse 1.2s infinite;
+  }
+  .status-pill.done { color: var(--positive); background: rgba(52, 211, 153, 0.15); }
+  @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.4;} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>System Improvement</h1>
+  <span class="sub">Self-improving pipeline · score-driven rule discovery</span>
+  <div class="nav">
+    <a href="/">← GenUI</a>
+    <a href="/api/improve/test-suite" target="_blank">Test Suite</a>
+    <a href="/api/improve/learned"     target="_blank">Learned Rules</a>
+    <a href="/api/improve/history"     target="_blank">History</a>
+  </div>
+</header>
+
+<main>
+  <!-- Top KPI row -->
+  <div class="grid grid-3" id="kpi-row">
+    <div class="panel">
+      <h2>Latest Score</h2>
+      <div><span class="big" id="kpi-score">—</span><span class="delta neutral" id="kpi-delta">—</span></div>
+    </div>
+    <div class="panel">
+      <h2>Active Learned Rules</h2>
+      <div class="big" id="kpi-rules">—</div>
+    </div>
+    <div class="panel">
+      <h2>Last Run</h2>
+      <div class="big" id="kpi-when" style="font-size: 16px;">—</div>
+    </div>
+  </div>
+
+  <!-- Action row -->
+  <div class="panel" style="margin-top:16px;">
+    <h2>Run Improvement</h2>
+    <div class="row">
+      <button id="btn-suite">Run Test Suite (≈6 min)</button>
+      <button id="btn-extract" class="secondary">Extract Patterns (LLM)</button>
+      <button id="btn-cycle">Run Full Cycle (≈30 min)</button>
+      <span class="spacer"></span>
+      <span class="status-pill idle" id="status-pill">Idle</span>
+    </div>
+    <div class="log" id="log" style="margin-top:12px; display:none;"></div>
+  </div>
+
+  <!-- Score history sparkline -->
+  <div class="panel" style="margin-top:16px;">
+    <h2>Score History (Cumulative)</h2>
+    <div class="chart" id="score-chart"></div>
+    <div style="margin-top:8px; color: var(--text-3); font-size: 12px;" id="chart-caption">No history yet — run the test suite.</div>
+  </div>
+
+  <!-- Two-column: latest run details + active rules -->
+  <div class="grid grid-2" style="margin-top:16px;">
+    <div class="panel">
+      <h2>Latest Run · Per-Scenario</h2>
+      <table class="runs" id="runs-table">
+        <thead>
+          <tr><th>Scenario</th><th>Score</th><th>Visible</th><th>Surface</th><th>Drops</th></tr>
+        </thead>
+        <tbody><tr><td colspan="5" class="empty">No data — run the test suite first.</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2>Active Learned Rules</h2>
+      <div class="rule-list" id="learned-list">
+        <div class="empty">No rules learned yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent rejected rules (transparency) -->
+  <div class="panel" style="margin-top:16px;">
+    <h2>Recently Rejected Proposals (transparency)</h2>
+    <div class="rule-list" id="rejected-list">
+      <div class="empty">None.</div>
+    </div>
+  </div>
+</main>
+
+<script>
+'use strict';
+
+// ---------------------------------------------------------------------------
+//  State
+// ---------------------------------------------------------------------------
+let HISTORY = [];          // array of { name, summary } for each saved cycle
+let LATEST  = null;         // most-recent cycle report (full)
+let LEARNED = { runtime: {}, persisted: { rules: [], rejected: [] } };
+
+// ---------------------------------------------------------------------------
+//  Helpers
+// ---------------------------------------------------------------------------
+function $(id) { return document.getElementById(id); }
+function el(tag, attrs, children) {
+  const e = document.createElement(tag);
+  if (attrs) Object.keys(attrs).forEach(k => {
+    if (k === 'class') e.className = attrs[k];
+    else if (k === 'html') e.innerHTML = attrs[k];
+    else e.setAttribute(k, attrs[k]);
+  });
+  (children || []).forEach(c => {
+    if (typeof c === 'string') e.appendChild(document.createTextNode(c));
+    else if (c) e.appendChild(c);
+  });
+  return e;
+}
+async function fetchJSON(url, options) {
+  const res = await fetch(url, options || {});
+  if (!res.ok) throw new Error(url + ' → HTTP ' + res.status);
+  return res.json();
+}
+function setStatus(state, label) {
+  const p = $('status-pill');
+  p.className = 'status-pill ' + state;
+  p.textContent = label;
+}
+function logLine(msg) {
+  const l = $('log'); l.style.display = 'block';
+  l.textContent += (l.textContent ? '\n' : '') + msg;
+  l.scrollTop = l.scrollHeight;
+}
+function clearLog() { $('log').textContent = ''; $('log').style.display = 'none'; }
+function fmt(n) {
+  if (n == null) return '—';
+  if (typeof n !== 'number') return String(n);
+  return n >= 0 ? '+' + n : String(n);
+}
+function fmtPct(n) {
+  if (n == null) return '—';
+  return (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
+}
+function deltaClass(n) {
+  if (n == null || n === 0) return 'neutral';
+  return n > 0 ? 'positive' : 'negative';
+}
+
+// ---------------------------------------------------------------------------
+//  Render — top KPIs
+// ---------------------------------------------------------------------------
+function renderKPI() {
+  if (!LATEST) {
+    $('kpi-score').textContent = '—';
+    $('kpi-delta').textContent = '—';
+    $('kpi-delta').className = 'delta neutral';
+  } else {
+    const score = LATEST.summary && LATEST.summary.cumulativeScore;
+    $('kpi-score').textContent = score != null ? score : '—';
+    if (HISTORY.length >= 2) {
+      const prev = HISTORY[1] && HISTORY[1].summary && HISTORY[1].summary.cumulativeScore;
+      if (prev != null) {
+        const d = score - prev;
+        $('kpi-delta').textContent = fmt(d) + ' vs previous';
+        $('kpi-delta').className = 'delta ' + deltaClass(d);
+      }
+    } else {
+      $('kpi-delta').textContent = 'first run';
+      $('kpi-delta').className = 'delta neutral';
+    }
+  }
+  // active rules count (persisted + active status)
+  const activeRules = (LEARNED.persisted.rules || []).filter(r => r.status === 'active');
+  $('kpi-rules').textContent = activeRules.length;
+  // last run timestamp
+  if (LATEST && LATEST.summary && LATEST.summary.builtAt) {
+    const d = new Date(LATEST.summary.builtAt);
+    const now = new Date();
+    const diffM = Math.round((now - d) / 60000);
+    if (diffM < 1) $('kpi-when').textContent = 'just now';
+    else if (diffM < 60) $('kpi-when').textContent = diffM + ' min ago';
+    else if (diffM < 60*24) $('kpi-when').textContent = Math.round(diffM/60) + ' h ago';
+    else $('kpi-when').textContent = d.toLocaleDateString();
+  } else {
+    $('kpi-when').textContent = 'never';
+  }
+}
+
+// ---------------------------------------------------------------------------
+//  Render — score chart
+// ---------------------------------------------------------------------------
+function renderChart() {
+  const chart = $('score-chart');
+  chart.innerHTML = '';
+  const points = HISTORY.slice(0, 12).reverse();   // oldest → newest, max 12
+  if (points.length === 0) {
+    $('chart-caption').textContent = 'No history yet — run the test suite.';
+    return;
+  }
+  const scores = points.map(p => p.summary && p.summary.cumulativeScore || 0);
+  const max = Math.max(...scores, 1);
+  points.forEach((p, i) => {
+    const score = p.summary && p.summary.cumulativeScore;
+    const bar = el('div', {
+      class: 'bar',
+      'data-label': new Date(p.summary && p.summary.builtAt || 0).toLocaleString() + ' · ' + score
+    });
+    bar.style.height = (Math.max(score / max, 0.05) * 100) + '%';
+    chart.appendChild(bar);
+  });
+  $('chart-caption').textContent = points.length + ' run(s) shown · oldest left, latest right';
+}
+
+// ---------------------------------------------------------------------------
+//  Render — runs table
+// ---------------------------------------------------------------------------
+function renderRunsTable() {
+  const tbody = $('runs-table').querySelector('tbody');
+  tbody.innerHTML = '';
+  const runs = (LATEST && LATEST.runs) || [];
+  if (runs.length === 0) {
+    tbody.appendChild(el('tr', {}, [el('td', { colspan: 5, class: 'empty' }, ['No data — run the test suite first.'])]));
+    return;
+  }
+  runs.forEach(r => {
+    const score = r.score;
+    const cls = score == null ? '' : score >= 80 ? 'high' : score >= 40 ? 'mid' : 'low';
+    tbody.appendChild(el('tr', {}, [
+      el('td', {}, [r.scenarioId]),
+      el('td', { class: 'score ' + cls }, [score == null ? '—' : String(score)]),
+      el('td', {}, [String(r.visibleCount || 0)]),
+      el('td', {}, [r.actualSurface || '—']),
+      el('td', {}, [String((r.droppedComponents || []).length)])
+    ]));
+  });
+}
+
+// ---------------------------------------------------------------------------
+//  Render — learned + rejected rule lists
+// ---------------------------------------------------------------------------
+function renderRuleList(containerId, rules, empty) {
+  const c = $(containerId);
+  c.innerHTML = '';
+  if (!rules || rules.length === 0) {
+    c.appendChild(el('div', { class: 'empty' }, [empty]));
+    return;
+  }
+  rules.forEach(r => {
+    const typeShort = (r.type || '').replace(/_/g, ' ');
+    const cls = r.type === 'evolve_constraint' ? 'evolve'
+              : r.type === 'context_injection' ? 'context'
+              : r.type === 'composer_hint'     ? 'composer'
+              : r.type === 'selector_hint'     ? 'selector'
+              : '';
+    const top = el('div', { class: 'top' }, [
+      el('strong', {}, [_summarizeRulePayload(r)])
+    ]);
+    const reason = el('div', { class: 'reason' }, [r.reason || '(no reason)']);
+    const meta = el('div', { class: 'meta' }, []);
+    if (r.confidence != null)  meta.appendChild(el('span', {}, ['conf ' + r.confidence.toFixed(2)]));
+    if (r.trial && r.trial.deltaPct != null) {
+      meta.appendChild(el('span', { class: 'delta-pct ' + deltaClass(r.trial.deltaPct) },
+        ['Δ ' + fmtPct(r.trial.deltaPct)]));
+    }
+    if (r.addedAt)    meta.appendChild(el('span', {}, ['added ' + new Date(r.addedAt).toLocaleString()]));
+    if (r.rejectedAt) meta.appendChild(el('span', {}, ['rejected ' + new Date(r.rejectedAt).toLocaleString()]));
+    if (r.verdict)    meta.appendChild(el('span', {}, [r.verdict]));
+
+    c.appendChild(el('div', { class: 'rule-item' }, [
+      el('div', { class: 'badge ' + cls }, [typeShort]),
+      el('div', { class: 'body' }, [top, reason, meta])
+    ]));
+  });
+}
+function _summarizeRulePayload(rule) {
+  const p = rule.payload || {};
+  if (rule.type === 'context_injection') return p.tag + ' → ' + (p.componentIds || []).join(', ');
+  if (rule.type === 'evolve_constraint') return '(' + (p.type || 'general') + ') ' + (p.constraint || '');
+  if (rule.type === 'composer_hint' || rule.type === 'selector_hint') return p.hint || '';
+  return JSON.stringify(p);
+}
+
+// ---------------------------------------------------------------------------
+//  Loaders
+// ---------------------------------------------------------------------------
+async function loadHistory() {
+  try {
+    const list = await fetchJSON('/api/improve/history');
+    const reports = list.reports || [];
+    HISTORY = [];
+    for (const fname of reports.slice(0, 12)) {
+      try {
+        const r = await fetchJSON('/api/improve/history/' + fname);
+        HISTORY.push({ name: fname, summary: r.summary, runs: r.runs });
+      } catch (e) { /* skip */ }
+    }
+    LATEST = HISTORY[0] || null;
+  } catch (e) { console.warn('history load failed', e); }
+}
+async function loadLearned() {
+  try {
+    LEARNED = await fetchJSON('/api/improve/learned');
+  } catch (e) { console.warn('learned load failed', e); }
+}
+async function loadAll() {
+  await Promise.all([loadHistory(), loadLearned()]);
+  renderKPI();
+  renderChart();
+  renderRunsTable();
+  const active = (LEARNED.persisted.rules || []).filter(r => r.status === 'active');
+  renderRuleList('learned-list', active, 'No rules learned yet.');
+  const rejected = (LEARNED.persisted.rejected || []).slice(-10).reverse();
+  renderRuleList('rejected-list', rejected, 'None.');
+}
+
+// ---------------------------------------------------------------------------
+//  Action wiring
+// ---------------------------------------------------------------------------
+$('btn-suite').addEventListener('click', async () => {
+  if (!confirm('Run test suite? Takes ~6 minutes (10 scenarios).')) return;
+  setStatus('running', 'Running test suite…');
+  clearLog();
+  logLine('POST /api/improve/test-suite/run');
+  try {
+    const t0 = Date.now();
+    const r = await fetchJSON('/api/improve/test-suite/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    logLine('done in ' + elapsed + 's · cumulative=' + r.summary.cumulativeScore +
+            ' weightedAvg=' + r.summary.weightedAvgScore);
+    logLine('saved as: ' + r.summary.savedAs);
+    setStatus('done', 'Done · ' + r.summary.cumulativeScore);
+    await loadAll();
+  } catch (e) {
+    logLine('ERROR: ' + e.message);
+    setStatus('idle', 'Error');
+  }
+});
+
+$('btn-extract').addEventListener('click', async () => {
+  setStatus('running', 'Extracting patterns…');
+  clearLog();
+  logLine('POST /api/improve/extract (using latest report)');
+  try {
+    const r = await fetchJSON('/api/improve/extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    logLine('analysis: ' + (r.analysis || '(none)'));
+    logLine('proposed: ' + (r.proposedRules || []).length +
+            ' rules · rejected ' + r.rejectedCount + ' invalid');
+    (r.proposedRules || []).forEach((pr, i) => {
+      logLine('  ' + (i+1) + '. [' + pr.type + '] conf=' + pr.confidence +
+              ' — ' + (_summarizeRulePayload(pr).slice(0, 80)));
+    });
+    setStatus('done', (r.proposedRules || []).length + ' rules proposed');
+  } catch (e) {
+    logLine('ERROR: ' + e.message);
+    setStatus('idle', 'Error');
+  }
+});
+
+$('btn-cycle').addEventListener('click', async () => {
+  if (!confirm('Run full improvement cycle?\n\nThis runs:\n  1. Test suite (~6 min)\n  2. LLM pattern extraction (~10 sec)\n  3. Trial each proposed rule (~6 min each)\n  4. Persist accepted rules\n\nTotal: ~20–40 min depending on rule count.')) return;
+  setStatus('running', 'Running full cycle…');
+  clearLog();
+  logLine('POST /api/improve/cycle');
+  logLine('this will take a while — keep this tab open');
+  try {
+    const t0 = Date.now();
+    const r = await fetchJSON('/api/improve/cycle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    const elapsed = ((Date.now() - t0) / 1000 / 60).toFixed(1);
+    logLine('cycle done in ' + elapsed + ' min');
+    logLine('baseline=' + r.summary.baselineScore + ' final=' + r.summary.finalScore +
+            ' Δ=' + r.summary.improvement + ' (' + r.summary.improvementPct + '%)');
+    logLine('accepted=' + r.summary.acceptedCount + '/' +
+            (r.summary.acceptedCount + r.summary.rejectedCount));
+    if (r.accepted.length) {
+      logLine('Accepted rules:');
+      r.accepted.forEach(a => logLine('  ✓ ' + a.type + ' Δ=' + a.deltaPct.toFixed(2) + '%'));
+    }
+    if (r.rejected.length) {
+      logLine('Rejected:');
+      r.rejected.forEach(rj => logLine('  ✗ ' + rj.type + ' (' + rj.deltaPct.toFixed(2) + '%) — ' + rj.reason));
+    }
+    setStatus('done', 'Δ ' + fmtPct(r.summary.improvementPct));
+    await loadAll();
+  } catch (e) {
+    logLine('ERROR: ' + e.message);
+    setStatus('idle', 'Error');
+  }
+});
+
+// ---------------------------------------------------------------------------
+//  Boot
+// ---------------------------------------------------------------------------
+loadAll();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+{
+  "version": "0.1.0",
+  "description": "Learned refinement rules. Each rule has an analyzer (detect) + patcher (fix). Rules run automatically on every resolveScreenPlan call. New rules can be added from refine feedback without code changes.",
+
+  "rules": [
+    {
+      "id": "density-consecutive-chips",
+      "enabled": true,
+      "priority": 1,
+      "analyzer": {
+        "type": "consecutive-same-category",
+        "params": { "category": "selection", "minCount": 3, "area": "top-half" }
+      },
+      "patcher": {
+        "type": "group-wrap",
+        "params": {
+          "container": "horizontal-scroll",
+          "gap": 8,
+          "maxVisible": 2,
+          "overflowIndicator": true,
+          "wrapRadius": 16,
+          "wrapPadding": { "top": 4, "right": 8, "bottom": 4, "left": 8 }
+        }
+      },
+      "origin": "refine-feedback",
+      "description": "칩 3개+ 연속 배치 시 수평 스크롤 그룹으로 감싸 밀도 낮춤"
+    },
+    {
+      "id": "density-consecutive-cards",
+      "enabled": true,
+      "priority": 2,
+      "analyzer": {
+        "type": "consecutive-same-category",
+        "params": { "category": "container", "minCount": 4, "area": "any" }
+      },
+      "patcher": {
+        "type": "increase-gap",
+        "params": { "addGap": 8, "maxGap": 24 }
+      },
+      "origin": "design-guideline",
+      "description": "카드 4개+ 연속 시 간격 확대로 시각적 분리"
+    },
+    {
+      "id": "context-driving-voice-cta",
+      "enabled": true,
+      "priority": 1,
+      "analyzer": {
+        "type": "context-missing-component",
+        "params": {
+          "contextMatch": { "interactionMode": "driving" },
+          "requiredRole": "voice-cta",
+          "fallbackComponentId": "now-bar.single-line"
+        }
+      },
+      "patcher": {
+        "type": "insert-component",
+        "params": {
+          "componentId": "now-bar.single-line",
+          "position": "before-nav",
+          "slots": { "icon": "mic", "label": "음성으로 선택" },
+          "overrideTokens": { "background": "rgba(23,23,26,0.3)" }
+        }
+      },
+      "origin": "refine-feedback",
+      "description": "운전 상황에서 now-bar 음성 CTA 자동 삽입"
+    },
+    {
+      "id": "context-glanceable-reduce",
+      "enabled": true,
+      "priority": 1,
+      "analyzer": {
+        "type": "attention-overflow",
+        "params": { "attentionMode": "glanceable", "maxComponents": 4 }
+      },
+      "patcher": {
+        "type": "collapse-lowest",
+        "params": { "targetCount": 4 }
+      },
+      "origin": "design-guideline",
+      "description": "glanceable 모드에서 4개 초과 시 우선순위 낮은 것부터 숨김"
+    },
+    {
+      "id": "touch-target-undersized",
+      "enabled": true,
+      "priority": 0,
+      "analyzer": {
+        "type": "undersized-interactive",
+        "params": { "minSize": 48 }
+      },
+      "patcher": {
+        "type": "expand-to-min",
+        "params": { "minWidth": 48, "minHeight": 48 }
+      },
+      "origin": "global-rules",
+      "description": "인터랙티브 요소가 48dp 미만이면 자동 확장"
+    },
+    {
+      "id": "spacing-pair-violation",
+      "enabled": true,
+      "priority": 2,
+      "analyzer": {
+        "type": "pair-gap-violation",
+        "params": {}
+      },
+      "patcher": {
+        "type": "adjust-gap-to-rule",
+        "params": {}
+      },
+      "origin": "orchestration-rules",
+      "description": "인접 컴포넌트 간격이 orchestration_rules 기준에서 벗어나면 자동 보정"
+    }
+  ]
+}

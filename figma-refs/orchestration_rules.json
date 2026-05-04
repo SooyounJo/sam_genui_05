@@ -1,0 +1,436 @@
+{
+  "rules": [
+    {
+      "id": "appbar_to_content_gap",
+      "fromType": "appbar",
+      "toType": "content",
+      "context": "default",
+      "expectedGap": 0,
+      "tolerance": 1,
+      "severity": "high"
+    },
+    {
+      "id": "appbar_to_searchbar_gap",
+      "fromType": "appbar",
+      "toType": "search-bar",
+      "context": "default",
+      "expectedGap": 0,
+      "tolerance": 1,
+      "severity": "medium"
+    },
+    {
+      "id": "appbar_to_section-header_gap",
+      "fromType": "appbar",
+      "toType": "section-header",
+      "context": "default",
+      "expectedGap": 16,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "avatar_to_text_horizontal_gap",
+      "fromType": "avatar",
+      "toType": "text",
+      "context": "horizontal-row",
+      "expectedGap": 12,
+      "tolerance": 2,
+      "severity": "low"
+    },
+    {
+      "id": "brightness_to_tile-card_qs_gap",
+      "fromType": "brightness",
+      "toType": "media-card",
+      "context": "qs",
+      "expectedGap": 16,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "button_to_button_horizontal_gap",
+      "fromType": "button",
+      "toType": "button",
+      "context": "horizontal-row",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "button_to_button_vertical_gap",
+      "fromType": "button",
+      "toType": "button",
+      "context": "vertical-stack",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "card_to_card_gap",
+      "fromType": "card",
+      "toType": "card",
+      "context": "default",
+      "expectedGap": 12,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "card_to_card_same-group_gap",
+      "fromType": "card",
+      "toType": "card",
+      "context": "same-group",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "low"
+    },
+    {
+      "id": "chip_to_chip_horizontal_gap",
+      "fromType": "chip",
+      "toType": "chip",
+      "context": "horizontal-row",
+      "expectedGap": 6,
+      "tolerance": 2,
+      "severity": "low"
+    },
+    {
+      "id": "chip-row_to_content_gap",
+      "fromType": "chip-row",
+      "toType": "content",
+      "context": "default",
+      "expectedGap": 16,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "clock_to_date_lockscreen_gap",
+      "fromType": "clock",
+      "toType": "date",
+      "context": "lockscreen",
+      "expectedGap": 4,
+      "tolerance": 2,
+      "severity": "low"
+    },
+    {
+      "id": "clock_to_widget_lockscreen_gap",
+      "fromType": "clock",
+      "toType": "widget",
+      "context": "lockscreen",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "content_to_bottomnav_gap",
+      "fromType": "content",
+      "toType": "bottomnav",
+      "context": "default",
+      "expectedGap": 64,
+      "tolerance": 4,
+      "severity": "high"
+    },
+    {
+      "id": "content_to_navbar_gap",
+      "fromType": "content",
+      "toType": "navbar",
+      "context": "edge-to-edge",
+      "expectedGap": 20,
+      "tolerance": 2,
+      "severity": "high"
+    },
+    {
+      "id": "dialog_description_to_buttons_gap",
+      "fromType": "dialog",
+      "toType": "button",
+      "context": "modal",
+      "expectedGap": 24,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "dialog_title_to_description_gap",
+      "fromType": "dialog",
+      "toType": "content",
+      "context": "modal",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "low"
+    },
+    {
+      "id": "dock_to_navbar_gap",
+      "fromType": "dock",
+      "toType": "navbar",
+      "context": "home",
+      "expectedGap": 48,
+      "tolerance": 4,
+      "severity": "high"
+    },
+    {
+      "id": "dock_to_page-dots_gap",
+      "fromType": "dock",
+      "toType": "page-dots",
+      "context": "home",
+      "expectedGap": 12,
+      "tolerance": 2,
+      "severity": "low"
+    },
+    {
+      "id": "fab_to_bottomnav_gap",
+      "fromType": "fab",
+      "toType": "bottomnav",
+      "context": "default",
+      "expectedGap": 16,
+      "tolerance": 2,
+      "severity": "high"
+    },
+    {
+      "id": "fab_to_interactive_clearance",
+      "fromType": "fab",
+      "toType": "content",
+      "context": "default",
+      "expectedGap": 16,
+      "tolerance": 2,
+      "severity": "high"
+    },
+    {
+      "id": "icon_to_label_horizontal_gap",
+      "fromType": "icon",
+      "toType": "text",
+      "context": "horizontal-row",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "low"
+    },
+    {
+      "id": "icon-grid_column_gap",
+      "fromType": "icon-grid",
+      "toType": "icon-grid",
+      "context": "horizontal-row",
+      "expectedGap": 28,
+      "tolerance": 4,
+      "severity": "medium"
+    },
+    {
+      "id": "icon-grid_row_gap",
+      "fromType": "icon-grid",
+      "toType": "icon-grid",
+      "context": "vertical-stack",
+      "expectedGap": 20,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "input_to_helper_gap",
+      "fromType": "input",
+      "toType": "text",
+      "context": "form",
+      "expectedGap": 4,
+      "tolerance": 1,
+      "severity": "high"
+    },
+    {
+      "id": "input_to_input_gap",
+      "fromType": "input",
+      "toType": "input",
+      "context": "form",
+      "expectedGap": 16,
+      "tolerance": 2,
+      "severity": "high"
+    },
+    {
+      "id": "interactive_to_interactive_min_clearance",
+      "fromType": "button",
+      "toType": "button",
+      "context": "default",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "high"
+    },
+    {
+      "id": "list-item_to_list-item_gap",
+      "fromType": "list-item",
+      "toType": "list-item",
+      "context": "default",
+      "expectedGap": 0,
+      "tolerance": 1,
+      "severity": "low"
+    },
+    {
+      "id": "list-item_to_section-header_gap",
+      "fromType": "list-item",
+      "toType": "section-header",
+      "context": "default",
+      "expectedGap": 16,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "nowbar_to_navbar_lockscreen_gap",
+      "fromType": "now-bar",
+      "toType": "navbar",
+      "context": "lockscreen",
+      "expectedGap": 72,
+      "tolerance": 4,
+      "severity": "high"
+    },
+    {
+      "id": "nowbar_to_quick-action_lockscreen_gap",
+      "fromType": "now-bar",
+      "toType": "button",
+      "context": "lockscreen",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "notification-card_to_notification-card_gap",
+      "fromType": "notification-card",
+      "toType": "notification-card",
+      "context": "default",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "page-dots_to_grid_home_gap",
+      "fromType": "page-dots",
+      "toType": "icon-grid",
+      "context": "home",
+      "expectedGap": 12,
+      "tolerance": 2,
+      "severity": "low"
+    },
+    {
+      "id": "qs_action-bar_to_toggle-grid_gap",
+      "fromType": "appbar",
+      "toType": "qs-toggle",
+      "context": "qs",
+      "expectedGap": 0,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "qs_page-indicator_to_brightness_gap",
+      "fromType": "page-dots",
+      "toType": "brightness",
+      "context": "qs",
+      "expectedGap": 16,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "qs_tile-card_to_media_gap",
+      "fromType": "media-card",
+      "toType": "media-card",
+      "context": "qs",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "qs_toggle-grid_to_page-indicator_gap",
+      "fromType": "qs-toggle",
+      "toType": "page-dots",
+      "context": "qs",
+      "expectedGap": 12,
+      "tolerance": 2,
+      "severity": "low"
+    },
+    {
+      "id": "qs_toggle_to_toggle_horizontal_gap",
+      "fromType": "qs-toggle",
+      "toType": "qs-toggle",
+      "context": "horizontal-row",
+      "expectedGap": 12,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "qs_toggle_to_toggle_vertical_gap",
+      "fromType": "qs-toggle",
+      "toType": "qs-toggle",
+      "context": "vertical-stack",
+      "expectedGap": 16,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "searchbar_to_navbar_drawer_gap",
+      "fromType": "search-bar",
+      "toType": "navbar",
+      "context": "default",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "section-header_to_card_gap",
+      "fromType": "section-header",
+      "toType": "card",
+      "context": "default",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "statusbar_to_appbar_gap",
+      "fromType": "status-bar",
+      "toType": "appbar",
+      "context": "default",
+      "expectedGap": 0,
+      "tolerance": 1,
+      "severity": "high"
+    },
+    {
+      "id": "statusbar_to_content_gap",
+      "fromType": "status-bar",
+      "toType": "content",
+      "context": "lockscreen",
+      "expectedGap": 0,
+      "tolerance": 1,
+      "severity": "high"
+    },
+    {
+      "id": "tab_to_tabcontent_gap",
+      "fromType": "tab-bar",
+      "toType": "content",
+      "context": "default",
+      "expectedGap": 0,
+      "tolerance": 1,
+      "severity": "medium"
+    },
+    {
+      "id": "tab_to_tab_gap",
+      "fromType": "tab-bar",
+      "toType": "tab-bar",
+      "context": "horizontal-row",
+      "expectedGap": 0,
+      "tolerance": 1,
+      "severity": "low"
+    },
+    {
+      "id": "widget_to_searchbar_home_gap",
+      "fromType": "widget",
+      "toType": "search-bar",
+      "context": "home",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "widget_to_widget_horizontal_gap",
+      "fromType": "widget",
+      "toType": "widget",
+      "context": "horizontal-row",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "medium"
+    },
+    {
+      "id": "widget_to_widget_vertical_gap",
+      "fromType": "widget",
+      "toType": "widget",
+      "context": "vertical-stack",
+      "expectedGap": 8,
+      "tolerance": 2,
+      "severity": "medium"
+    }
+  ]
+}

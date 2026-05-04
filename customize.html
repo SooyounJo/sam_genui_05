@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Theme Customizer · One UI GenUI</title>
+<style>
+  :root {
+    --pg-bg:     #0a0a0c;
+    --panel:     rgba(23, 23, 26, 0.6);
+    --panel-2:   rgba(35, 35, 40, 0.7);
+    --border:    rgba(255, 255, 255, 0.08);
+    --text:      #efeef2;
+    --text-2:    rgba(239, 238, 242, 0.7);
+    --text-3:    rgba(239, 238, 242, 0.45);
+    --primary:   #0381FE;
+    --positive:  #34D399;
+    --warning:   #F59E0B;
+    --font:      -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  }
+  /* Theme variable defaults — overridden in real-time by the dropdown.
+     Mirrors figma-refs/themes.json#default. */
+  :root {
+    --oneui-theme-style: base;
+    --surface-bg: rgba(23,23,26,0.60);
+    --surface-border: 1px solid rgba(255,255,255,0.12);
+    --surface-shadow: none;
+    --surface-filter: blur(48px);
+    --surface-overlay: transparent;
+    --surface-overlay-opacity: 0;
+    --surface-bg-size: auto;
+    --surface-animation: none;
+    --card-radius: 36px;
+    --card-padding-v: 14px;
+    --card-padding-h: 16px;
+    --card-gap: 6px;
+    --card-weather-accent: #FBBF24;
+    --card-weather-temp-size: 52px;
+    --card-weather-temp-weight: 600;
+    --card-weather-temp-color: #fff;
+    --card-weather-temp-letterspacing: -1.5px;
+    --card-weather-icon-size: 44px;
+    --card-calendar-accent: #A78BFA;
+    --card-calendar-time-size: 22px;
+    --card-calendar-time-weight: 600;
+    --card-reminder-accent: #F59E0B;
+    --card-reminder-task-size: 16px;
+    --card-message-avatar-grad: linear-gradient(135deg,#34D399,#10B981);
+    --card-message-avatar-size: 32px;
+    --card-eta-accent: #14B8A6;
+    --card-eta-size: 40px;
+    --card-eta-icon-size: 32px;
+    --card-nav-accent: #14B8A6;
+    --card-nav-distance-size: 22px;
+    --card-nav-arrow-bg: rgba(20,184,166,0.25);
+    --card-ai-grad: linear-gradient(120deg, rgba(102,161,243,0.45) 0%, rgba(167,139,250,0.45) 50%, rgba(34,201,166,0.45) 100%);
+    --card-ai-shimmer-speed: 3.6s;
+    --card-input-topic-size: 20px;
+  }
+  @keyframes aiShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  @keyframes oneuiSurfaceShift {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+
+  * { box-sizing: border-box; }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary, #0381FE) rgba(10, 10, 12, 0.82);
+  }
+  *::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  *::-webkit-scrollbar-track {
+    background: rgba(10, 10, 12, 0.86);
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--primary, #0381FE), #35B7FF);
+    border: 3px solid rgba(10, 10, 12, 0.86);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #35B7FF, var(--primary, #0381FE));
+  }
+  *::-webkit-scrollbar-corner {
+    background: rgba(10, 10, 12, 0.86);
+  }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--page-bg, var(--pg-bg));
+    color: var(--text-primary, var(--text));
+    font-family: var(--font);
+    font-size: 14px; line-height: 1.45;
+    min-height: 100vh;
+  }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 16px;
+  }
+  header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  header .sub { color: var(--text-3); font-size: 13px; }
+  header .nav { margin-left: auto; display: flex; gap: 12px; }
+  header .nav a {
+    padding: 6px 12px; border-radius: 8px;
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text-2); font-size: 13px;
+  }
+
+  /* Toolbar (sticky theme dropdown + actions) */
+  .toolbar {
+    position: sticky; top: 0; z-index: 10;
+    padding: 14px 32px;
+    background: rgba(10, 10, 12, 0.95);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .toolbar label { font-size: 12.5px; color: var(--text-3); margin-right: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .preview-bg-swatches {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .preview-bg-swatches .swatch-label {
+    font-size: 12.5px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .preview-bg-swatch {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.22);
+    background: var(--swatch);
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.18);
+  }
+  .preview-bg-swatch[aria-pressed="true"] {
+    outline: 2px solid var(--primary, #0381FE);
+    outline-offset: 3px;
+  }
+  select.theme-select {
+    background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 36px 8px 12px;
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+    min-width: 240px;
+  }
+  .toolbar .spacer { flex: 1; }
+
+  button {
+    background: var(--primary); color: #fff;
+    border: 0; border-radius: 10px;
+    padding: 9px 18px; font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: inherit;
+  }
+  button:hover { opacity: 0.9; }
+  button.secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  main {
+    padding: 24px 32px 80px;
+    max-width: 1600px; margin: 0 auto;
+  }
+
+  /* Two-pane layout: editor (left, sticky-scroll) + preview (right).
+     The editor used to be collapsed and tucked under the preview, so
+     users couldn't tell the page was meant for editing. With the
+     editor as the LEFT primary pane and preview live on the right,
+     edits and their visual effect are visible at the same time. */
+  .layout-row {
+    display: grid;
+    grid-template-columns: minmax(380px, 460px) 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  .editor-col {
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .preview-col {
+    min-width: 0;          /* lets the grid shrink children */
+    background: var(--preview-bg, #539699);
+    border: 1px solid rgba(255, 255, 255, 0.055);
+    border-radius: 28px;
+    padding: 24px;
+  }
+  @media (max-width: 1080px) {
+    /* Stack vertically on narrow screens — editor first, preview after. */
+    .layout-row { grid-template-columns: 1fr; }
+    .editor-col { position: static; max-height: none; }
+  }
+
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(415px, 1fr));
+    gap: 22px;
+    position: relative;
+    padding: 0;
+  }
+  .preview-cell {
+    background: transparent;
+    border: 0;
+    border-radius: 24px;
+    padding: 0;
+    display: flex; flex-direction: column; gap: 10px;
+    cursor: pointer;
+    transition: outline 0.15s ease, border-color 0.15s ease;
+  }
+  .preview-cell:hover .stage > * { filter: brightness(1.05); }
+  .preview-cell.selected {
+    outline: 2px solid var(--primary, #0381FE);
+    outline-offset: 6px;
+  }
+  .preview-cell:focus-visible {
+    outline: 2px dashed rgba(3, 129, 254, 0.7);
+    outline-offset: 2px;
+  }
+  .preview-cell.selected:focus-visible {
+    outline: 2px solid var(--primary, #0381FE);
+  }
+  .preview-cell .name {
+    font-size: 11px; font-weight: 600;
+    color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .preview-cell .stage {
+    /* The card preview happens inside this stage. Width drives the
+       layout; height adapts to content (no forced min-height — that
+       was making short cards look loose with empty space below).
+       align-items: flex-start so cards size to content naturally. */
+    display: flex; align-items: flex-start; justify-content: stretch;
+    position: relative;
+    isolation: isolate;
+  }
+  .preview-cell .stage {
+    overflow: visible;
+  }
+  .preview-cell .stage .stage-scale {
+    transform-origin: top left;
+  }
+  .preview-cell .stage .stage-scale > * {
+    width: 100%;
+    height: 100%;
+  }
+  .preview-cell .stage::after {
+    content: none;
+  }
+  /* Double-click inspector: highlight the exact subtree (Figma-style). */
+  .preview-cell .stage .inspector-hit {
+    outline: 2px solid var(--primary, #0381FE);
+    outline-offset: 2px;
+    border-radius: 4px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Editor panel — primary surface of the page now. Always visible
+     in the left pane; was previously a collapsible hidden block. */
+  .editor-panel {
+    margin-top: 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .editor-panel header.editor-head {
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,12,0.5);
+  }
+  .editor-scope-hint {
+    font-size: 15px; font-weight: 600; color: var(--primary-light, #3E91FF);
+    line-height: 1.25;
+  }
+  .editor-scope-hint:empty { display: none; }
+  /* Nuclear option for true monochrome: filter the whole preview area. */
+  :root.is-mono-chroma .preview-grid,
+  :root.is-mono-chroma .toolbar,
+  :root.is-mono-chroma header {
+    filter: grayscale(1) contrast(1.02);
+  }
+  /* Legacy inspector tip (removed) — hide if cached HTML still injects it */
+  #editor-scope-sub,
+  .editor-scope-sub { display: none !important; }
+  .preview-col { position: relative; }
+
+  .editor-panel-toggle {
+    display: flex; align-items: flex-start; gap: 8px;
+    margin: 0; padding: 0; border: none; background: none; cursor: pointer;
+    color: inherit; text-align: left; flex: 1; min-width: 0;
+    font: inherit;
+  }
+  .editor-panel-toggle:focus-visible {
+    outline: 2px solid var(--primary, #0381FE); outline-offset: 2px; border-radius: 6px;
+  }
+  .editor-panel.is-collapsed .editor-body { display: none; }
+  .editor-panel .toggle-arrow {
+    transition: transform 0.2s ease; opacity: 0.55;
+    font-size: 14px; flex-shrink: 0; line-height: 1.4;
+    transform: rotate(90deg);
+  }
+  .editor-panel.is-collapsed .toggle-arrow { transform: rotate(0deg); }
+  .editor-panel .editor-body {
+    padding: 16px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: rgba(0, 0, 0, 0.22);
+  }
+  /* Each schema group (PAGE, Card globals, …) reads as its own card. */
+  .editor-section {
+    margin: 0;
+    padding: 14px 16px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+  }
+  .editor-section-toggle {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    width: 100%; margin: 0 0 12px; padding: 0 0 10px;
+    border: none; border-bottom: 1px solid var(--border);
+    background: none; cursor: pointer; font: inherit;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.55px;
+    color: var(--text-2);
+    text-align: left;
+  }
+  .editor-section-toggle:focus-visible {
+    outline: 2px solid var(--primary, #0381FE); outline-offset: 2px; border-radius: 4px;
+  }
+  .editor-section-toggle-label { min-width: 0; }
+  .editor-section-chev {
+    flex-shrink: 0; font-size: 10px; opacity: 0.65;
+    transition: transform 0.2s ease;
+  }
+  .editor-section-toggle[aria-expanded="false"] .editor-section-chev {
+    transform: rotate(-90deg);
+  }
+  .editor-section-body { padding-top: 2px; }
+  .editor-section-body[hidden] { display: none !important; }
+  .editor-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+    align-items: start;
+    gap: 12px 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .editor-row:last-child { border-bottom: 0; padding-bottom: 2px; }
+  .editor-row label {
+    font-size: 12.5px; color: var(--text-2);
+    line-height: 1.35;
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+  .editor-row .input-wrap {
+    display: flex; gap: 6px; align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .editor-row input[type="color"] {
+    width: 34px; height: 28px; padding: 0;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: transparent; cursor: pointer;
+  }
+  .editor-row input[type="text"],
+  .editor-row input[type="number"],
+  .editor-row select {
+    flex: 1; min-width: 0;
+    background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 8px; font-size: 12.5px; font-family: inherit;
+  }
+  .editor-row input[type="number"] { max-width: 80px; }
+  .editor-row input[data-role="color-text"] { min-width: 12em; flex: 2; }
+  .editor-row input[type="color"]:disabled { cursor: not-allowed; }
+  .editor-row .suffix { font-size: 11.5px; color: var(--text-3); }
+  .editor-actions {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    margin: 0;
+    padding: 14px 16px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+  }
+  .editor-actions .spacer { flex: 1; }
+  .editor-actions .hint { font-size: 11.5px; color: var(--text-3); }
+
+  /* Save toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    padding: 10px 20px; background: var(--positive); color: #062;
+    border-radius: 999px; font-weight: 600; font-size: 13px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .toast.show {
+    opacity: 1; transform: translateX(-50%) translateY(-8px);
+  }
+
+  /* "active theme" hint pill on header */
+  .active-pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(52, 211, 153, 0.15);
+    color: var(--positive);
+    font-size: 11.5px; font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Theme Customizer</h1>
+  <span class="sub">CSS variable presets · live preview · apply to whole site</span>
+  <span class="active-pill" id="active-pill">Default · One UI 8.5</span>
+  <div class="nav">
+    <a href="/">← GenUI</a>
+    <a href="/improve">Improvements</a>
+  </div>
+</header>
+
+<div class="toolbar">
+  <label>Theme</label>
+  <select id="theme-select" class="theme-select"></select>
+  <div class="preview-bg-swatches" id="preview-bg-swatches" aria-label="Preview background colors">
+    <span class="swatch-label">Preview BG</span>
+    <button type="button" class="preview-bg-swatch" data-preview-bg="#539699" style="--swatch:#539699" aria-label="민트 배경" aria-pressed="true"></button>
+    <button type="button" class="preview-bg-swatch" data-preview-bg="#6f7478" style="--swatch:#6f7478" aria-label="그레이 배경" aria-pressed="false"></button>
+    <button type="button" class="preview-bg-swatch" data-preview-bg="#0a0a0c" style="--swatch:#0a0a0c" aria-label="블랙 배경" aria-pressed="false"></button>
+    <button type="button" class="preview-bg-swatch" data-preview-bg="#f4f5f6" style="--swatch:#f4f5f6" aria-label="화이트 배경" aria-pressed="false"></button>
+  </div>
+  <span class="spacer"></span>
+  <!-- Unsaved-changes indicator. Appears the moment any editor input
+       changes a CSS variable, hides again on Save / Discard / dropdown
+       change. The pill makes it explicit that edits are live-previewed
+       but not persisted until "Save" is clicked. -->
+  <span id="unsaved-pill" style="display:none;padding:4px 10px;border-radius:999px;background:rgba(245,166,35,0.18);color:#F5A623;font-size:11.5px;font-weight:600;">Unsaved changes</span>
+</div>
+
+<main>
+  <div class="layout-row">
+    <!-- LEFT — Editor pane (sticky-scroll). The page exists to edit
+         theme tokens; the editor is the primary surface, not a hidden
+         collapsible footer like before. -->
+    <div class="editor-col">
+      <div class="editor-panel" id="editor-panel">
+        <header class="editor-head" id="editor-head">
+          <button type="button" class="editor-panel-toggle" id="editor-panel-toggle" aria-expanded="true" aria-controls="editor-body" title="편집 패널 접기/펼치기">
+            <span class="toggle-arrow" aria-hidden="true">›</span>
+            <span style="display:flex;flex-direction:column;gap:4px;min-width:0;text-align:left;">
+              <span id="editor-scope-hint" class="editor-scope-hint" aria-live="polite"></span>
+            </span>
+          </button>
+          <span style="color:var(--text-3);font-size:12px;white-space:nowrap;">live preview · save as custom</span>
+          <button type="button" id="btn-show-all-vars" class="secondary" style="font-size:12px;padding:6px 12px;display:none;white-space:nowrap;">모든 변수 보기</button>
+        </header>
+        <div class="editor-body" id="editor-body"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT — Live preview of every themed card. Updates in real-time
+         as the editor changes :root variables. -->
+    <div class="preview-col" id="preview-col">
+      <h2 style="font-size:14px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;margin:0 0 16px;">Live preview · all themed cards</h2>
+      <div class="preview-grid" id="preview-grid"></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast">Saved · theme applied</div>
+
+<!-- The renderer needs the same atomic + surface-layout helpers used by the main app.
+     We load it AFTER our boot block so window.renderAtomicForRole becomes
+     available without disturbing main-app rendering (it's just a function
+     export — no side effects on the customize page). -->
+<script src="app/atomics.js"></script>
+<script src="app/surface-layout.js"></script>
+
+<script>
+'use strict';
+
+// ---------------------------------------------------------------------------
+//  Sample card variants — what we feed each renderer to produce a preview.
+//  Each entry pairs a friendly label with the (atomic role, variant) tuple
+//  the renderer expects. See app/scenes.js _adaptForBodyAtomic for the
+//  shapes — we hand-build them here so the customize page is self-contained.
+// ---------------------------------------------------------------------------
+const PREVIEW_CARDS = [
+  {
+    name: 'Weather',
+    editSections: ['Page', 'Card globals', 'Weather card'],
+    role: 'focus-block',
+    variant: { kind: 'weather', temp: '23°', condition: 'Partly cloudy', location: 'Seoul', feels: '21°', icon: 'cloud-sun' }
+  },
+  {
+    name: 'Calendar',
+    editSections: ['Page', 'Card globals', 'Calendar card'],
+    role: 'focus-block',
+    variant: { kind: 'calendar', section: 'Next up · Today', time: '9:30 AM', duration: '30 min', title: 'Team stand-up', location: 'Studio A' }
+  },
+  {
+    name: 'Reminder',
+    editSections: ['Page', 'Card globals', 'Reminder card'],
+    role: 'focus-block',
+    variant: { kind: 'reminder', task: 'Review proposal', due: '5 PM', count: '3', section: 'TODAY · 3 ITEMS' }
+  },
+  {
+    name: 'Message',
+    editSections: ['Page', 'Card globals', 'Message card'],
+    role: 'focus-block',
+    variant: { kind: 'message', sender: 'Alex', preview: 'Running 10 min late — see you at coffee', section: 'MESSAGES · 2 NEW' }
+  },
+  {
+    name: 'ETA',
+    editSections: ['Page', 'Card globals', 'ETA card'],
+    role: 'focus-block',
+    variant: { kind: 'eta', eta: '12 min', destination: 'Home', traffic: 'Light traffic', route: 'via Hangang-daero' }
+  },
+  {
+    name: 'Input summary',
+    editSections: ['Page', 'Card globals', 'Input summary card'],
+    role: 'focus-block',
+    variant: { kind: 'input', section: 'SEARCH · COFFEE SHOPS', topic: 'Found 12 nearby', detail: '', facets: ['Vegetarian', 'Within 1 km', 'Open now'] }
+  },
+  {
+    name: 'AI notification',
+    editSections: ['Page', 'Card globals', 'AI notification'],
+    role: 'notif-card-ai',
+    variant: { title: 'Galaxy AI', subtitle: 'Your morning summary is ready', body: 'Your morning summary is ready', time: '8:21 AM', glyph: 'A', kind: 'ai' }
+  },
+  {
+    name: 'Notification',
+    editSections: ['Page', 'Card globals'],
+    role: 'notif-card',
+    variant: { title: 'WhatsApp', subtitle: 'Alex: Hey, are you around?', body: 'Alex: Hey, are you around?', time: '5m', glyph: 'W', accent: '#25D366' }
+  },
+  {
+    name: 'Navigation now-bar',
+    editSections: ['Page', 'Card globals', 'Navigation now-bar'],
+    role: 'now-bar',
+    variant: { type: 'navigation', distance: '200 m', direction: 'right', instruction: 'Turn right onto Hangang-daero', eta: '8 min' }
+  },
+  {
+    name: 'Voice (single-line)',
+    editSections: ['Page', 'Card globals', 'Navigation now-bar'],
+    role: 'now-bar',
+    variant: { type: 'single-line', label: 'Listening', listening: true }
+  },
+  {
+    name: 'Charging now-bar',
+    editSections: ['Page', 'Card globals', 'Navigation now-bar'],
+    role: 'now-bar',
+    variant: { type: 'charging', percent: 69 }
+  },
+  {
+    name: 'Action chips',
+    editSections: ['Page', 'Card globals'],
+    role: 'action-row',
+    variant: { actions: [{ label: 'Save', icon: 'bookmark', kind: 'primary' }, { label: 'Share', icon: 'share' }, { label: 'Edit', icon: 'edit' }] }
+  },
+  {
+    name: 'Quick toggles',
+    editSections: ['Page', 'Card globals'],
+    role: 'toggle-chip',
+    variant: { toggles: [
+      { name: 'Wi-Fi',      icon: 'wifi',       on: true  },
+      { name: 'Bluetooth',  icon: 'bluetooth',  on: true  },
+      { name: 'Flashlight', icon: 'flashlight', on: false },
+      { name: 'Airplane',   icon: 'airplane',   on: false }
+    ] }
+  }
+];
+
+function previewRectForCard(card) {
+  const role = card && card.role;
+  const variant = (card && card.variant) || {};
+  if (role === 'now-bar' && variant.type === 'charging') return { w: 248, h: 64, scale: 1 };
+  if (role === 'now-bar' && variant.type === 'single-line') return { w: 381, h: 58, scale: 1 };
+  if (role === 'now-bar') return { w: 248, h: 64, scale: 1 };
+  if (role === 'notif-card' || role === 'notif-card-ai') return { w: 415, h: 86, scale: 1 };
+  if (role === 'toggle-chip') return { w: 408, h: 88, scale: 1 };
+  if (role === 'action-row') return { w: 415, h: 345, scale: 1 };
+  if (role === 'focus-block' && variant.kind === 'weather') return { w: 415, h: 218, scale: 1 };
+  if (role === 'focus-block' && variant.kind === 'input') return { w: 415, h: 150, scale: 1 };
+  if (role === 'focus-block') return { w: 415, h: 135, scale: 1 };
+  return { w: 415, h: 120, scale: 1 };
+}
+
+// ---------------------------------------------------------------------------
+//  Editor schema — groups every customizable CSS variable by section and
+//  declares the appropriate input type. Adding a new var here is enough
+//  to expose it in the editor panel; no other code needs to change.
+//  Type semantics:
+//    color      → native swatch + text (hex, rgb(a), or CSS linear/radial/conic-gradient(...))
+//    color-rgba → <input type="text"> (free-form for rgba/oklch/etc)
+//    size       → <input type="number"> + 'px' suffix
+//    weight     → <select> with 400/500/600/700
+//    text       → <input type="text"> (gradients, letter-spacing strings)
+// ---------------------------------------------------------------------------
+const THEME_EDIT_SCHEMA = [
+  {
+    section: 'Page',
+    vars: [
+      { key: '--page-bg',          label: 'Background',     type: 'color' },
+      { key: '--text-primary',     label: 'Text · primary', type: 'color' },
+      { key: '--text-secondary',   label: 'Text · secondary (rgba)', type: 'color-rgba' },
+      { key: '--text-tertiary',    label: 'Text · tertiary (rgba)',  type: 'color-rgba' },
+      { key: '--accent-primary',   label: 'Accent · primary', type: 'color' }
+    ]
+  },
+  {
+    section: 'Card globals',
+    vars: [
+      { key: '--card-radius',     label: 'Corner radius',     type: 'size', min: 0,  max: 40, step: 1 },
+      { key: '--card-padding-v',  label: 'Padding · vertical',type: 'size', min: 0,  max: 40, step: 1 },
+      { key: '--card-padding-h',  label: 'Padding · horizontal', type: 'size', min: 0, max: 40, step: 1 },
+      { key: '--card-gap',        label: 'Inner gap',         type: 'size', min: 0,  max: 24, step: 1 }
+    ]
+  },
+  {
+    section: 'Weather card',
+    vars: [
+      { key: '--card-weather-accent',          label: 'Accent (icon)',   type: 'color' },
+      { key: '--card-weather-temp-color',      label: 'Temp color',      type: 'color' },
+      { key: '--card-weather-temp-size',       label: 'Temp size',       type: 'size', min: 16, max: 90, step: 1 },
+      { key: '--card-weather-temp-weight',     label: 'Temp weight',     type: 'weight' },
+      { key: '--card-weather-temp-letterspacing', label: 'Temp letter-spacing', type: 'text' },
+      { key: '--card-weather-icon-size',       label: 'Icon size',       type: 'size', min: 16, max: 80, step: 1 }
+    ]
+  },
+  {
+    section: 'Calendar card',
+    vars: [
+      { key: '--card-calendar-accent',         label: 'Accent (cal icon)', type: 'color' },
+      { key: '--card-calendar-time-size',      label: 'Time size',         type: 'size', min: 12, max: 50, step: 1 },
+      { key: '--card-calendar-time-weight',    label: 'Time weight',       type: 'weight' }
+    ]
+  },
+  {
+    section: 'Reminder card',
+    vars: [
+      { key: '--card-reminder-accent',         label: 'Accent (checkbox)', type: 'color' },
+      { key: '--card-reminder-task-size',      label: 'Task size',         type: 'size', min: 12, max: 28, step: 1 }
+    ]
+  },
+  {
+    section: 'Message card',
+    vars: [
+      { key: '--card-message-avatar-grad',     label: 'Avatar gradient (CSS)', type: 'text' },
+      { key: '--card-message-avatar-size',     label: 'Avatar size',           type: 'size', min: 18, max: 56, step: 1 }
+    ]
+  },
+  {
+    section: 'ETA card',
+    vars: [
+      { key: '--card-eta-accent',              label: 'Accent (car icon)', type: 'color' },
+      { key: '--card-eta-size',                label: 'ETA size',          type: 'size', min: 18, max: 64, step: 1 },
+      { key: '--card-eta-icon-size',           label: 'Icon size',         type: 'size', min: 16, max: 60, step: 1 }
+    ]
+  },
+  {
+    section: 'Navigation now-bar',
+    vars: [
+      { key: '--card-nav-accent',              label: 'Accent (arrow)',    type: 'color' },
+      { key: '--card-nav-distance-size',       label: 'Distance size',     type: 'size', min: 12, max: 40, step: 1 },
+      { key: '--card-nav-arrow-bg',            label: 'Arrow bg (rgba)',   type: 'color-rgba' }
+    ]
+  },
+  {
+    section: 'AI notification',
+    vars: [
+      { key: '--card-ai-grad',                 label: 'Background gradient', type: 'text' },
+      { key: '--card-ai-shimmer-speed',        label: 'Shimmer speed (e.g. 3.6s)', type: 'text' }
+    ]
+  },
+  {
+    section: 'Input summary card',
+    vars: [
+      { key: '--card-input-topic-size',        label: 'Topic size',        type: 'size', min: 14, max: 36, step: 1 }
+    ]
+  }
+];
+
+// ---------------------------------------------------------------------------
+//  State
+// ---------------------------------------------------------------------------
+let THEMES = [];
+let ACTIVE_ID = null;
+/** When set, left editor shows only THEME_EDIT_SCHEMA sections listed on that preview card (`editSections`). */
+let SELECTED_PREVIEW_INDEX = null;
+/** Double-click drill-down: show only these CSS var keys in the left editor (subset of current card scope). */
+let INSPECTOR_LAYER = null;
+/** { idx: preview cell index, path: number[] } — child indices from `.stage` to the double-clicked element (for outline after re-render). */
+let INSPECTOR_DOM_PATH = null;
+/** Per preview-cell index: CSS var overrides applied only on that cell (not :root), so edits while a card is selected do not recolor the whole page. */
+let PREVIEW_CELL_VAR_OVERRIDES = {};
+
+var _PAGE_EDIT_KEYS = ['--page-bg', '--text-primary', '--text-secondary', '--text-tertiary', '--accent-primary'];
+var _CARD_GLOBAL_KEYS = ['--card-radius', '--card-padding-v', '--card-padding-h', '--card-gap'];
+var _SURFACE_THEME_KEYS = [
+  '--oneui-theme-style',
+  '--surface-bg',
+  '--surface-border',
+  '--surface-shadow',
+  '--surface-filter',
+  '--surface-overlay',
+  '--surface-overlay-opacity',
+  '--surface-bg-size',
+  '--surface-animation',
+  '--oneui-chroma'
+];
+
+function _styleChainHas(el, root, sub) {
+  if (!sub || !el || !root) return false;
+  for (var n = el; n && n !== root; n = n.parentElement) {
+    if (!n.getAttribute) continue;
+    var st = n.getAttribute('style') || '';
+    if (st.indexOf(sub) >= 0) return true;
+  }
+  return false;
+}
+function _insideSvg(el) {
+  return !!(el && el.closest && el.closest('svg'));
+}
+function _inspectorKindKey(card) {
+  if (!card) return 'generic';
+  if (card.role === 'focus-block' && card.variant && card.variant.kind) return 'fb-' + card.variant.kind;
+  if (card.role === 'notif-card-ai') return 'notif-ai';
+  if (card.role === 'notif-card') return 'notif';
+  if (card.role === 'now-bar') return 'now-' + ((card.variant && card.variant.type) || 'unknown');
+  if (card.role === 'action-row') return 'action-row';
+  if (card.role === 'toggle-chip') return 'toggle-chip';
+  return 'generic';
+}
+/**
+ * Ordered rules: first matching test wins (most specific first).
+ * Each test: (el, stageRoot) -> boolean
+ */
+var _INSPECTOR_LAYERS = {
+  'fb-weather': [
+    { label: 'Temperature', keys: ['--card-weather-temp-size', '--card-weather-temp-weight', '--card-weather-temp-color', '--card-weather-temp-letterspacing'],
+      test: function (el, root) { return _styleChainHas(el, root, 'card-weather-temp-size') || _styleChainHas(el, root, 'card-weather-temp-color') || _styleChainHas(el, root, 'card-weather-temp-letterspacing'); } },
+    { label: 'Weather icon', keys: ['--card-weather-accent', '--card-weather-icon-size'],
+      test: function (el, root) { return _styleChainHas(el, root, 'card-weather-icon-size') || (_insideSvg(el) && _styleChainHas(el, root, 'card-weather')); } },
+    { label: 'Card shell', keys: _CARD_GLOBAL_KEYS.concat(['--card-weather-accent', '--page-bg']),
+      test: function (el, root) { return _styleChainHas(el, root, 'card-radius') && !_styleChainHas(el, root, 'card-weather'); } }
+  ],
+  'fb-calendar': [
+    { label: 'Time', keys: ['--card-calendar-time-size', '--card-calendar-time-weight'],
+      test: function (el, root) { return _styleChainHas(el, root, 'card-calendar-time-size'); } },
+    { label: 'Calendar icon', keys: ['--card-calendar-accent'],
+      test: function (el, root) { return _insideSvg(el) && _styleChainHas(el, root, 'card-calendar-accent'); } },
+    { label: 'Card shell', keys: _CARD_GLOBAL_KEYS.concat(_PAGE_EDIT_KEYS),
+      test: function (el, root) { return _styleChainHas(el, root, 'card-radius') && !_styleChainHas(el, root, 'card-calendar-time'); } }
+  ],
+  'fb-reminder': [
+    { label: 'Checkbox & accent', keys: ['--card-reminder-accent'],
+      test: function (el, root) { return _insideSvg(el) && _styleChainHas(el, root, 'card-reminder-accent'); } },
+    { label: 'Task text', keys: ['--card-reminder-task-size', '--text-primary'],
+      test: function (el, root) { return _styleChainHas(el, root, 'card-reminder-task-size'); } },
+    { label: 'Card shell', keys: _CARD_GLOBAL_KEYS.concat(_PAGE_EDIT_KEYS),
+      test: function (el, root) { return _styleChainHas(el, root, 'card-radius') && !_styleChainHas(el, root, 'card-reminder'); } }
+  ],
+  'fb-message': [
+    { label: 'Avatar', keys: ['--card-message-avatar-grad', '--card-message-avatar-size'],
+      test: function (el, root) { return _styleChainHas(el, root, 'card-message-avatar'); } },
+    { label: 'Text', keys: ['--text-primary', '--text-secondary', '--text-tertiary'],
+      test: function (el, root) { return _styleChainHas(el, root, '--text-primary') || _styleChainHas(el, root, '--text-secondary'); } },
+    { label: 'Card shell', keys: _CARD_GLOBAL_KEYS.concat(_PAGE_EDIT_KEYS),
+      test: function (el, root) { return _styleChainHas(el, root, 'card-radius') && !_styleChainHas(el, root, 'card-message-avatar'); } }
+  ],
+  'fb-eta': [
+    { label: 'ETA number', keys: ['--card-eta-size', '--card-eta-accent', '--card-eta-icon-size'],
+      test: function (el, root) { return _styleChainHas(el, root, 'card-eta-size') || (_insideSvg(el) && _styleChainHas(el, root, 'card-eta-accent')); } },
+    { label: 'Card shell', keys: _CARD_GLOBAL_KEYS.concat(_PAGE_EDIT_KEYS),
+      test: function (el, root) { return _styleChainHas(el, root, 'card-radius') && !_styleChainHas(el, root, 'card-eta-size'); } }
+  ],
+  'fb-input': [
+    { label: 'Topic', keys: ['--card-input-topic-size', '--text-primary'],
+      test: function (el, root) { return _styleChainHas(el, root, 'card-input-topic-size'); } },
+    { label: 'Card shell', keys: _CARD_GLOBAL_KEYS.concat(_PAGE_EDIT_KEYS),
+      test: function (el, root) { return _styleChainHas(el, root, 'card-radius'); } }
+  ],
+  'notif-ai': [
+    { label: 'AI gradient & motion', keys: ['--card-ai-grad', '--card-ai-shimmer-speed'],
+      test: function (el, root) { return _styleChainHas(el, root, 'card-ai-grad') || _styleChainHas(el, root, 'aiShimmer'); } },
+    { label: 'Glyph area', keys: _PAGE_EDIT_KEYS.concat(['--accent-primary']),
+      test: function (el, root) { return _styleChainHas(el, root, 'width:56px;height:56px') && _styleChainHas(el, root, 'backdrop-filter'); } },
+    { label: 'Text', keys: ['--text-primary', '--text-secondary'],
+      test: function (el, root) { return el.tagName === 'SPAN' && (el.getAttribute('style') || '').indexOf('font-size:15px') >= 0; } }
+  ],
+  'notif': [
+    { label: 'App icon', keys: ['--accent-primary', '--text-primary'],
+      test: function (el, root) { return _styleChainHas(el, root, 'width:56px;height:56px') && _styleChainHas(el, root, 'border-radius:50%'); } },
+    { label: 'Title & time', keys: ['--text-primary', '--text-secondary'],
+      test: function (el, root) {
+        if (el.tagName !== 'SPAN') return false;
+        var st = el.getAttribute('style') || '';
+        return st.indexOf('font-size:15px') >= 0 || st.indexOf('font-size:12px') >= 0;
+      } },
+    { label: 'Body', keys: ['--text-secondary', '--text-tertiary'],
+      test: function (el, root) {
+        var st = el.getAttribute('style') || '';
+        if (st.indexOf('font-size:14px') < 0) return false;
+        return el.tagName === 'SPAN' || el.tagName === 'DIV';
+      } },
+    { label: 'Card shell', keys: _CARD_GLOBAL_KEYS.concat(['--page-bg']),
+      test: function (el, root) { return _styleChainHas(el, root, 'border-radius:50px'); } }
+  ],
+  'now-navigation': [
+    { label: 'Turn arrow', keys: ['--card-nav-accent', '--card-nav-arrow-bg'],
+      test: function (el, root) { return _styleChainHas(el, root, 'card-nav-arrow-bg') || _styleChainHas(el, root, 'card-nav-accent'); } },
+    { label: 'Distance', keys: ['--card-nav-distance-size', '--text-primary'],
+      test: function (el, root) { return _styleChainHas(el, root, 'card-nav-distance-size'); } },
+    { label: 'Instruction & ETA', keys: ['--text-primary', '--text-secondary', '--text-tertiary'],
+      test: function (el, root) { return el.tagName === 'DIV' && (el.getAttribute('style') || '').indexOf('font-size:13px') >= 0; } }
+  ],
+  'now-single-line': [
+    { label: 'Waveform & accent', keys: ['--accent-primary'],
+      test: function (el, root) { return (el.getAttribute('style') || '').indexOf('slPulse') >= 0 || (el.getAttribute('style') || '').indexOf('#0381FE') >= 0; } },
+    { label: 'Label', keys: ['--text-primary'],
+      test: function (el, root) { return el.tagName === 'DIV' && (el.getAttribute('style') || '').indexOf('font-size:15px') >= 0; } }
+  ],
+  'now-charging': [
+    { label: 'Charge fill', keys: ['--accent-primary'],
+      test: function (el, root) { return _styleChainHas(el, root, '#0FCF6E') || _styleChainHas(el, root, 'linear-gradient(to right,#0FCF6E'); } },
+    { label: 'Percent', keys: ['--text-primary'],
+      test: function (el, root) { var st = el.getAttribute('style') || ''; return st.indexOf('font-size:26px') >= 0 && (el.textContent || '').indexOf('%') >= 0; } },
+    { label: 'Lightning icon', keys: ['--text-primary', '--accent-primary'],
+      test: function (el, root) { return _insideSvg(el) && (el.getAttribute('style') || '').indexOf('fill:#fff') >= 0; } }
+  ],
+  'action-row': [
+    { label: 'Actions & chrome', keys: _PAGE_EDIT_KEYS.concat(_CARD_GLOBAL_KEYS),
+      test: function () { return true; } }
+  ],
+  'toggle-chip': [
+    { label: 'Quick toggles', keys: _PAGE_EDIT_KEYS.concat(_CARD_GLOBAL_KEYS),
+      test: function () { return true; } }
+  ],
+  'generic': [
+    { label: 'Page & cards', keys: _PAGE_EDIT_KEYS.concat(_CARD_GLOBAL_KEYS),
+      test: function () { return true; } }
+  ]
+};
+
+function _resolveInspectorLayer(card, target, stageRoot) {
+  var kind = _inspectorKindKey(card);
+  var layers = _INSPECTOR_LAYERS[kind] || _INSPECTOR_LAYERS.generic;
+  for (var i = 0; i < layers.length; i++) {
+    try {
+      if (layers[i].test(target, stageRoot)) return { label: layers[i].label, keys: layers[i].keys.slice() };
+    } catch (err) { /* ignore */ }
+  }
+  return null;
+}
+
+function getActiveEditorSections() {
+  var sections = getFilteredSchema();
+  if (!INSPECTOR_LAYER || !INSPECTOR_LAYER.keys || !INSPECTOR_LAYER.keys.length) return sections;
+  var allow = {};
+  INSPECTOR_LAYER.keys.forEach(function (k) { allow[k] = 1; });
+  var out = [];
+  sections.forEach(function (sec) {
+    var vs = sec.vars.filter(function (v) { return allow[v.key]; });
+    if (vs.length) out.push({ section: sec.section, vars: vs });
+  });
+  return out.length ? out : sections;
+}
+
+function _domPathFromStage(stage, target) {
+  if (!stage || !target || !stage.contains(target)) return null;
+  var el = target.nodeType === 3 ? target.parentElement : target;
+  if (!el || el === stage) return [];
+  var path = [];
+  for (var n = el; n && n !== stage; n = n.parentElement) {
+    if (!n.parentElement) return null;
+    var parent = n.parentElement;
+    var idx = 0;
+    var c = parent.firstElementChild;
+    while (c && c !== n) {
+      c = c.nextElementSibling;
+      idx++;
+    }
+    if (!c) return null;
+    path.unshift(idx);
+  }
+  return path;
+}
+
+function _elFromStagePath(stage, path) {
+  if (!stage || !path || !path.length) return null;
+  var cur = stage;
+  for (var i = 0; i < path.length; i++) {
+    cur = cur.children[path[i]];
+    if (!cur) return null;
+  }
+  return cur;
+}
+
+function _applyInspectorOutline() {
+  var grid = $('preview-grid');
+  if (!grid) return;
+  var marked = grid.querySelectorAll('.inspector-hit');
+  for (var m = 0; m < marked.length; m++) marked[m].classList.remove('inspector-hit');
+  if (!INSPECTOR_LAYER || !INSPECTOR_DOM_PATH || !INSPECTOR_DOM_PATH.path || !INSPECTOR_DOM_PATH.path.length) return;
+  if (INSPECTOR_DOM_PATH.idx !== SELECTED_PREVIEW_INDEX) return;
+  var cell = grid.querySelector('.preview-cell[data-preview-index="' + INSPECTOR_DOM_PATH.idx + '"]');
+  if (!cell) return;
+  var st = cell.querySelector('.stage');
+  if (!st) return;
+  var el = _elFromStagePath(st, INSPECTOR_DOM_PATH.path);
+  if (el) el.classList.add('inspector-hit');
+}
+
+// ---------------------------------------------------------------------------
+//  Helpers
+// ---------------------------------------------------------------------------
+function $(id) { return document.getElementById(id); }
+async function fetchJSON(url, opts) {
+  const res = await fetch(url, opts || {});
+  if (!res.ok) throw new Error(url + ' → HTTP ' + res.status);
+  return res.json();
+}
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+// Apply a theme's vars to :root in real-time — drives both the customize
+// page's preview cells AND the toolbar surfaces. We override declaratively
+// by setting each var on documentElement.style.
+function applyThemeVars(vars) {
+  const root = document.documentElement;
+  var isMono = vars && String(vars['--oneui-chroma'] || '').trim().toLowerCase() === 'mono';
+  root.classList.toggle('is-mono-chroma', isMono);
+  _SURFACE_THEME_KEYS.forEach(function (key) {
+    if (!vars || vars[key] == null || String(vars[key]).trim() === '') {
+      root.style.removeProperty(key);
+    }
+  });
+
+  if (!vars || !String(vars['--oneui-chroma'] || '').trim()) {
+    root.style.removeProperty('--oneui-chroma');
+  }
+  Object.entries(vars || {}).forEach(([k, v]) => {
+    root.style.setProperty(k, v);
+  });
+  if (vars && vars['--page-bg']) root.style.setProperty('--pg-bg', vars['--page-bg']);
+  if (vars && vars['--text-primary']) root.style.setProperty('--text', vars['--text-primary']);
+  if (vars && vars['--accent-primary']) root.style.setProperty('--primary', vars['--accent-primary']);
+}
+
+// Render every preview card using window.renderAtomicForRole. Called once
+// at boot and whenever the theme changes (re-render is cheap; the same
+// renderer that the main app uses produces consistent output).
+function renderPreviewGrid() {
+  const grid = $('preview-grid');
+  grid.innerHTML = '';
+  const orderedPreviewCards = PREVIEW_CARDS
+    .map((card, idx) => ({ card, idx, rect: previewRectForCard(card) }))
+    .sort((a, b) => {
+      const h = (a.rect.h * (a.rect.scale || 1)) - (b.rect.h * (b.rect.scale || 1));
+      if (Math.abs(h) > 0.5) return h;
+      return (a.rect.w * (a.rect.scale || 1)) - (b.rect.w * (b.rect.scale || 1));
+    });
+  orderedPreviewCards.forEach(({ card, idx, rect }) => {
+    const cell = document.createElement('div');
+    cell.className = 'preview-cell' + (SELECTED_PREVIEW_INDEX === idx ? ' selected' : '');
+    cell.setAttribute('data-preview-index', String(idx));
+    cell.setAttribute('role', 'button');
+    cell.setAttribute('tabindex', '0');
+    cell.setAttribute('aria-pressed', SELECTED_PREVIEW_INDEX === idx ? 'true' : 'false');
+    cell.setAttribute('aria-label', card.name + ' \u2014 \ud074\ub9ad\ud558\uba74 \uc774 \uce74\ub4dc\uc5d0 \ud574\ub2f9\ud558\ub294 \ud14c\ub9c8 \ubcc0\uc218\ub9cc \ud45c\uc2dc');
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = card.name;
+    const stage = document.createElement('div');
+    stage.className = 'stage';
+    const previewRect = rect;
+    const previewScale = previewRect.scale || 1;
+    stage.style.width = Math.ceil(previewRect.w * previewScale) + 'px';
+    stage.style.height = Math.ceil(previewRect.h * previewScale) + 'px';
+    let html = '';
+    try {
+      const comp = { role: card.role, variant: card.variant, content: card.content || {} };
+      if (typeof window.renderAtomicForRole === 'function') {
+        html = window.renderAtomicForRole(comp, { x: 0, y: 0, w: previewRect.w, h: previewRect.h });
+      } else {
+        html = '<div style="padding:20px;color:var(--text-3);">renderer not loaded</div>';
+      }
+    } catch (e) {
+      html = '<div style="padding:20px;color:var(--warning);">render error: ' + e.message + '</div>';
+    }
+    stage.innerHTML = '<div class="stage-scale" style="width:' + previewRect.w + 'px;height:' + previewRect.h + 'px;transform:scale(' + previewScale + ');">' + html + '</div>';
+    const scaleRoot = stage.firstElementChild;
+    const cardRoot = scaleRoot && scaleRoot.firstElementChild;
+    if (cardRoot) {
+      cardRoot.style.width = previewRect.w + 'px';
+      cardRoot.style.height = previewRect.h + 'px';
+      cardRoot.style.maxWidth = 'none';
+      cardRoot.style.flex = 'none';
+    }
+    stage.title = 'Double-click inside the card to inspect a part (Figma-style)';
+    cell.appendChild(name);
+    cell.appendChild(stage);
+    var ovr = PREVIEW_CELL_VAR_OVERRIDES[idx];
+    if (ovr) {
+      Object.keys(ovr).forEach(function (k) {
+        var val = ovr[k];
+        if (val == null || String(val).trim() === '') return;
+        cell.style.setProperty(k, val);
+      });
+      if (ovr['--page-bg']) cell.style.setProperty('--pg-bg', ovr['--page-bg']);
+      if (ovr['--text-primary']) cell.style.setProperty('--text', ovr['--text-primary']);
+      if (ovr['--accent-primary']) cell.style.setProperty('--primary', ovr['--accent-primary']);
+    }
+    grid.appendChild(cell);
+  });
+  _applyInspectorOutline();
+}
+
+// ---------------------------------------------------------------------------
+//  Editor — builds the property-edit panel from THEME_EDIT_SCHEMA, wires
+//  every input to live :root updates, and provides a "Save as Custom..."
+//  flow that POSTs the current var snapshot to /api/themes.
+// ---------------------------------------------------------------------------
+function _scopedPreviewCell() {
+  if (SELECTED_PREVIEW_INDEX == null || SELECTED_PREVIEW_INDEX < 0) return null;
+  var grid = $('preview-grid');
+  if (!grid) return null;
+  return grid.querySelector('.preview-cell[data-preview-index="' + SELECTED_PREVIEW_INDEX + '"]');
+}
+
+function _readVarFromRootOnly(key) {
+  var root = document.documentElement;
+  var inline = root.style.getPropertyValue(key);
+  if (inline) return inline.trim();
+  return getComputedStyle(root).getPropertyValue(key).trim();
+}
+
+function _readVar(key) {
+  var idx = SELECTED_PREVIEW_INDEX;
+  if (idx != null && idx >= 0) {
+    var bag = PREVIEW_CELL_VAR_OVERRIDES[idx];
+    if (bag && bag[key] != null && String(bag[key]).trim() !== '') {
+      return String(bag[key]).trim();
+    }
+    var cell = _scopedPreviewCell();
+    if (cell) {
+      var fromCell = getComputedStyle(cell).getPropertyValue(key);
+      if (fromCell && fromCell.trim()) return fromCell.trim();
+    }
+  }
+  return _readVarFromRootOnly(key);
+}
+
+function _writeVar(key, value) {
+  var idx = SELECTED_PREVIEW_INDEX;
+  if (idx != null && idx >= 0) {
+    if (!PREVIEW_CELL_VAR_OVERRIDES[idx]) PREVIEW_CELL_VAR_OVERRIDES[idx] = {};
+    PREVIEW_CELL_VAR_OVERRIDES[idx][key] = value;
+    var cell = _scopedPreviewCell();
+    if (cell) {
+      cell.style.setProperty(key, value);
+      if (key === '--page-bg') cell.style.setProperty('--pg-bg', value);
+      if (key === '--text-primary') cell.style.setProperty('--text', value);
+      if (key === '--accent-primary') cell.style.setProperty('--primary', value);
+    }
+    _markUnsaved(true);
+    return;
+  }
+  document.documentElement.style.setProperty(key, value);
+  if (key === '--page-bg') document.documentElement.style.setProperty('--pg-bg', value);
+  if (key === '--text-primary') document.documentElement.style.setProperty('--text', value);
+  if (key === '--accent-primary') document.documentElement.style.setProperty('--primary', value);
+  _markUnsaved(true);
+}
+
+// Unsaved-state tracker. Toggles the toolbar pill so the user knows
+// their slider tweaks are LIVE-PREVIEWED only — clicking the dropdown
+// to a preset, clicking Save, or clicking Discard all reset this back
+// to a clean state.
+let HAS_UNSAVED_EDITS = false;
+function _markUnsaved(flag) {
+  HAS_UNSAVED_EDITS = !!flag;
+  const pill = document.getElementById('unsaved-pill');
+  if (pill) pill.style.display = HAS_UNSAVED_EDITS ? '' : 'none';
+}
+// Convert any color expression (hex, rgb, rgba) into a 6-digit hex for
+// the <input type="color"> element. Falls back to '#000000' if it can't.
+function _toHex6(value) {
+  if (!value) return '#000000';
+  const v = value.trim();
+  if (/^#[0-9A-Fa-f]{6}$/.test(v)) return v;
+  if (/^#[0-9A-Fa-f]{3}$/.test(v)) {
+    return '#' + v.slice(1).split('').map(c => c + c).join('');
+  }
+  // Use a temporary canvas to parse rgb()/rgba()/named colors.
+  try {
+    const tmp = document.createElement('div');
+    tmp.style.color = v;
+    document.body.appendChild(tmp);
+    const c = getComputedStyle(tmp).color;
+    document.body.removeChild(tmp);
+    const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c);
+    if (m) {
+      const r = (+m[1]).toString(16).padStart(2, '0');
+      const g = (+m[2]).toString(16).padStart(2, '0');
+      const b = (+m[3]).toString(16).padStart(2, '0');
+      return '#' + r + g + b;
+    }
+  } catch (e) { /* ignore */ }
+  return '#000000';
+}
+
+function _isCssGradient(str) {
+  if (!str || typeof str !== 'string') return false;
+  var s = str.trim().toLowerCase();
+  return /\b(linear|radial|conic)-gradient\s*\(/.test(s) ||
+    /\brepeating-(linear|radial|conic)-gradient\s*\(/.test(s);
+}
+
+function _syncColorPickerRow(row) {
+  var text = row.querySelector('input[data-role="color-text"]');
+  var color = row.querySelector('input[data-role="color"]');
+  if (!text || !color) return;
+  var raw = (text.value || '').trim();
+  if (_isCssGradient(raw)) {
+    color.disabled = true;
+    color.title = 'Gradient — edit in text field, or replace with a hex solid to use the swatch again.';
+    color.style.opacity = '0.35';
+  } else {
+    color.disabled = false;
+    color.title = '';
+    color.style.opacity = '';
+    var hx = _toHex6(raw);
+    if (hx) color.value = hx;
+  }
+}
+
+// Strip 'px' from a size string for <input type="number">.
+function _toNumPx(value) {
+  if (!value) return '';
+  const m = /^(-?\d+(?:\.\d+)?)\s*px/.exec(value.trim());
+  if (m) return m[1];
+  const n = parseFloat(value);
+  return isNaN(n) ? '' : String(n);
+}
+
+function _esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function getFilteredSchema() {
+  if (SELECTED_PREVIEW_INDEX == null || SELECTED_PREVIEW_INDEX < 0 ||
+      SELECTED_PREVIEW_INDEX >= PREVIEW_CARDS.length) {
+    return THEME_EDIT_SCHEMA;
+  }
+  var card = PREVIEW_CARDS[SELECTED_PREVIEW_INDEX];
+  var names = card.editSections;
+  if (!names || !names.length) return THEME_EDIT_SCHEMA;
+  var filtered = THEME_EDIT_SCHEMA.filter(function (s) {
+    return names.indexOf(s.section) >= 0;
+  });
+  // Put card-specific sections first so e.g. "Weather card" is not buried
+  // below Page / Card globals (users thought detailed vars were missing).
+  function baseRank(sectionName) {
+    if (sectionName === 'Page') return 2;
+    if (sectionName === 'Card globals') return 1;
+    return 0;
+  }
+  filtered.sort(function (a, b) {
+    var ra = baseRank(a.section);
+    var rb = baseRank(b.section);
+    if (ra !== rb) return ra - rb;
+    var ia = names.indexOf(a.section);
+    var ib = names.indexOf(b.section);
+    if (ia !== ib) return ia - ib;
+    return THEME_EDIT_SCHEMA.indexOf(a) - THEME_EDIT_SCHEMA.indexOf(b);
+  });
+  return filtered;
+}
+
+function _purgeLegacyInspectorTipNodes() {
+  document.querySelectorAll('#editor-scope-sub, .editor-scope-sub').forEach(function (n) {
+    try { n.remove(); } catch (e) { /* ignore */ }
+  });
+}
+
+function updateEditorScopeUI() {
+  _purgeLegacyInspectorTipNodes();
+  var hint = $('editor-scope-hint');
+  var btn = $('btn-show-all-vars');
+  if (SELECTED_PREVIEW_INDEX != null && SELECTED_PREVIEW_INDEX >= 0 &&
+      SELECTED_PREVIEW_INDEX < PREVIEW_CARDS.length) {
+    var c = PREVIEW_CARDS[SELECTED_PREVIEW_INDEX];
+    var line = c.name;
+    if (INSPECTOR_LAYER && INSPECTOR_LAYER.label) line += ' · ' + INSPECTOR_LAYER.label;
+    if (hint) hint.textContent = line;
+    if (btn) btn.style.display = '';
+  } else {
+    if (hint) hint.textContent = '';
+    if (btn) btn.style.display = 'none';
+  }
+}
+
+function buildEditorBody() {
+  // Robust rebuild via innerHTML + delegated events. This avoids the
+  // earlier failure mode where el()-based DOM construction silently
+  // produced an empty panel — easier to debug, harder to miswire.
+  var body = document.getElementById('editor-body');
+  if (!body) { console.warn('[customize] editor-body element missing'); return; }
+  try {
+    var html = '';
+    getActiveEditorSections().forEach(function (section, secIdx) {
+      html += '<div class="editor-section">';
+      html += '<button type="button" class="editor-section-toggle" aria-expanded="true" aria-controls="editor-sec-body-' + secIdx + '">';
+      html += '<span class="editor-section-toggle-label">' + _esc(section.section) + '</span>';
+      html += '<span class="editor-section-chev" aria-hidden="true">\u25be</span></button>';
+      html += '<div class="editor-section-body" id="editor-sec-body-' + secIdx + '">';
+      section.vars.forEach(function (v) {
+        var current = _readVar(v.key) || '';
+        var rowHtml = '<div class="editor-row" data-var="' + _esc(v.key) + '" data-vtype="' + _esc(v.type) + '">';
+        rowHtml += '<label>' + _esc(v.label) + '</label>';
+        rowHtml += '<div class="input-wrap">';
+        if (v.type === 'color') {
+          var hex = _toHex6(_isCssGradient(current) ? '#888888' : current);
+          rowHtml += '<input data-role="color" type="color" value="' + _esc(hex) + '">';
+          rowHtml += '<input data-role="color-text" type="text" value="' + _esc(current) + '" placeholder="#hex, rgb(), or linear-gradient(...)">';
+        } else if (v.type === 'color-rgba') {
+          rowHtml += '<input data-role="text" type="text" value="' + _esc(current) + '" placeholder="rgba(255,255,255,0.7)">';
+        } else if (v.type === 'size') {
+          var n = _toNumPx(current);
+          var min = v.min != null ? String(v.min) : '0';
+          var max = v.max != null ? String(v.max) : '500';
+          var step = v.step != null ? String(v.step) : '1';
+          rowHtml += '<input data-role="size" type="number" value="' + _esc(n) +
+            '" min="' + _esc(min) + '" max="' + _esc(max) + '" step="' + _esc(step) + '">';
+          rowHtml += '<span class="suffix">px</span>';
+        } else if (v.type === 'weight') {
+          rowHtml += '<select data-role="weight">';
+          ['400', '500', '600', '700'].forEach(function (w) {
+            var sel = String(current).indexOf(w) >= 0 ? ' selected' : '';
+            rowHtml += '<option value="' + w + '"' + sel + '>' + w + '</option>';
+          });
+          rowHtml += '</select>';
+        } else {
+          rowHtml += '<input data-role="text" type="text" value="' + _esc(current) + '">';
+        }
+        rowHtml += '</div></div>';
+        html += rowHtml;
+      });
+      html += '</div></div>';
+    });
+    // Action footer — single Save (primary) + Discard (secondary).
+    // Live preview happens in real time; this footer is only about
+    // *persisting* the current edited state (Save) or *throwing it
+    // away* (Discard) and going back to the dropdown preset.
+    html += '<div class="editor-actions">' +
+      '<button id="btn-save">Save</button>' +
+      '<button class="secondary" id="btn-discard">Discard changes</button>' +
+      '<div class="spacer"></div>' +
+      '<span class="hint">Slide / type → live preview. Save creates a new theme.</span>' +
+    '</div>';
+    body.innerHTML = html;
+    body.querySelectorAll('.editor-row[data-vtype="color"]').forEach(function (row) {
+      _syncColorPickerRow(row);
+    });
+  } catch (e) {
+    console.error('[customize] buildEditorBody failed:', e);
+    body.innerHTML = '<div style="padding:18px;color:#EF4444;">Editor failed to render. Check console.<br>' + _esc(e.message) + '</div>';
+    return;
+  }
+  _purgeLegacyInspectorTipNodes();
+  updateEditorScopeUI();
+}
+
+// Delegated handler — fired once per input/change event on any descendant
+// of the editor body. Uses closest('.editor-row') to find the row's
+// data-var (CSS variable key) and data-vtype (input type), then routes
+// to the right write strategy.
+function _onEditorInput(e) {
+  var t = e.target;
+  if (!t || !t.matches) return;
+  var row = t.closest('.editor-row');
+  if (!row) return;
+  var key = row.getAttribute('data-var');
+  var vtype = row.getAttribute('data-vtype');
+  if (!key) return;
+  var role = t.getAttribute('data-role');
+  if (vtype === 'color' && (role === 'color' || role === 'color-text')) {
+    var color = row.querySelector('input[data-role="color"]');
+    var text  = row.querySelector('input[data-role="color-text"]');
+    if (role === 'color' && color && text) { text.value = color.value; }
+    if (role === 'color-text' && color && text) {
+      var raw = (text.value || '').trim();
+      if (!_isCssGradient(raw)) {
+        var hex = _toHex6(raw);
+        if (hex) color.value = hex;
+      }
+    }
+    _writeVar(key, role === 'color' ? color.value : text.value);
+    _syncColorPickerRow(row);
+  } else if (vtype === 'size') {
+    if (t.value === '' || t.value == null || isNaN(Number(t.value))) return;
+    _writeVar(key, t.value + 'px');
+  } else if (vtype === 'weight') {
+    _writeVar(key, t.value);
+  } else {
+    _writeVar(key, t.value);
+  }
+  // With a preview card selected, vars go onto that cell only; otherwise :root.
+}
+
+function readAllVarsFromRoot() {
+  const out = {};
+  _SURFACE_THEME_KEYS.forEach(function (key) {
+    var val = _readVarFromRootOnly(key);
+    if (val) out[key] = val;
+  });
+  THEME_EDIT_SCHEMA.forEach(section => {
+    section.vars.forEach(v => {
+      var key = v.key;
+      var val = _readVarFromRootOnly(key);
+      for (var oi = 0; oi < PREVIEW_CARDS.length; oi++) {
+        var o = PREVIEW_CELL_VAR_OVERRIDES[oi];
+        if (o && o[key] != null && String(o[key]).trim() !== '') val = String(o[key]).trim();
+      }
+      if (val) out[v.key] = val;
+    });
+  });
+  return out;
+}
+
+async function saveAsCustom() {
+  const name = (window.prompt('Name for your custom theme?', 'My Custom Theme') || '').trim();
+  if (!name) return;
+  // Generate a kebab-case id from the name + a short hash so two saves
+  // with the same name don't collide.
+  const baseId = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24) || 'custom';
+  const id = baseId + '-' + Math.random().toString(36).slice(2, 6);
+  const vars = readAllVarsFromRoot();
+  const description = 'Custom — saved ' + new Date().toLocaleString();
+  const theme = { id, name, description, vars };
+  const btn = document.getElementById('btn-save');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  try {
+    // 1) Persist the new theme.
+    await fetchJSON('/api/themes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ theme })
+    });
+    THEMES.push(theme);
+    // 2) Activate it server-side so other open windows pick it up via
+    //    BroadcastChannel and so a fresh page load defaults to this
+    //    new theme. Previously this was a separate "Apply to Site"
+    //    button — folded into Save now.
+    await fetchJSON('/api/themes/active', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    ACTIVE_ID = id;
+    // 3) Refresh dropdown + active-pill so the UI reflects the new state.
+    const sel = $('theme-select');
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = name + ' (custom)';
+    sel.appendChild(opt);
+    sel.value = id;
+    $('active-pill').textContent = 'Active · ' + name;
+    showToast('Saved · "' + name + '" is now active');
+    updateOnSelect(id, false);
+    _markUnsaved(false);
+    // 4) Notify other open windows (genui main app) so their theme
+    //    picker dropdown picks up the new id and the new active theme.
+    _broadcastThemeChange('theme-saved', id);
+    _broadcastThemeChange('theme-active-changed', id);
+  } catch (e) {
+    showToast('ERROR: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+  }
+}
+
+// Cross-window sync helper — fires a BroadcastChannel message any
+// time the customize page changes theme state. Other open windows
+// (genui.html main app) listen for these to refresh their picker.
+function _broadcastThemeChange(type, activeId) {
+  try {
+    if (!window.__themeChannel && typeof BroadcastChannel === 'function') {
+      window.__themeChannel = new BroadcastChannel('oneui-themes');
+    }
+    if (window.__themeChannel) {
+      window.__themeChannel.postMessage({ type, activeId, at: Date.now() });
+    }
+  } catch (e) { /* ignore */ }
+}
+
+// Discard all in-memory edits and snap back to whatever preset the
+// dropdown is currently pointing at. Used by the Discard button and
+// indirectly when the user picks a different preset (live-preview a
+// preset = clean state). Does NOT touch the server.
+function discardChanges() {
+  SELECTED_PREVIEW_INDEX = null;
+  INSPECTOR_LAYER = null;
+  INSPECTOR_DOM_PATH = null;
+  PREVIEW_CELL_VAR_OVERRIDES = {};
+  const id = $('theme-select').value;
+  const theme = THEMES.find(t => t.id === id);
+  if (!theme) return;
+  THEME_EDIT_SCHEMA.forEach(section => {
+    section.vars.forEach(v => document.documentElement.style.removeProperty(v.key));
+  });
+  applyThemeVars(theme.vars);
+  buildEditorBody();   // refresh inputs to reflect current values
+  renderPreviewGrid();
+  _markUnsaved(false);
+}
+
+// Left panel: header toggles whole editor-body; each schema section toggles
+// its own .editor-section-body. buildEditorBody() runs on boot and on
+// theme / preview selection changes.
+
+// ---------------------------------------------------------------------------
+//  Boot
+// ---------------------------------------------------------------------------
+async function boot() {
+  try {
+    const data = await fetchJSON('/api/themes');
+    THEMES = data.themes || [];
+    ACTIVE_ID = data._active;
+    // Build dropdown
+    const sel = $('theme-select');
+    sel.innerHTML = THEMES.map(t =>
+      '<option value="' + t.id + '">' + t.name + '</option>'
+    ).join('');
+    sel.value = ACTIVE_ID;
+    updateOnSelect(ACTIVE_ID, false);
+    // Wait for renderer to be ready (the script tag is async-ish; if not
+    // ready yet, retry once on next tick).
+    if (typeof window.renderAtomicForRole === 'function') {
+      renderPreviewGrid();
+    } else {
+      setTimeout(renderPreviewGrid, 50);
+    }
+  } catch (e) {
+    console.error('boot failed', e);
+    document.body.innerHTML = '<div style="padding:32px;color:#EF4444;">Failed to load themes: ' + e.message + '</div>';
+  }
+}
+
+function updateOnSelect(id, applyServer) {
+  SELECTED_PREVIEW_INDEX = null;
+  INSPECTOR_LAYER = null;
+  INSPECTOR_DOM_PATH = null;
+  PREVIEW_CELL_VAR_OVERRIDES = {};
+  const theme = THEMES.find(t => t.id === id);
+  if (!theme) return;
+  // Strip prior inline overrides so the new theme's vars cleanly take
+  // effect (avoids leaking from a previously-edited custom theme).
+  THEME_EDIT_SCHEMA.forEach(section => {
+    section.vars.forEach(v => document.documentElement.style.removeProperty(v.key));
+  });
+  applyThemeVars(theme.vars);
+  $('active-pill').textContent = (theme.id === ACTIVE_ID ? 'Active · ' : 'Preview · ') + theme.name;
+  // Re-render preview so any cards that compute color from vars at render
+  // time pick up the new values.
+  renderPreviewGrid();
+  // Always rebuild editor inputs — they should reflect the newly-
+  // selected theme's values. (The panel is no longer collapsible.)
+  buildEditorBody();
+}
+
+$('theme-select').addEventListener('change', (e) => {
+  SELECTED_PREVIEW_INDEX = null;
+  INSPECTOR_LAYER = null;
+  INSPECTOR_DOM_PATH = null;
+  // Switching presets is a clean state — drop any pending edits.
+  THEME_EDIT_SCHEMA.forEach(section => {
+    section.vars.forEach(v => document.documentElement.style.removeProperty(v.key));
+  });
+  var pickedId = e.target.value;
+  updateOnSelect(pickedId, false);
+  var picked = THEMES.find(function (t) { return t.id === pickedId; });
+  if (picked) {
+    showToast('\ubbf8\ub9ac\ubcf4\uae30 \ud14c\ub9c8: ' + picked.name);
+  }
+  _markUnsaved(false);
+});
+
+document.getElementById('preview-bg-swatches')?.addEventListener('click', function (e) {
+  var btn = e.target.closest && e.target.closest('.preview-bg-swatch');
+  if (!btn || !this.contains(btn)) return;
+  var bg = btn.getAttribute('data-preview-bg');
+  if (!bg) return;
+  document.documentElement.style.setProperty('--preview-bg', bg);
+  this.querySelectorAll('.preview-bg-swatch').forEach(function (swatch) {
+    swatch.setAttribute('aria-pressed', swatch === btn ? 'true' : 'false');
+  });
+});
+
+// btn-apply ("Apply to Site") and btn-reset ("Reset preview") removed —
+// their roles are now folded into Save (which both creates a new theme
+// AND sets it active) and Discard (which clears unsaved edits without
+// touching the server). The dropdown's onChange already handles preset
+// switching.
+
+(function wireEditorPanelDelegates() {
+  var panel = document.getElementById('editor-panel');
+  if (!panel || panel.__delegatesBound) return;
+  panel.__delegatesBound = true;
+  panel.addEventListener('input', function (e) {
+    if (!e.target.closest('#editor-body')) return;
+    _onEditorInput(e);
+  });
+  panel.addEventListener('change', function (e) {
+    if (!e.target.closest('#editor-body')) return;
+    _onEditorInput(e);
+  });
+  panel.addEventListener('click', function (e) {
+    var t = e.target;
+    var pToggle = t.closest && t.closest('.editor-panel-toggle');
+    if (pToggle) {
+      e.preventDefault();
+      var pel = document.getElementById('editor-panel');
+      if (pel) {
+        var collapsed = pel.classList.toggle('is-collapsed');
+        pToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      }
+      return;
+    }
+    var sToggle = t.closest && t.closest('.editor-section-toggle');
+    if (sToggle) {
+      e.preventDefault();
+      var wasOpen = sToggle.getAttribute('aria-expanded') === 'true';
+      sToggle.setAttribute('aria-expanded', wasOpen ? 'false' : 'true');
+      var bid = sToggle.getAttribute('aria-controls');
+      var sBody = bid && document.getElementById(bid);
+      if (sBody) sBody.hidden = wasOpen;
+      return;
+    }
+    if (t.closest && t.closest('#btn-save')) { e.preventDefault(); saveAsCustom(); return; }
+    if (t.closest && t.closest('#btn-discard')) { e.preventDefault(); discardChanges(); return; }
+    if (t.closest && t.closest('#btn-show-all-vars')) {
+      e.preventDefault();
+      SELECTED_PREVIEW_INDEX = null;
+      INSPECTOR_LAYER = null;
+      INSPECTOR_DOM_PATH = null;
+      PREVIEW_CELL_VAR_OVERRIDES = {};
+      renderPreviewGrid();
+      buildEditorBody();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || !INSPECTOR_LAYER || !$('editor-body')) return;
+    INSPECTOR_LAYER = null;
+    INSPECTOR_DOM_PATH = null;
+    buildEditorBody();
+    updateEditorScopeUI();
+    _applyInspectorOutline();
+  });
+})();
+
+(function wirePreviewGridDelegates() {
+  var grid = $('preview-grid');
+  if (!grid || grid.__delegatesBound) return;
+  grid.__delegatesBound = true;
+  function applyPreviewSelection(idx) {
+    INSPECTOR_LAYER = null;
+    INSPECTOR_DOM_PATH = null;
+    if (SELECTED_PREVIEW_INDEX === idx) SELECTED_PREVIEW_INDEX = null;
+    else SELECTED_PREVIEW_INDEX = idx;
+    if (SELECTED_PREVIEW_INDEX === null) PREVIEW_CELL_VAR_OVERRIDES = {};
+    renderPreviewGrid();
+    buildEditorBody();
+    updateEditorScopeUI();
+  }
+  grid.addEventListener('click', function (e) {
+    if (e.detail !== 1) return;
+    var cell = e.target.closest('.preview-cell');
+    if (!cell || !grid.contains(cell)) return;
+    var raw = cell.getAttribute('data-preview-index');
+    if (raw == null || raw === '') return;
+    var idx = parseInt(raw, 10);
+    if (isNaN(idx)) return;
+    e.preventDefault();
+    applyPreviewSelection(idx);
+  });
+  grid.addEventListener('dblclick', function (e) {
+    var stage = e.target.closest && e.target.closest('.preview-cell .stage');
+    var cell = e.target.closest && e.target.closest('.preview-cell');
+    if (!stage || !cell || !grid.contains(cell)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var raw = cell.getAttribute('data-preview-index');
+    var idx = parseInt(raw, 10);
+    if (isNaN(idx)) return;
+    if (SELECTED_PREVIEW_INDEX !== idx) SELECTED_PREVIEW_INDEX = idx;
+    var card = PREVIEW_CARDS[idx];
+    var targetEl = e.target.nodeType === 3 ? e.target.parentElement : e.target;
+    var hit = _resolveInspectorLayer(card, targetEl, stage);
+    INSPECTOR_LAYER = hit;
+    INSPECTOR_DOM_PATH = hit ? { idx: idx, path: _domPathFromStage(stage, targetEl) } : null;
+    renderPreviewGrid();
+    buildEditorBody();
+    updateEditorScopeUI();
+  });
+  grid.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var cell = e.target.closest('.preview-cell');
+    if (!cell || !grid.contains(cell)) return;
+    var raw = cell.getAttribute('data-preview-index');
+    if (raw == null || raw === '') return;
+    e.preventDefault();
+    var idx = parseInt(raw, 10);
+    if (isNaN(idx)) return;
+    applyPreviewSelection(idx);
+  });
+})();
+
+boot();
+</script>
+
+</body>
+</html>

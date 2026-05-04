@@ -1,0 +1,502 @@
+{
+  "runs": [
+    {
+      "scenarioId": "morning-briefing-lock",
+      "scenarioText": "morning briefing on lock screen with weather and meetings",
+      "elapsedMs": 35367,
+      "error": null,
+      "score": 201,
+      "breakdown": {
+        "violation_high": 0,
+        "violation_medium": -6,
+        "violation_low": 0,
+        "richness": 20,
+        "expected_components_hit": 24,
+        "expected_components_miss": 0,
+        "expected_surface": 8,
+        "expected_features_hit": 18,
+        "expected_features_miss": 0,
+        "no_silent_drops": 3,
+        "total": 67
+      },
+      "droppedComponents": [],
+      "visibleCount": 5,
+      "actualSurface": "lock",
+      "violations": [
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "status-bar.default",
+          "message": "\"status-bar.default\" min_width (411) exceeds usable width (312) — switch to compact variant or relax padding"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "lock-screen.clock",
+          "message": "\"lock-screen.clock\" min_width (412) exceeds usable width (312) — switch to compact variant or relax padding"
+        }
+      ]
+    },
+    {
+      "scenarioId": "low-battery-alert",
+      "scenarioText": "low battery alert with charging suggestion on lock screen",
+      "elapsedMs": 33520,
+      "error": null,
+      "score": 60,
+      "breakdown": {
+        "violation_high": 0,
+        "violation_medium": -6,
+        "violation_low": 0,
+        "richness": 12,
+        "expected_components_hit": 12,
+        "expected_components_miss": 0,
+        "expected_surface": 8,
+        "expected_features_hit": 12,
+        "expected_features_miss": 0,
+        "no_silent_drops": -8,
+        "total": 30
+      },
+      "droppedComponents": [
+        "quick_toggle_row",
+        "input_summary_card",
+        "input_summary_card",
+        "input_summary_card"
+      ],
+      "visibleCount": 3,
+      "actualSurface": "lock",
+      "violations": [
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "status-bar.default",
+          "message": "\"status-bar.default\" min_width (411) exceeds usable width (312) — switch to compact variant or relax padding"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "lock-screen.clock",
+          "message": "\"lock-screen.clock\" min_width (412) exceeds usable width (312) — switch to compact variant or relax padding"
+        }
+      ]
+    },
+    {
+      "scenarioId": "media-on-lock",
+      "scenarioText": "playing music on lock screen with album art and playback controls",
+      "elapsedMs": 31507,
+      "error": null,
+      "score": 50,
+      "breakdown": {
+        "violation_high": 0,
+        "violation_medium": -9,
+        "violation_low": 0,
+        "richness": 8,
+        "expected_components_hit": 12,
+        "expected_components_miss": 0,
+        "expected_surface": 8,
+        "expected_features_hit": 12,
+        "expected_features_miss": 0,
+        "no_silent_drops": -6,
+        "total": 25
+      },
+      "droppedComponents": [
+        "input_summary_card",
+        "input_summary_card",
+        "media_control_bar"
+      ],
+      "visibleCount": 2,
+      "actualSurface": "lock",
+      "violations": [
+        {
+          "ruleId": "subject_generic_label",
+          "severity": "medium",
+          "element": "lock-screen.clock",
+          "message": "subject \"lock-screen.clock\" (slot=\"chrome\") has empty/generic label \"\" — the screen's main artifact must have concrete text"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "status-bar.default",
+          "message": "\"status-bar.default\" min_width (411) exceeds usable width (312) — switch to compact variant or relax padding"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "lock-screen.clock",
+          "message": "\"lock-screen.clock\" min_width (412) exceeds usable width (312) — switch to compact variant or relax padding"
+        }
+      ]
+    },
+    {
+      "scenarioId": "navigation-driving",
+      "scenarioText": "driving home with navigation directions and ETA",
+      "elapsedMs": 52905,
+      "error": null,
+      "score": 64,
+      "breakdown": {
+        "violation_high": 0,
+        "violation_medium": -12,
+        "violation_low": 0,
+        "richness": 20,
+        "expected_components_hit": 12,
+        "expected_components_miss": 0,
+        "expected_surface": 8,
+        "expected_features_hit": 6,
+        "expected_features_miss": 0,
+        "no_silent_drops": -2,
+        "total": 32
+      },
+      "droppedComponents": [
+        "eta_card"
+      ],
+      "visibleCount": 5,
+      "actualSurface": "app",
+      "violations": [
+        {
+          "ruleId": "reference_order_mismatch",
+          "severity": "medium",
+          "element": "container.header",
+          "message": "\"input_summary_card\" appears before \"container.header\" but reference layout expects the opposite order"
+        },
+        {
+          "ruleId": "reference_order_mismatch",
+          "severity": "medium",
+          "element": "action_chip_row",
+          "message": "\"input_summary_card\" appears before \"action_chip_row\" but reference layout expects the opposite order"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "container.status-bar-app",
+          "message": "\"container.status-bar-app\" min_width (412) exceeds usable width (340) — switch to compact variant or relax padding"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "container.header",
+          "message": "\"container.header\" min_width (438) exceeds usable width (340) — switch to compact variant or relax padding"
+        }
+      ]
+    },
+    {
+      "scenarioId": "messages-summary",
+      "scenarioText": "checking new messages from Alex during a meeting",
+      "elapsedMs": 40678,
+      "error": null,
+      "score": 34,
+      "breakdown": {
+        "violation_high": 0,
+        "violation_medium": -15,
+        "violation_low": 0,
+        "richness": 16,
+        "expected_components_hit": 6,
+        "expected_components_miss": 0,
+        "expected_surface": 8,
+        "expected_features_hit": 6,
+        "expected_features_miss": 0,
+        "no_silent_drops": -4,
+        "total": 17
+      },
+      "droppedComponents": [
+        "message_summary_card",
+        "message_summary_card"
+      ],
+      "visibleCount": 4,
+      "actualSurface": "app",
+      "violations": [
+        {
+          "ruleId": "reference_order_mismatch",
+          "severity": "medium",
+          "element": "container.header",
+          "message": "\"input_summary_card\" appears before \"container.header\" but reference layout expects the opposite order"
+        },
+        {
+          "ruleId": "reference_order_mismatch",
+          "severity": "medium",
+          "element": "action_chip_row",
+          "message": "\"input_summary_card\" appears before \"action_chip_row\" but reference layout expects the opposite order"
+        },
+        {
+          "ruleId": "primary_task_missing_subject",
+          "severity": "medium",
+          "element": "group_primary_task",
+          "message": "primary-task group \"group_primary_task\" has no subject child; a primary task must center on one artifact (use role=\"subject\" on its main com"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "container.status-bar-app",
+          "message": "\"container.status-bar-app\" min_width (412) exceeds usable width (340) — switch to compact variant or relax padding"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "container.header",
+          "message": "\"container.header\" min_width (438) exceeds usable width (340) — switch to compact variant or relax padding"
+        }
+      ]
+    },
+    {
+      "scenarioId": "incoming-call",
+      "scenarioText": "incoming call from contact on lock screen",
+      "elapsedMs": 39059,
+      "error": null,
+      "score": 30,
+      "breakdown": {
+        "violation_high": -10,
+        "violation_medium": -9,
+        "violation_low": 0,
+        "richness": 12,
+        "expected_components_hit": 12,
+        "expected_components_miss": 0,
+        "expected_surface": 8,
+        "expected_features_hit": 6,
+        "expected_features_miss": 0,
+        "no_silent_drops": -4,
+        "total": 15
+      },
+      "droppedComponents": [
+        "lock-screen.clock",
+        "message_summary_card"
+      ],
+      "visibleCount": 3,
+      "actualSurface": "lock",
+      "violations": [
+        {
+          "ruleId": "plan_vocabulary_violation",
+          "severity": "high",
+          "element": "lock-screen.clock",
+          "message": "componentType \"lock-screen.clock\" is not in the semantic vocabulary"
+        },
+        {
+          "ruleId": "reference_order_mismatch",
+          "severity": "medium",
+          "element": "action_chip_row",
+          "message": "\"input_summary_card\" appears before \"action_chip_row\" but reference layout expects the opposite order"
+        },
+        {
+          "ruleId": "primary_task_missing_subject",
+          "severity": "medium",
+          "element": "group_primary_call",
+          "message": "primary-task group \"group_primary_call\" has no subject child; a primary task must center on one artifact (use role=\"subject\" on its main com"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "status-bar.default",
+          "message": "\"status-bar.default\" min_width (411) exceeds usable width (324) — switch to compact variant or relax padding"
+        }
+      ]
+    },
+    {
+      "scenarioId": "home-widgets",
+      "scenarioText": "home screen with weather and calendar widgets",
+      "elapsedMs": 26877,
+      "error": null,
+      "score": 66,
+      "breakdown": {
+        "violation_high": 0,
+        "violation_medium": -3,
+        "violation_low": 0,
+        "richness": 12,
+        "expected_components_hit": 6,
+        "expected_components_miss": 0,
+        "expected_surface": 8,
+        "expected_features_hit": 12,
+        "expected_features_miss": 0,
+        "no_silent_drops": -2,
+        "total": 33
+      },
+      "droppedComponents": [
+        "quick_toggle_row"
+      ],
+      "visibleCount": 3,
+      "actualSurface": "home",
+      "violations": [
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "status-bar.default",
+          "message": "\"status-bar.default\" min_width (411) exceeds usable width (316) — switch to compact variant or relax padding"
+        }
+      ]
+    },
+    {
+      "scenarioId": "cooking-timer",
+      "scenarioText": "cooking dinner with a 25 minute timer running",
+      "elapsedMs": 41933,
+      "error": null,
+      "score": 34,
+      "breakdown": {
+        "violation_high": 0,
+        "violation_medium": -15,
+        "violation_low": 0,
+        "richness": 20,
+        "expected_components_hit": 12,
+        "expected_components_miss": 0,
+        "expected_surface": 8,
+        "expected_features_hit": 6,
+        "expected_features_miss": 0,
+        "no_silent_drops": 3,
+        "total": 34
+      },
+      "droppedComponents": [],
+      "visibleCount": 5,
+      "actualSurface": "app",
+      "violations": [
+        {
+          "ruleId": "reference_order_mismatch",
+          "severity": "medium",
+          "element": "container.header",
+          "message": "\"input_summary_card\" appears before \"container.header\" but reference layout expects the opposite order"
+        },
+        {
+          "ruleId": "reference_order_mismatch",
+          "severity": "medium",
+          "element": "action_chip_row",
+          "message": "\"input_summary_card\" appears before \"action_chip_row\" but reference layout expects the opposite order"
+        },
+        {
+          "ruleId": "reference_order_mismatch",
+          "severity": "medium",
+          "element": "input_summary_card",
+          "message": "\"reminder_card\" appears before \"input_summary_card\" but reference layout expects the opposite order"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "container.status-bar-app",
+          "message": "\"container.status-bar-app\" min_width (412) exceeds usable width (340) — switch to compact variant or relax padding"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "container.header",
+          "message": "\"container.header\" min_width (438) exceeds usable width (340) — switch to compact variant or relax padding"
+        }
+      ]
+    },
+    {
+      "scenarioId": "weather-forecast",
+      "scenarioText": "weather forecast for tomorrow with hourly breakdown",
+      "elapsedMs": 36585,
+      "error": null,
+      "score": 30,
+      "breakdown": {
+        "violation_high": 0,
+        "violation_medium": -6,
+        "violation_low": 0,
+        "richness": 12,
+        "expected_components_hit": 12,
+        "expected_components_miss": 0,
+        "expected_surface": 8,
+        "expected_features_hit": 6,
+        "expected_features_miss": 0,
+        "no_silent_drops": -2,
+        "total": 30
+      },
+      "droppedComponents": [
+        "weather_glance_card"
+      ],
+      "visibleCount": 3,
+      "actualSurface": "app",
+      "violations": [
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "container.status-bar-app",
+          "message": "\"container.status-bar-app\" min_width (412) exceeds usable width (340) — switch to compact variant or relax padding"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "container.header",
+          "message": "\"container.header\" min_width (438) exceeds usable width (340) — switch to compact variant or relax padding"
+        }
+      ]
+    },
+    {
+      "scenarioId": "settings-toggle-list",
+      "scenarioText": "settings page with toggle list for notifications",
+      "elapsedMs": 34948,
+      "error": null,
+      "score": 33,
+      "breakdown": {
+        "violation_high": 0,
+        "violation_medium": -12,
+        "violation_low": 0,
+        "richness": 16,
+        "expected_components_hit": 12,
+        "expected_components_miss": 0,
+        "expected_surface": 8,
+        "expected_features_hit": 6,
+        "expected_features_miss": 0,
+        "no_silent_drops": 3,
+        "total": 33
+      },
+      "droppedComponents": [],
+      "visibleCount": 4,
+      "actualSurface": "app",
+      "violations": [
+        {
+          "ruleId": "reference_order_mismatch",
+          "severity": "medium",
+          "element": "container.header",
+          "message": "\"input_summary_card\" appears before \"container.header\" but reference layout expects the opposite order"
+        },
+        {
+          "ruleId": "reference_order_mismatch",
+          "severity": "medium",
+          "element": "quick_toggle_row",
+          "message": "\"input_summary_card\" appears before \"quick_toggle_row\" but reference layout expects the opposite order"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "container.status-bar-app",
+          "message": "\"container.status-bar-app\" min_width (412) exceeds usable width (340) — switch to compact variant or relax padding"
+        },
+        {
+          "ruleId": "layout_overflow_check",
+          "severity": "medium",
+          "element": "container.header",
+          "message": "\"container.header\" min_width (438) exceeds usable width (340) — switch to compact variant or relax padding"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "totalScenarios": 10,
+    "completed": 10,
+    "failed": 0,
+    "cumulativeScore": 602,
+    "weightedAvgScore": 33.44,
+    "elapsedMsTotal": 373384,
+    "violationCounts": {
+      "topRules": [
+        {
+          "ruleId": "layout_overflow_check",
+          "count": 18
+        },
+        {
+          "ruleId": "reference_order_mismatch",
+          "count": 10
+        },
+        {
+          "ruleId": "primary_task_missing_subject",
+          "count": 2
+        },
+        {
+          "ruleId": "subject_generic_label",
+          "count": 1
+        },
+        {
+          "ruleId": "plan_vocabulary_violation",
+          "count": 1
+        }
+      ],
+      "totalEvents": 32
+    },
+    "droppedTotal": 14,
+    "builtAt": "2026-04-28T08:56:46.376Z"
+  }
+}

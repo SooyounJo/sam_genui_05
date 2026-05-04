@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Samsung One UI 8.5 Design System — Ambient Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --samsung-blue: #1428A0;
+    --primary: #0381FE;
+    --primary-light: #3E91FF;
+    --bg: #000000;
+    --surface: #111111;
+    --surface-2: #1a1a1a;
+    --surface-3: #222222;
+    --text: #FAFAFA;
+    --text-2: rgba(255,255,255,0.6);
+    --text-3: rgba(255,255,255,0.35);
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.10);
+    --glass-bg-hover: rgba(255,255,255,0.10);
+    --gradient-ai: linear-gradient(135deg, #64e9e3, #9ffac7);
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-card: 26px;
+    --radius-pill: 999px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--font);
+    font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  ::selection { background: rgba(3,129,254,0.3); }
+
+  /* === NAV === */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 64px;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: transform 0.4s cubic-bezier(0.2,0,0,1), opacity 0.4s cubic-bezier(0.2,0,0,1);
+  }
+  .nav.hidden { transform: translateY(-100%); opacity: 0; }
+  .nav-brand { font-size: 20px; font-weight: 800; color: #fff; text-decoration: none; letter-spacing: 1px; }
+  .nav-brand span { color: var(--primary-light); font-weight: 400; font-size: 14px; margin-left: 8px; letter-spacing: 0; }
+  .nav-links { display: flex; gap: 6px; }
+  .nav-links a {
+    font-size: 13px; font-weight: 500; color: var(--text-2); text-decoration: none;
+    padding: 8px 14px; border-radius: var(--radius-pill);
+    transition: all 0.2s; border: 1px solid transparent;
+  }
+  .nav-links a:hover { color: #fff; background: var(--glass-bg); border-color: var(--glass-border); }
+  .nav-links a.active { color: #fff; background: rgba(3,129,254,0.15); border-color: rgba(3,129,254,0.3); }
+
+  /* === HERO === */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 120px 32px 80px; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 800px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(3,129,254,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 16px 6px 8px; border-radius: var(--radius-pill);
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    font-size: 13px; color: var(--text-2); margin-bottom: 32px;
+    backdrop-filter: blur(12px);
+  }
+  .hero-badge-dot { width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .hero h1 {
+    font-size: clamp(48px, 8vw, 96px); font-weight: 800; line-height: 1.0;
+    letter-spacing: -2px; margin-bottom: 24px;
+    background: linear-gradient(180deg, #fff 40%, rgba(255,255,255,0.5) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, #3E91FF, #64e9e3);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 18px; color: var(--text-2); max-width: 560px; line-height: 1.7;
+    margin-bottom: 48px;
+  }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 28px; border-radius: var(--radius-pill); border: none;
+    background: var(--primary); color: #fff; font-family: var(--font);
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; text-decoration: none;
+  }
+  .btn-primary:hover { background: var(--primary-light); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(3,129,254,0.3); }
+  .btn-glass {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 28px; border-radius: var(--radius-pill);
+    border: 1px solid var(--glass-border); background: var(--glass-bg);
+    color: var(--text); font-family: var(--font);
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; text-decoration: none;
+    backdrop-filter: blur(12px);
+  }
+  .btn-glass:hover { background: var(--glass-bg-hover); border-color: rgba(255,255,255,0.2); }
+
+  /* === SECTIONS === */
+  .section {
+    padding: 100px 32px; max-width: 1200px; margin: 0 auto;
+  }
+  .section-label {
+    font-size: 13px; font-weight: 600; color: var(--primary-light);
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: clamp(32px, 5vw, 56px); font-weight: 800; line-height: 1.1;
+    letter-spacing: -1px; margin-bottom: 16px;
+  }
+  .section-desc {
+    font-size: 17px; color: var(--text-2); max-width: 640px; line-height: 1.7;
+    margin-bottom: 48px;
+  }
+
+  /* === CARDS GRID === */
+  .grid { display: grid; gap: 16px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  @media (max-width: 900px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+  @media (min-width: 901px) and (max-width: 1100px) { .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; } }
+
+  .card {
+    background: var(--surface); border-radius: var(--radius-card);
+    border: 1px solid rgba(255,255,255,0.06); padding: 32px;
+    transition: all 0.3s cubic-bezier(0.2,0,0,1);
+    position: relative; overflow: hidden;
+  }
+  .card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-2px); }
+  .card-glass {
+    background: var(--glass-bg); backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+  }
+  .card-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px; font-size: 24px;
+  }
+  .card h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .card p { font-size: 14px; color: var(--text-2); line-height: 1.6; }
+  .card .tag {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: var(--radius-pill);
+    background: rgba(3,129,254,0.15); color: var(--primary-light);
+    margin-top: 16px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* === PAGE LINKS === */
+  .page-card {
+    background: var(--surface); border-radius: var(--radius-card);
+    border: 1px solid rgba(255,255,255,0.06); overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.2,0,0,1);
+    text-decoration: none; color: inherit; display: block;
+  }
+  .page-card:hover { border-color: rgba(3,129,254,0.4); transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.4); }
+  .page-card-preview {
+    height: 200px; display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .page-card-body { padding: 24px; }
+  .page-card-body h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .page-card-body p { font-size: 13px; color: var(--text-2); }
+  .page-card-arrow {
+    position: absolute; top: 16px; right: 16px;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 14px; color: var(--text-3);
+    transition: all 0.2s;
+  }
+  .page-card:hover .page-card-arrow { background: var(--primary); color: #fff; }
+
+  /* === FLOATING PILL DEMO === */
+  .pill-demo {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(255,255,255,0.08); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-pill);
+    padding: 6px 8px;
+  }
+  .pill-tab {
+    width: 48px; height: 36px; border-radius: var(--radius-pill);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s cubic-bezier(0.3,0,0,1); cursor: pointer;
+  }
+  .pill-tab.active { background: rgba(255,255,255,0.15); }
+  .pill-tab svg { width: 20px; height: 20px; }
+
+  /* === COLOR TOKENS === */
+  .color-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .color-chip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px 8px 8px; border-radius: 12px;
+    background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
+  }
+  .color-dot { width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; }
+  .color-label { font-size: 12px; font-weight: 600; }
+  .color-hex { font-size: 11px; color: var(--text-3); font-family: ui-monospace, monospace; }
+
+  /* === DELTA TABLE === */
+  .delta-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .delta-table th {
+    text-align: left; padding: 14px 16px; font-weight: 600; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 1px; color: var(--primary-light);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .delta-table td {
+    padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text-2);
+  }
+  .delta-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .delta-old { color: var(--text-3); text-decoration: line-through; }
+  .delta-new { color: var(--primary-light); font-weight: 600; }
+
+  /* === STATS === */
+  .stats { display: flex; gap: 32px; justify-content: center; margin: 48px 0; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-value { font-size: 48px; font-weight: 800; letter-spacing: -2px; background: linear-gradient(135deg, #3E91FF, #64e9e3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .stat-label { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+
+  /* === FOOTER === */
+  .footer {
+    padding: 48px 32px; text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 13px; color: var(--text-3);
+  }
+  .footer a { color: var(--primary-light); text-decoration: none; }
+
+  /* === AMBIENT SCROLL === */
+  .ambient-indicator {
+    position: fixed; bottom: 24px; right: 24px; z-index: 50;
+    padding: 8px 16px; border-radius: var(--radius-pill);
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 11px; color: var(--text-3);
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV (Ambient: fades on scroll) -->
+<nav class="nav" id="mainNav">
+  <a class="nav-brand" href="#">SAMSUNG <span>One UI 8.5</span></a>
+  <div class="nav-links">
+    <a href="#overview" class="active">Overview</a>
+    <a href="#ambient">Ambient Design</a>
+    <a href="#colors">Colors</a>
+    <a href="#components">Components</a>
+    <a href="#motion">Motion</a>
+    <a href="#pages">Full Specs</a>
+    <a href="genui.html" style="background:#0381FE; color:#fff; font-weight:700; border-color:#0381FE;">GenUI</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <div class="hero-badge-dot"></div>
+    One UI 8.5 &mdash; Galaxy S26 Series
+  </div>
+  <h1>Design System<br><em>Ambient Design</em></h1>
+  <p>UI chrome that fades when you don't need it. Glass surfaces that react to your wallpaper. Navigation that floats like a thought. This is One UI 8.5.</p>
+  <div class="hero-actions">
+    <a class="btn-primary" href="#pages">Explore Full Specs &rarr;</a>
+    <a class="btn-glass" href="#ambient">What's New in 8.5</a>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-value">22</div><div class="stat-label">Components</div></div>
+  <div class="stat"><div class="stat-value">7</div><div class="stat-label">Easing Curves</div></div>
+  <div class="stat"><div class="stat-value">15</div><div class="stat-label">New Animations</div></div>
+  <div class="stat"><div class="stat-value">6</div><div class="stat-label">Unlock Styles</div></div>
+  <div class="stat"><div class="stat-value">65</div><div class="stat-label">Dynamic Colors</div></div>
+</div>
+
+<!-- AMBIENT DESIGN -->
+<section class="section" id="ambient">
+  <div class="section-label">What's New</div>
+  <h2 class="section-title">Ambient Design</h2>
+  <p class="section-desc">The interface becomes invisible until needed. Chrome fades during content consumption. Surfaces are made of frosted glass. Everything floats.</p>
+
+  <div class="grid grid-3">
+    <div class="card">
+      <div class="card-icon" style="background:rgba(3,129,254,0.15); color:var(--primary-light);">&#128065;</div>
+      <h3>Invisible Chrome</h3>
+      <p>Status bars and navigation bars fade to zero opacity during vertical scrolling. They return on upward scroll or tap.</p>
+      <div class="tag">400ms emphasized</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(100,233,227,0.15); color:#64e9e3;">&#10024;</div>
+      <h3>Glass UI</h3>
+      <p>Frosted semi-transparent surfaces with thin outline borders. Wallpaper colors tint the glass dynamically.</p>
+      <div class="tag">blur(20px) + 1px outline</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(255,240,31,0.15); color:#FFF01F;">&#129302;</div>
+      <h3>Contextual AI</h3>
+      <p>Now Nudge analyzes on-screen content. Stretch Clock adapts to wallpaper subjects. The system anticipates your needs.</p>
+      <div class="tag">Galaxy AI</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(62,145,255,0.15); color:var(--primary-light);">&#128171;</div>
+      <h3>Floating Pill Nav</h3>
+      <p>Bottom navigation reimagined as a hovering pill with frosted glass background and circular active indicator.</p>
+      <div class="tag">Replaces fixed tabs</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(46,204,113,0.15); color:#2ecc71;">&#127925;</div>
+      <h3>Now Bar</h3>
+      <p>Live activity pill on lock screen showing timers, music playback, and navigation. Also visible on AOD and status bar.</p>
+      <div class="tag">Lock screen + AOD</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(211,47,47,0.15); color:#ff6b6b;">&#128274;</div>
+      <h3>6 Unlock Animations</h3>
+      <p>Slide, Expand, Spread, Wave, Warp, and Ripple. Each customizable via LockStar in Good Lock.</p>
+      <div class="tag">600-800ms</div>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW / DELTA -->
+<section class="section" id="overview">
+  <div class="section-label">One UI 7 vs 8.5</div>
+  <h2 class="section-title">What Changed</h2>
+  <p class="section-desc">Every major design delta from One UI 7 to 8.5 at a glance.</p>
+
+  <div class="card" style="padding:0; overflow:hidden;">
+    <table class="delta-table">
+      <thead><tr><th>Aspect</th><th>One UI 7</th><th>One UI 8.5</th></tr></thead>
+      <tbody>
+        <tr><td>Design Philosophy</td><td class="delta-old">Essentials &mdash; clarity, circular forms</td><td class="delta-new">Ambient Design &mdash; invisible chrome, Glass UI</td></tr>
+        <tr><td>Navigation Bars</td><td class="delta-old">Fixed bottom tabs, rectangular</td><td class="delta-new">Floating Pill Tab Bar, frosted glass</td></tr>
+        <tr><td>Quick Panel</td><td class="delta-old">Fixed layout, standard toggles</td><td class="delta-new">Drag-and-drop, resizable, widget-style tiles</td></tr>
+        <tr><td>App Icons</td><td class="delta-old">Flat, 2D</td><td class="delta-new">3D with subtle drop shadows</td></tr>
+        <tr><td>System Surfaces</td><td class="delta-old">Standard blur</td><td class="delta-new">Frosted glass + thin outlines + wallpaper-reactive</td></tr>
+        <tr><td>Lock Screen Clock</td><td class="delta-old">Static placement</td><td class="delta-new">AI-driven adaptive positioning (all objects)</td></tr>
+        <tr><td>Chrome Behavior</td><td class="delta-old">Persistent bars</td><td class="delta-new">Bars fade on scroll, return on demand</td></tr>
+        <tr><td>Unlock</td><td class="delta-old">Standard animation</td><td class="delta-new">6 customizable styles via LockStar</td></tr>
+        <tr><td>Search Bars</td><td class="delta-old">Top of screen</td><td class="delta-new">Bottom for one-handed reachability</td></tr>
+        <tr><td>Third-party Fonts</td><td class="delta-old">Allowed</td><td class="delta-new">Removed (Galaxy Store fonts only)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- COLORS -->
+<section class="section" id="colors">
+  <div class="section-label">Tokens</div>
+  <h2 class="section-title">Color System</h2>
+  <p class="section-desc">Brand colors for web, One UI system tokens for app, and the new Glass UI surface palette.</p>
+
+  <h3 style="font-size:16px; font-weight:600; margin-bottom:16px; color:var(--text-2);">Brand</h3>
+  <div class="color-row">
+    <div class="color-chip"><div class="color-dot" style="background:#1428A0;"></div><div><div class="color-label">Samsung Blue</div><div class="color-hex">#1428A0</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:#000;border:1px solid rgba(255,255,255,0.2);"></div><div><div class="color-label">Black</div><div class="color-hex">#000000</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:#FFF;"></div><div><div class="color-label">White</div><div class="color-hex">#FFFFFF</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:#FFF01F;"></div><div><div class="color-label">Galaxy Yellow</div><div class="color-hex">#FFF01F</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:linear-gradient(135deg,#64e9e3,#9ffac7);"></div><div><div class="color-label">AI Gradient</div><div class="color-hex">#64E9E3 &rarr; #9FFAC7</div></div></div>
+  </div>
+
+  <h3 style="font-size:16px; font-weight:600; margin:24px 0 16px; color:var(--text-2);">System (Light / Dark)</h3>
+  <div class="color-row">
+    <div class="color-chip"><div class="color-dot" style="background:#0381FE;"></div><div><div class="color-label">Primary</div><div class="color-hex">#0381FE</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:#0072DE;"></div><div><div class="color-label">Primary Dark</div><div class="color-hex">#0072DE / #3E91FF</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:#3E91FF;"></div><div><div class="color-label">Activated</div><div class="color-hex">#3E91FF</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:#FCFCFC;"></div><div><div class="color-label">Surface</div><div class="color-hex">#FCFCFC / #171717</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:#252525;"></div><div><div class="color-label">Text</div><div class="color-hex">#252525 / #FAFAFA</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:#D32F2F;"></div><div><div class="color-label">Error</div><div class="color-hex">#D32F2F</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:#387AFF;"></div><div><div class="color-label">Nav Selected</div><div class="color-hex">#387AFF</div></div></div>
+  </div>
+
+  <h3 style="font-size:16px; font-weight:600; margin:24px 0 16px; color:var(--text-2);">Glass UI Surfaces (8.5 New)</h3>
+  <div class="color-row">
+    <div class="color-chip"><div class="color-dot" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15);"></div><div><div class="color-label">Glass BG</div><div class="color-hex">rgba(255,255,255,0.06)</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:rgba(255,255,255,0.15);"></div><div><div class="color-label">Glass Border</div><div class="color-hex">rgba(255,255,255,0.15)</div></div></div>
+    <div class="color-chip"><div class="color-dot" style="background:rgba(62,145,255,0.2); border:1px solid rgba(62,145,255,0.3);"></div><div><div class="color-label">Active Tile</div><div class="color-hex">rgba(62,145,255,0.2)</div></div></div>
+  </div>
+</section>
+
+<!-- COMPONENT PREVIEW -->
+<section class="section" id="components">
+  <div class="section-label">Components</div>
+  <h2 class="section-title">Floating Pill Tab Bar</h2>
+  <p class="section-desc">The signature One UI 8.5 component. A frosted glass pill that hovers at the bottom, replacing fixed rectangular navigation.</p>
+
+  <div class="card" style="background:linear-gradient(180deg, #0a0a2e 0%, #0d1117 100%); min-height:300px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:24px;">
+    <div style="flex:1; display:flex; align-items:center; color:var(--text-3); font-size:14px;">Content fades nav on scroll</div>
+    <div class="pill-demo">
+      <div class="pill-tab active" onclick="setTab(this)">
+        <svg viewBox="0 0 24 24" fill="#3E91FF"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </div>
+      <div class="pill-tab" onclick="setTab(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="pill-tab" onclick="setTab(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+      </div>
+      <div class="pill-tab" onclick="setTab(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MOTION -->
+<section class="section" id="motion">
+  <div class="section-label">Motion</div>
+  <h2 class="section-title">Animation System</h2>
+  <p class="section-desc">Samsung One UI Basic Path Interpolator + 7 derived easing curves + 4 supplementary styles. 15 new 8.5 animations and the Ambient scroll pattern.</p>
+
+  <!-- Samsung Basic Path Interpolator -->
+  <h3 style="font-size:16px; font-weight:600; margin-bottom:16px; color:var(--text-2);">Samsung One UI Basic Path Interpolator</h3>
+  <div class="card" style="display:flex; align-items:center; gap:32px; border-color:rgba(255,240,31,0.2); background:linear-gradient(135deg, rgba(255,240,31,0.03), transparent);">
+    <div style="text-align:center; flex-shrink:0;">
+      <svg viewBox="0 0 100 100" width="100" height="100">
+        <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="50" y1="0" x2="50" y2="100" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <path d="M 0,100 C 22,25 0,0 100,0" fill="none" stroke="#FFF01F" stroke-width="2.5"/>
+      </svg>
+    </div>
+    <div>
+      <div style="font-size:18px; font-weight:700; margin-bottom:4px;">One UI Basic Path <span style="font-size:12px; font-weight:400; color:var(--text-3); margin-left:8px;">System Default</span></div>
+      <div style="font-size:13px; font-family:monospace; color:var(--primary-light); margin-bottom:8px;">cubic-bezier(0.22, 0.25, 0.00, 1.00)</div>
+      <div style="font-size:13px; color:var(--text-2); line-height:1.6;">The foundational curve for all One UI system transitions. Accelerates quickly then slows down gradually. All other curves derive from or complement this base.</div>
+    </div>
+  </div>
+
+  <!-- 7 Derived Easing Curves -->
+  <h3 style="font-size:16px; font-weight:600; margin:32px 0 16px; color:var(--text-2);">Derived Easing Curves (7)</h3>
+  <div class="grid grid-4" style="margin-bottom:24px;">
+    <!-- 1. Standard -->
+    <div class="card" style="text-align:center;">
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Standard</div>
+      <svg viewBox="0 0 80 80" width="80" height="80" style="margin:0 auto;">
+        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="40" y1="0" x2="40" y2="80" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <path d="M 0,80 C 24,80 0,0 80,0" fill="none" stroke="var(--primary)" stroke-width="2"/>
+      </svg>
+      <div style="font-size:10px; color:var(--text-3); margin-top:6px; font-family:monospace;">(0.3, 0, 0, 1)</div>
+      <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Most transitions</div>
+    </div>
+    <!-- 2. Decelerate -->
+    <div class="card" style="text-align:center;">
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Decelerate</div>
+      <svg viewBox="0 0 80 80" width="80" height="80" style="margin:0 auto;">
+        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="40" y1="0" x2="40" y2="80" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <path d="M 0,80 C 0,80 0,0 80,0" fill="none" stroke="#64e9e3" stroke-width="2"/>
+      </svg>
+      <div style="font-size:10px; color:var(--text-3); margin-top:6px; font-family:monospace;">(0, 0, 0, 1)</div>
+      <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Entering elements</div>
+    </div>
+    <!-- 3. Accelerate -->
+    <div class="card" style="text-align:center;">
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Accelerate</div>
+      <svg viewBox="0 0 80 80" width="80" height="80" style="margin:0 auto;">
+        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="40" y1="0" x2="40" y2="80" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <path d="M 0,80 C 24,80 80,0 80,0" fill="none" stroke="#ff6b6b" stroke-width="2"/>
+      </svg>
+      <div style="font-size:10px; color:var(--text-3); margin-top:6px; font-family:monospace;">(0.3, 0, 1, 1)</div>
+      <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Exiting elements</div>
+    </div>
+    <!-- 4. Emphasized -->
+    <div class="card" style="text-align:center; border-color:rgba(3,129,254,0.3);">
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px; color:var(--primary-light);">Emphasized <span style="font-size:9px; vertical-align:super;">&#9733;</span></div>
+      <svg viewBox="0 0 80 80" width="80" height="80" style="margin:0 auto;">
+        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="40" y1="0" x2="40" y2="80" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <path d="M 0,80 C 16,80 0,0 80,0" fill="none" stroke="var(--primary-light)" stroke-width="2.5"/>
+      </svg>
+      <div style="font-size:10px; color:var(--text-3); margin-top:6px; font-family:monospace;">(0.2, 0, 0, 1)</div>
+      <div style="font-size:11px; color:var(--primary-light); margin-top:4px;">Hero, sheets, pages, chrome fade</div>
+    </div>
+  </div>
+  <div class="grid grid-4">
+    <!-- 5. Spring -->
+    <div class="card" style="text-align:center;">
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Spring</div>
+      <svg viewBox="0 0 80 80" width="80" height="80" style="margin:0 auto;">
+        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="40" y1="0" x2="40" y2="80" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <path d="M 0,80 C 16,48 32,0 80,0" fill="none" stroke="#FFF01F" stroke-width="2"/>
+      </svg>
+      <div style="font-size:10px; color:var(--text-3); margin-top:6px; font-family:monospace;">(0.2, 0.6, 0.4, 1)</div>
+      <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Dialogs, FAB, Now Bar</div>
+    </div>
+    <!-- 6. Bounce -->
+    <div class="card" style="text-align:center;">
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Bounce</div>
+      <svg viewBox="0 0 80 90" width="80" height="80" style="margin:0 auto;">
+        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="40" y1="0" x2="40" y2="90" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <path d="M 0,80 C 27,-5 51,0 80,0" fill="none" stroke="#2ecc71" stroke-width="2"/>
+      </svg>
+      <div style="font-size:10px; color:var(--text-3); margin-top:6px; font-family:monospace;">(0.34, 1.56, 0.64, 1)</div>
+      <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Celebration, success, checkbox</div>
+    </div>
+    <!-- 7. Elastic -->
+    <div class="card" style="text-align:center;">
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Elastic</div>
+      <svg viewBox="-5 -5 90 95" width="80" height="80" style="margin:0 auto;">
+        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="40" y1="0" x2="40" y2="90" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <path d="M 0,80 C 54,124 22,-20 80,0" fill="none" stroke="#E056A0" stroke-width="2"/>
+      </svg>
+      <div style="font-size:10px; color:var(--text-3); margin-top:6px; font-family:monospace;">(0.68, -0.55, 0.27, 1.55)</div>
+      <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Playful pop, Unlock Warp</div>
+    </div>
+    <!-- Placeholder for alignment -->
+    <div></div>
+  </div>
+
+  <!-- Supplementary Motion Styles (from Samsung Developer Docs) -->
+  <h3 style="font-size:16px; font-weight:600; margin:32px 0 16px; color:var(--text-2);">Supplementary Motion Styles (Samsung Official)</h3>
+  <div class="grid grid-4">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Linear</div>
+      <svg viewBox="0 0 80 80" width="80" height="80" style="margin:0 auto;">
+        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="40" y1="0" x2="40" y2="80" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="0" y1="80" x2="80" y2="0" stroke="#888" stroke-width="2"/>
+      </svg>
+      <div style="font-size:10px; color:var(--text-3); margin-top:6px; font-family:monospace;">linear</div>
+      <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Opacity shifts, dissolves</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Ease In</div>
+      <svg viewBox="0 0 80 80" width="80" height="80" style="margin:0 auto;">
+        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="40" y1="0" x2="40" y2="80" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <path d="M 0,80 C 33,80 66,0 80,0" fill="none" stroke="#F9A825" stroke-width="2"/>
+      </svg>
+      <div style="font-size:10px; color:var(--text-3); margin-top:6px; font-family:monospace;">ease-in</div>
+      <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Exit when endpoint undefined</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Ease Out</div>
+      <svg viewBox="0 0 80 80" width="80" height="80" style="margin:0 auto;">
+        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="40" y1="0" x2="40" y2="80" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <path d="M 0,80 C 14,80 0,0 80,0" fill="none" stroke="#AB47BC" stroke-width="2"/>
+      </svg>
+      <div style="font-size:10px; color:var(--text-3); margin-top:6px; font-family:monospace;">ease-out</div>
+      <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Decel needs visibility</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Ease In Out</div>
+      <svg viewBox="0 0 80 80" width="80" height="80" style="margin:0 auto;">
+        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="40" y1="0" x2="40" y2="80" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <path d="M 0,80 C 33,80 47,0 80,0" fill="none" stroke="#26A69A" stroke-width="2"/>
+      </svg>
+      <div style="font-size:10px; color:var(--text-3); margin-top:6px; font-family:monospace;">ease-in-out</div>
+      <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Highly visible sequences</div>
+    </div>
+  </div>
+
+  <!-- Duration Scale -->
+  <h3 style="font-size:16px; font-weight:600; margin:32px 0 16px; color:var(--text-2);">Duration Scale</h3>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <table class="delta-table">
+      <thead><tr><th>Token</th><th>Value</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>Instant</td><td class="delta-new">100ms</td><td>Touch feedback, hover (minimum perceptible)</td></tr>
+        <tr><td>Fast</td><td class="delta-new">200ms</td><td>Exits, simple fades</td></tr>
+        <tr><td>Normal</td><td class="delta-new">300ms</td><td>Standard transitions</td></tr>
+        <tr><td>Slow</td><td class="delta-new">400ms</td><td>Bottom sheets, dialogs, chrome fade</td></tr>
+        <tr><td>Emphasis</td><td class="delta-new">500ms</td><td>Bounce, Now Bar enter (maximum for non-page)</td></tr>
+        <tr><td>Complex</td><td class="delta-new">600ms</td><td>Ripple effect, FAB morph, media transition</td></tr>
+        <tr><td>Page</td><td class="delta-new">800ms</td><td>Page transitions, unlock animations</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="margin-top:12px; font-size:13px; color:var(--text-3);">Hard constraints: <strong style="color:var(--text-2);">100ms</strong> minimum (below = imperceptible) &mdash; <strong style="color:var(--text-2);">500ms</strong> maximum (above blocks next task). Unlock animations extend to 800ms as full-screen transitions.</div>
+
+  <!-- Easing Reference Table -->
+  <h3 style="font-size:16px; font-weight:600; margin:32px 0 16px; color:var(--text-2);">Complete Easing Reference</h3>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <table class="delta-table">
+      <thead><tr><th>Name</th><th>Value</th><th>Category</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td style="color:#FFF01F; font-weight:600;">One UI Basic Path</td><td style="font-family:monospace; font-size:12px;">(0.22, 0.25, 0.00, 1.00)</td><td>System</td><td>All system-level transitions</td></tr>
+        <tr><td>Standard</td><td style="font-family:monospace; font-size:12px;">(0.3, 0, 0, 1)</td><td>Derived</td><td>Most transitions, general purpose</td></tr>
+        <tr><td>Decelerate</td><td style="font-family:monospace; font-size:12px;">(0, 0, 0, 1)</td><td>Derived</td><td>Entering elements, fade-in, ripple</td></tr>
+        <tr><td>Accelerate</td><td style="font-family:monospace; font-size:12px;">(0.3, 0, 1, 1)</td><td>Derived</td><td>Exiting elements, fade-out</td></tr>
+        <tr><td style="color:var(--primary-light); font-weight:600;">Emphasized &#9733;</td><td style="font-family:monospace; font-size:12px;">(0.2, 0, 0, 1)</td><td>Derived</td><td>Hero transitions, sheets, pages, chrome fade</td></tr>
+        <tr><td>Spring</td><td style="font-family:monospace; font-size:12px;">(0.2, 0.6, 0.4, 1)</td><td>Derived</td><td>Dialogs, FAB, Now Bar enter, scale reveals</td></tr>
+        <tr><td>Bounce</td><td style="font-family:monospace; font-size:12px;">(0.34, 1.56, 0.64, 1)</td><td>Derived</td><td>Celebration, success states, checkbox tick</td></tr>
+        <tr><td>Elastic</td><td style="font-family:monospace; font-size:12px;">(0.68, -0.55, 0.27, 1.55)</td><td>Derived</td><td>Playful pop, Unlock Warp animation</td></tr>
+        <tr><td>Linear</td><td style="font-family:monospace; font-size:12px;">linear</td><td>Supplementary</td><td>Opacity/transparency shifts, dissolves</td></tr>
+        <tr><td>Ease In</td><td style="font-family:monospace; font-size:12px;">ease-in</td><td>Supplementary</td><td>Origin visible, endpoint undefined (exits)</td></tr>
+        <tr><td>Ease Out</td><td style="font-family:monospace; font-size:12px;">ease-out</td><td>Supplementary</td><td>Speed reduction needs visibility</td></tr>
+        <tr><td>Ease In Out</td><td style="font-family:monospace; font-size:12px;">ease-in-out</td><td>Supplementary</td><td>Highly visible motion sequences</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FULL SPEC PAGES — consolidated tab view.
+     Previous version had 4 separate cards that linked OUT to standalone
+     HTML files; switching contexts hurt access. Now: inline tabs that
+     load each spec page into an iframe, with a light/dark toggle that
+     swaps preview.html ↔ preview-dark.html for the Tokens tab. The
+     iframe is lazy-loaded — only the active tab's frame mounts, so the
+     landing page stays fast. An "Open in new tab" link is kept for
+     full-window viewing. -->
+<style>
+  .specs-tabs {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding: 8px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .specs-tab {
+    padding: 8px 16px; border-radius: 10px;
+    background: transparent; color: var(--text-2);
+    border: 1px solid transparent;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .specs-tab:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .specs-tab.active {
+    background: rgba(3, 129, 254, 0.18);
+    color: #fff;
+    border-color: rgba(3, 129, 254, 0.4);
+  }
+  .specs-tab .count {
+    font-size: 11px; color: var(--text-3);
+    margin-left: 4px;
+  }
+  .specs-tab.active .count { color: rgba(255,255,255,0.7); }
+
+  .specs-spacer { flex: 1; min-width: 16px; }
+
+  .specs-theme-toggle {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px; border-radius: 10px;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border);
+    transition: opacity 0.18s;
+  }
+  .specs-theme-toggle.disabled { opacity: 0.35; pointer-events: none; }
+  .specs-theme-toggle button {
+    padding: 6px 12px; border-radius: 8px;
+    background: transparent; color: var(--text-2);
+    border: 0; font-size: 12px; font-weight: 500;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .specs-theme-toggle button:hover { color: var(--text); }
+  .specs-theme-toggle button.active {
+    background: rgba(255,255,255,0.10); color: #fff;
+  }
+  .specs-theme-toggle svg {
+    width: 13px; height: 13px; opacity: 0.85;
+  }
+
+  .specs-newtab {
+    padding: 6px 12px; border-radius: 8px;
+    background: transparent; color: var(--text-3);
+    border: 1px solid var(--glass-border);
+    font-size: 12px; font-weight: 500;
+    cursor: pointer; font-family: inherit;
+    text-decoration: none;
+    transition: color 0.15s, border-color 0.15s;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .specs-newtab:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+
+  .specs-frame-wrap {
+    position: relative;
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #ffffff;   /* default light bg behind frame; dark mode flips */
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  }
+  .specs-frame-wrap.dark { background: #0a0a0a; }
+  .specs-frame {
+    width: 100%;
+    height: 78vh;
+    min-height: 600px;
+    border: 0; display: block;
+    background: transparent;
+  }
+  .specs-frame-status {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-3); font-size: 13px;
+    pointer-events: none;
+    background: rgba(10,10,10,0.85);
+    transition: opacity 0.2s;
+  }
+  .specs-frame-status.hidden { opacity: 0; pointer-events: none; }
+</style>
+
+<section class="section" id="pages">
+  <div class="section-label">Full Specifications</div>
+  <h2 class="section-title">Explore</h2>
+  <p class="section-desc">Deep-dive into every token, component, and animation in the system. Switch tabs to browse without leaving this page; toggle Light/Dark for the Tokens view.</p>
+
+  <div class="specs-tabs" role="tablist">
+    <button class="specs-tab active" data-tab="tokens"     role="tab">Design Tokens</button>
+    <button class="specs-tab"        data-tab="components" role="tab">Components<span class="count">·22</span></button>
+    <button class="specs-tab"        data-tab="motion"     role="tab">Motion</button>
+
+    <div class="specs-spacer"></div>
+
+    <!-- Theme toggle — only meaningful for the Tokens tab. Disabled
+         (visually muted) when other tabs are active. -->
+    <div class="specs-theme-toggle" id="specsThemeToggle">
+      <button data-theme="light" class="active" title="Light tokens">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Light
+      </button>
+      <button data-theme="dark" title="Dark tokens">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="currentColor"/></svg>
+        Dark
+      </button>
+    </div>
+
+    <a class="specs-newtab" id="specsOpenNewTab" href="preview.html" target="_blank" rel="noopener">
+      Open in new tab
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M14 5h5v5M19 5L10 14M5 5h6v2H7v10h10v-4h2v6H5z" fill="currentColor"/></svg>
+    </a>
+  </div>
+
+  <div class="specs-frame-wrap" id="specsFrameWrap">
+    <iframe id="specsFrame" class="specs-frame" src="" loading="lazy" title="Specs preview"></iframe>
+    <div class="specs-frame-status" id="specsFrameStatus">Loading…</div>
+  </div>
+</section>
+
+<script>
+(function () {
+  // Tab → URL map. Tokens has two variants (light/dark) controlled by the
+  // theme toggle. Components and Motion are theme-agnostic.
+  var TAB_URLS = {
+    tokens: { light: 'preview.html', dark: 'preview-dark.html' },
+    components: 'components.html',
+    motion: 'motion.html'
+  };
+  var currentTab = 'tokens';
+  var currentTheme = 'light';
+
+  var frame  = document.getElementById('specsFrame');
+  var status = document.getElementById('specsFrameStatus');
+  var wrap   = document.getElementById('specsFrameWrap');
+  var openLink = document.getElementById('specsOpenNewTab');
+  var themeToggle = document.getElementById('specsThemeToggle');
+
+  function urlFor(tab, theme) {
+    var entry = TAB_URLS[tab];
+    if (typeof entry === 'string') return entry;
+    return entry[theme] || entry.light;
+  }
+
+  function loadFrame() {
+    var url = urlFor(currentTab, currentTheme);
+    status.classList.remove('hidden');
+    status.textContent = 'Loading ' + url + '…';
+    frame.src = url;
+    openLink.href = url;
+    // Tokens tab → wrap bg matches its theme so the iframe edges blend.
+    wrap.classList.toggle('dark', currentTab === 'tokens' && currentTheme === 'dark');
+    // Theme toggle disabled when not on Tokens tab.
+    themeToggle.classList.toggle('disabled', currentTab !== 'tokens');
+  }
+
+  frame.addEventListener('load', function () {
+    status.classList.add('hidden');
+  });
+  frame.addEventListener('error', function () {
+    status.textContent = 'Failed to load.';
+  });
+
+  // Tab clicks
+  document.querySelectorAll('.specs-tab').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.specs-tab').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentTab = btn.dataset.tab;
+      loadFrame();
+    });
+  });
+
+  // Theme toggle (Tokens-only)
+  themeToggle.querySelectorAll('button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (themeToggle.classList.contains('disabled')) return;
+      themeToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentTheme = btn.dataset.theme;
+      loadFrame();
+    });
+  });
+
+  // Initial load
+  loadFrame();
+})();
+</script>
+
+<!-- FOOTER -->
+<footer class="footer">
+  Samsung One UI 8.5 Design System &mdash; <a href="https://developer.samsung.com/one-ui">developer.samsung.com/one-ui</a> &middot; <a href="https://github.com/VoltAgent/awesome-design-md">awesome-design-md</a>
+  <br><span style="margin-top:8px; display:inline-block;">Built for design review &amp; experimentation</span>
+</footer>
+
+<!-- Ambient scroll indicator -->
+<div class="ambient-indicator" id="ambientIndicator">Ambient scroll active</div>
+
+<script>
+  // Ambient nav: hide on scroll down, show on scroll up
+  let lastScroll = 0;
+  const nav = document.getElementById('mainNav');
+  const indicator = document.getElementById('ambientIndicator');
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (y > lastScroll && y > 200) {
+      nav.classList.add('hidden');
+      indicator.style.opacity = '1';
+    } else {
+      nav.classList.remove('hidden');
+      indicator.style.opacity = '0';
+    }
+    lastScroll = y;
+  });
+  // Hide indicator initially
+  indicator.style.opacity = '0';
+
+  // Active nav link
+  const sections = document.querySelectorAll('.section, .hero');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const id = entry.target.id || 'overview';
+        const link = document.querySelector(`.nav-links a[href="#${id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => { if (s.id) observer.observe(s); });
+
+  // Pill tab interaction
+  function setTab(el) {
+    el.parentElement.querySelectorAll('.pill-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+</body>
+</html>

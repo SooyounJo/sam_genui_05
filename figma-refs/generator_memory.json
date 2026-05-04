@@ -1,0 +1,342 @@
+{
+  "version": "0.1.0",
+  "description": "Executable memory for generator.js. Derived from 6 canonical Figma nodes. Consumed by the state-driven composer to choose layouts, spacings, radii, and component sets per ui_state without improvising.",
+
+  "screens": {
+    "lock": {
+      "sourceNodeId": "3010:2143",
+      "preferredLayoutContainer": "vertical-stack",
+      "outerPadding": { "top": 16, "right": 24, "bottom": 16, "left": 24 },
+      "gridGap": 30,
+      "maxVisibleGroups": 4,
+      "mandatoryComponents": ["status-bar.default", "lock-screen.clock"],
+      "optionalComponents": ["lock-screen.weather-date", "lock-screen.widget-battery", "lock-screen.widget-activity", "lock-screen.shortcut-circle", "now-bar.dual-line", "now-bar.single-line", "now-bar.media-player", "now-bar.charging"],
+      "anchorAreas": {
+        "topStatus":   { "top": 0,   "height": 51 },
+        "lockIcon":    { "top": 51 },
+        "clockBlock":  { "top": 133, "width": 412 },
+        "shortcutRow": { "top": 880, "left": 31, "width": 389 }
+      }
+    },
+    "home": {
+      "sourceNodeId": null,
+      "preferredLayoutContainer": "grid",
+      "outerPadding": { "top": 18, "right": 22, "bottom": 0, "left": 22 },
+      "gridGap": 18,
+      "maxVisibleGroups": 6,
+      "mandatoryComponents": ["status-bar.default"],
+      "optionalComponents": ["now-bar.dual-line", "now-bar.media-player", "now-bar.charging"]
+    },
+    "quick-settings": {
+      "sourceNodeId": "3010:2142",
+      "preferredLayoutContainer": "grid",
+      "outerPadding": { "top": 18, "right": 22, "bottom": 0, "left": 22 },
+      "gridGap": 18,
+      "maxVisibleGroups": 6,
+      "mandatoryComponents": ["status-bar.default", "quick-settings.icons-row"],
+      "optionalComponents": ["single-toggle.half-toggle", "single-toggle.single-toggle", "single-toggle.half-shortcut", "quick-settings.slider-vertical", "quick-settings.smartthings-card", "media-player.tile"]
+    },
+    "notification-shade": {
+      "sourceNodeId": "989:22754",
+      "preferredLayoutContainer": "vertical-stack",
+      "outerPadding": { "top": 18, "right": 18, "bottom": 0, "left": 18 },
+      "gridGap": 10,
+      "maxVisibleGroups": 5,
+      "mandatoryComponents": ["status-bar.default", "notifications.section-label"],
+      "optionalComponents": ["notification.ai-regular", "notification.live", "notification.stack", "media-player.tile"]
+    },
+    "system-dialog": {
+      "sourceNodeId": "3010:2144",
+      "preferredLayoutContainer": "overlay-stack",
+      "outerPadding": { "top": 8, "right": 18, "bottom": 0, "left": 18 },
+      "gridGap": 20,
+      "maxVisibleGroups": 3,
+      "mandatoryComponents": ["system.dim-overlay", "system.dialog-surface"],
+      "optionalComponents": ["dialog.website-share-header", "dialog.browser-top-bar", "dialog.icon-grid-box", "dialog.page-indicator", "dialog.nav-gesture-bar", "status-bar.live-activity-chip"]
+    },
+    "app": {
+      "sourceNodeId": "390:428",
+      "preferredLayoutContainer": "vertical-stack",
+      "outerPadding": { "top": 10, "right": 10, "bottom": 0, "left": 10 },
+      "gridGap": 20,
+      "maxVisibleGroups": 6,
+      "mandatoryComponents": ["container.status-bar-app", "container.header"],
+      "optionalComponents": [
+        "search.dark", "search.light", "search.galaxy-ai",
+        "button.dark", "button.light", "button.accent", "button.galaxy-ai",
+        "card.toggle-row", "card.toggle-row-light", "card.menu-item", "card.menu-item-body",
+        "card.subheading", "card.chevron-nav", "card.radio", "card.stacked-group",
+        "container.nav-gestures-dark", "container.nav-buttons-light"
+      ],
+      "shellVariants": {
+        "dark":  { "shellId": "container.app-shell-dark",  "radius": 16, "background": "#010102", "navId": "container.nav-gestures-dark" },
+        "light": { "shellId": "container.app-shell-light", "radius": 32, "background": "#F1F1F3", "navId": "container.nav-buttons-light" }
+      }
+    }
+  },
+
+  "layoutPatterns": {
+    "grid": {
+      "description": "Mixed-width grid used by Quick Settings. Cells snap to 88x88 single / 199x88 half / 408x86 full / 88x300 tall.",
+      "cellWidths": [88, 199, 408],
+      "cellHeights": [86, 88, 300],
+      "defaultGap": 18
+    },
+    "vertical-stack": {
+      "description": "Top-down content flow. Used by Lock Screen and Notification Shade.",
+      "defaultGap": 10,
+      "sectionGap": 30
+    },
+    "horizontal-stack": {
+      "description": "Single row, leading icon + content + trailing action. Used by Now Bar.",
+      "defaultGap": 14
+    },
+    "overlay-stack": {
+      "description": "Dim overlay behind; floating dialog on top. Used by system-dialog.",
+      "defaultGap": 20
+    }
+  },
+
+  "componentMappings": {
+    "by-role": {
+      "search-bar":         "search.dark",
+      "search-bar-ai":      "search.galaxy-ai",
+      "button":             "button.dark",
+      "button-primary":     "button.accent",
+      "button-ai":          "button.galaxy-ai",
+      "button-inline":      "button.header-small",
+      "app-shell":          "container.app-shell-dark",
+      "content-area":       "container.content-area",
+      "app-header":         "container.header",
+      "app-status-bar":     "container.status-bar-app",
+      "nav-bar-gestures":   "container.nav-gestures-dark",
+      "nav-bar-buttons":    "container.nav-buttons-light",
+      "card-toggle":        "card.toggle-row",
+      "card-menu":          "card.menu-item",
+      "card-menu-body":     "card.menu-item-body",
+      "card-subheading":    "card.subheading",
+      "card-navigation":    "card.chevron-nav",
+      "card-radio":         "card.radio",
+      "card-stacked-group": "card.stacked-group",
+      "switch":             "switch.modern",
+      "quick-toggle-half":  "single-toggle.half-toggle",
+      "quick-toggle-single":"single-toggle.single-toggle",
+      "quick-shortcut-half":"single-toggle.half-shortcut",
+      "vertical-slider":    "quick-settings.slider-vertical",
+      "smartthings-rollup": "quick-settings.smartthings-card",
+      "now-bar":            "now-bar.dual-line",
+      "now-bar-alert":      "now-bar.charging",
+      "lock-clock":         "lock-screen.clock",
+      "lock-weather-date":  "lock-screen.weather-date",
+      "lock-widget":        "lock-screen.widget-battery",
+      "lock-shortcut":      "lock-screen.shortcut-circle",
+      "ai-notification":    "notification.ai-regular",
+      "live-notification":  "notification.live",
+      "stacked-notification":"notification.stack",
+      "media-player-tile":  "media-player.tile",
+      "section-label":      "notifications.section-label",
+      "dialog-header":      "dialog.website-share-header",
+      "browser-top-bar":    "dialog.browser-top-bar",
+      "icon-picker-grid":   "dialog.icon-grid-box",
+      "page-indicator":     "dialog.page-indicator",
+      "home-gesture-bar":   "dialog.nav-gesture-bar",
+      "inline-live-activity":"status-bar.live-activity-chip",
+      "modal-dim":          "system.dim-overlay",
+      "modal-dialog-surface":"system.dialog-surface"
+    },
+    "by-category": {
+      "chrome":       ["status-bar.default", "quick-settings.icons-row", "dialog.browser-top-bar", "container.status-bar-app", "container.nav-gestures-dark", "container.nav-buttons-light"],
+      "selection":    ["single-toggle.half-toggle", "single-toggle.single-toggle", "single-toggle.half-shortcut", "switch.modern", "card.radio"],
+      "input":        ["quick-settings.slider-vertical", "search.dark", "search.light", "search.galaxy-ai", "search.galaxy-ai-light"],
+      "container":    ["quick-settings.smartthings-card", "dialog.website-share-header", "dialog.icon-grid-box", "container.app-shell-dark", "container.app-shell-light", "container.content-area", "container.header", "card.toggle-row", "card.toggle-row-light", "card.menu-item", "card.menu-item-body", "card.subheading", "card.chevron-nav", "card.stacked-group"],
+      "widget":       ["now-bar.media-player", "now-bar.dual-line", "now-bar.single-line", "now-bar.charging", "lock-screen.clock", "lock-screen.weather-date", "lock-screen.widget-battery", "lock-screen.widget-activity"],
+      "action":       ["lock-screen.shortcut-circle", "button.dark", "button.light", "button.accent", "button.galaxy-ai", "button.header-small"],
+      "notification": ["notification.ai-regular", "notification.live", "notification.stack"],
+      "media":        ["media-player.tile"],
+      "primitive":    ["notifications.section-label", "dialog.page-indicator", "dialog.nav-gesture-bar", "status-bar.live-activity-chip"],
+      "overlay":      ["system.dim-overlay", "system.dialog-surface"]
+    }
+  },
+
+  "spacingScale": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 28, 30],
+  "spacingRhythm": {
+    "intraGroup":   2,
+    "controlToText":3,
+    "betweenRows":  10,
+    "sectionBlock": 18,
+    "majorSection": 30
+  },
+
+  "radiusRules": {
+    "tokens": {
+      "xs":    2,
+      "sm":    12,
+      "md":    20,
+      "lg":    24,
+      "xl":    32,
+      "xxl":   36,
+      "frame": 40,
+      "tile":  50,
+      "pill":  53,
+      "circle":61
+    },
+    "byRole": {
+      "system-status":        0,
+      "page-indicator":       3,
+      "home-gesture-bar":     2,
+      "inline-live-activity": 12,
+      "lock-widget":          20,
+      "browser-top-bar":      48,
+      "dialog-header":        24,
+      "icon-picker-grid":     24,
+      "modal-dialog-surface": 32,
+      "media-player-tile":    36,
+      "ai-notification":      32,
+      "live-notification":    32,
+      "stacked-notification": 32,
+      "smartthings-rollup":   50,
+      "quick-toggle-half":    50,
+      "quick-toggle-single":  50,
+      "quick-shortcut-half":  50,
+      "vertical-slider":      44,
+      "now-bar":              53,
+      "now-bar-alert":        53,
+      "lock-shortcut":        61,
+      "frame":                40,
+      "search-bar":           30,
+      "search-bar-ai":        30,
+      "button":               28,
+      "button-primary":       28,
+      "button-ai":            28,
+      "button-inline":        28,
+      "app-shell-dark":       16,
+      "app-shell-light":      32,
+      "content-area":         38,
+      "app-header":            0,
+      "app-status-bar":        0,
+      "nav-bar-gestures":      0,
+      "nav-bar-buttons":       0,
+      "card-toggle":          28,
+      "card-menu":            28,
+      "card-menu-body":       28,
+      "card-subheading":      28,
+      "card-navigation":      28,
+      "card-radio":           28,
+      "card-stacked-group":   28,
+      "switch":               22.5
+    }
+  },
+
+  "surfaceRules": {
+    "lock":               { "allowedCategories": ["chrome", "widget", "action", "primitive"],                                     "disallowedCategories": ["notification", "selection", "input", "overlay"] },
+    "home":               { "allowedCategories": ["chrome", "widget", "primitive", "navigation"],                                  "disallowedCategories": ["notification", "selection", "input", "overlay"] },
+    "app":                { "allowedCategories": ["chrome", "container", "action", "selection", "input", "primitive", "media", "navigation"],   "disallowedCategories": [] },
+    "quick-settings":     { "allowedCategories": ["chrome", "selection", "input", "container", "media", "primitive"],              "disallowedCategories": ["notification", "widget"] },
+    "notification-shade": { "allowedCategories": ["chrome", "notification", "media", "primitive"],                                 "disallowedCategories": ["selection", "input", "widget"] },
+    "system-dialog":      { "allowedCategories": ["chrome", "container", "primitive", "overlay", "action"],                        "disallowedCategories": ["notification", "widget"] }
+  },
+
+  "attentionRules": {
+    "glanceable": {
+      "maxVisibleGroups": 4,
+      "minTextSize": 12,
+      "disallowSmallTapTargets": true,
+      "preferPictographs": true,
+      "allowMotion": "subtle-only"
+    },
+    "focused": {
+      "maxVisibleGroups": 6,
+      "minTextSize": 11,
+      "disallowSmallTapTargets": false,
+      "preferPictographs": false,
+      "allowMotion": "all"
+    },
+    "distracted": {
+      "maxVisibleGroups": 2,
+      "minTextSize": 14,
+      "disallowSmallTapTargets": true,
+      "preferPictographs": true,
+      "allowMotion": "reduce"
+    }
+  },
+
+  "collapseRules": {
+    "compressed": {
+      "dropFirst": ["quick-settings.slider-vertical", "quick-settings.smartthings-card", "lock-screen.widget-activity", "notification.stack"],
+      "preserveAlways": ["status-bar.default", "lock-screen.clock", "system.dialog-surface", "system.dim-overlay"],
+      "mergeIntoNowBar": ["media-player.tile"]
+    },
+    "normal": {
+      "dropFirst": [],
+      "preserveAlways": ["status-bar.default", "lock-screen.clock", "system.dialog-surface", "system.dim-overlay"],
+      "mergeIntoNowBar": []
+    },
+    "byOverlay": {
+      "quick-settings":     { "maxVisibleGroups": 6 },
+      "notification-shade": { "maxVisibleGroups": 5 },
+      "system-dialog":      { "maxVisibleGroups": 3 },
+      "none":               { "maxVisibleGroups": 6 }
+    }
+  },
+
+  "backgroundRules": {
+    "description": "Three-layer model per One UI 4+. Layer choice is driven by baseSurface + overlayType.",
+    "layerByBaseSurface": {
+      "lock": "wallpaper",
+      "home": "wallpaper",
+      "app":  "app-background"
+    },
+    "overlayTransforms": {
+      "quick-settings":     { "blurPx": 24, "dimAlpha": 0.45, "policy": "scrim-over-wallpaper-or-app" },
+      "notification-shade": { "blurPx": 24, "dimAlpha": 0.45, "policy": "scrim-over-wallpaper-or-app" },
+      "system-dialog":      { "blurPx":  0, "dimAlpha": 0.60, "policy": "dialog-surface" }
+    },
+    "moodExtraction": {
+      "saturationMultiplier": 0.4,
+      "lightnessMultiplier":  0.7,
+      "usage": ["scrim-tint", "notification-shade-dim", "quick-panel-blur-tint"]
+    },
+    "focusBlockTypes": {
+      "type1_standard":  "functional content — list rows, setting rows, message items",
+      "type2_tinted":    "active / selected states — low-saturation brand tint",
+      "type3_gradient":  "hero / promo card — use at most 1 per screen"
+    }
+  },
+
+  "tokens": {
+    "fontFamilies": {
+      "ui":    "One UI Sans APP VF",
+      "clock": "SamsungNrDefault-V6"
+    },
+    "fontWeights": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700 },
+    "colors": {
+      "dark.primary":     "#FFFFFF",
+      "dark.secondary":   "#848487",
+      "dark.container":   "#17171A",
+      "dark.component":   "#5F5F61",
+      "light.container":  "#FCFCFF",
+      "dark.background":  "#010102",
+      "light.background": "#F1F1F3",
+      "light.component":  "#EAEAEA",
+      "light.secondary":  "#848487",
+      "accent":           "#387AFF",
+      "accent.live":      "#0FCF6E",
+      "gradient.galaxy-ai":    "linear-gradient(86.3deg,#66A1F3 3.4%,#22C9A6 99.3%)",
+      "gradient.search-ai":    "linear-gradient(90deg,#364B6F 0%,#384247 64.807%,#2D2D30 87.168%)",
+      "gradient.search-ai-lt": "linear-gradient(90deg,#364B6F 0%,#91B0BF 64.807%,#CFCFCF 87.168%)",
+      "gradient.text-ai":      "linear-gradient(90deg,#66A1F3,#22C9A6)",
+      "glass.tile":       "rgba(23,23,26,0.3)",
+      "glass.dialog":     "rgba(23,23,26,0.6)",
+      "glass.inactive":   "rgba(180,180,180,0.2)",
+      "glass.active":     "#D5D5D5",
+      "dim.modal":        "rgba(0,0,0,0.2)",
+      "nowbar.charging":  "rgba(3,78,110,0.8)"
+    },
+    "blurs": {
+      "lock-widget": 6,
+      "now-bar":     12,
+      "shade":       25,
+      "dialog":      24
+    }
+  }
+}

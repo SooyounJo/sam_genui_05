@@ -1,0 +1,4736 @@
+{
+  "version": "0.1.0",
+  "description": "Executable component registry for genui_pipeline_v1 step_4. Each entry is a JSON spec (NOT markdown). Only component_type names listed here are valid for the component_planner — LLM must not invent new ones. Vocabulary aligned with figma-refs/orchestration_rules.json (fromType/toType).",
+  "source_note": "v0 extracted from genui.html `templates` object. layout_spec/tokens are best-effort defaults; tokens map to DESIGN.md semantic tokens (to be reconciled).",
+  "categories": {
+    "action": "User-triggered operations (buttons, FABs).",
+    "selection": "Toggleable/choice inputs (switch, checkbox, radio, chip).",
+    "input": "Text entry and search.",
+    "chrome": "Persistent system chrome (status bar, app bar, bottom nav, tab bar).",
+    "container": "Surface that wraps content (card, list-item, dialog, snackbar).",
+    "info-card": "Glanceable single-purpose card (eta_card, message_summary_card).",
+    "media": "Playback / preview surfaces (media-card, media_control_bar).",
+    "notification": "Transient messages from apps/system.",
+    "widget": "Home/lock-surface micro apps.",
+    "overlay": "Quick Settings, notification shade, system dialog.",
+    "navigation": "Pill tab, bottom nav, tab bar.",
+    "primitive": "Divider, badge, decoration."
+  },
+  "components": {
+    "btn-contained": {
+      "id": "btn-contained",
+      "category": "action",
+      "orchestration_type": "button",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "lock",
+        "driving",
+        "glanceable",
+        "focused"
+      ],
+      "states": [
+        "default",
+        "pressed",
+        "disabled"
+      ],
+      "slots": {
+        "label": "text"
+      },
+      "layout_spec": {
+        "min_width": 64,
+        "min_height": 48,
+        "padding": {
+          "top": 12,
+          "right": 16,
+          "bottom": 12,
+          "left": 16
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "16",
+        "background": "primary",
+        "text_style_title": "label-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "Filled rectangular button, 48dp min height, 16dp radius, primary-color background with centered label-md text.",
+      "purpose": "Primary CTA emphasizing the most important action on a complex screen — at most one per content area.",
+      "use_when": [
+        "the action is the top priority on the screen",
+        "the button competes with other text/images and needs visual weight"
+      ],
+      "dont_use_when": [
+        "a flat button on a toolbar/dialog already provides the same action",
+        "more than one primary action is needed in the same area"
+      ]
+    },
+    "btn-outlined": {
+      "id": "btn-outlined",
+      "category": "action",
+      "orchestration_type": "button",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "focused"
+      ],
+      "states": [
+        "default",
+        "pressed",
+        "disabled"
+      ],
+      "slots": {
+        "label": "text"
+      },
+      "layout_spec": {
+        "min_width": 64,
+        "min_height": 48,
+        "padding": {
+          "top": 12,
+          "right": 16,
+          "bottom": 12,
+          "left": 16
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "16",
+        "background": "transparent",
+        "text_style_title": "label-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Transparent rectangular button with a 16dp-radius outline border and centered label-md text, 48dp min height.",
+      "purpose": "Secondary action paired with a contained primary — acknowledges importance without dominating the layout.",
+      "use_when": [
+        "presenting a secondary choice next to a primary CTA",
+        "both options need to feel selectable but not visually dominant"
+      ],
+      "dont_use_when": [
+        "the action is the most important on the screen — use btn-contained",
+        "the action lives in a toolbar or dialog footer — use btn-flat"
+      ]
+    },
+    "btn-flat": {
+      "id": "btn-flat",
+      "category": "action",
+      "orchestration_type": "button",
+      "allowed_contexts": [
+        "app",
+        "dialog",
+        "focused"
+      ],
+      "states": [
+        "default",
+        "pressed",
+        "disabled"
+      ],
+      "slots": {
+        "label": "text"
+      },
+      "layout_spec": {
+        "min_width": 48,
+        "min_height": 48,
+        "padding": {
+          "top": 12,
+          "right": 12,
+          "bottom": 12,
+          "left": 12
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "12",
+        "background": "transparent",
+        "text_style_title": "label-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "Transparent text-only button, 48dp min height with 12dp-radius pressed state — no fill, no border.",
+      "purpose": "Lightweight action inside toolbars, dialog footers and dense surfaces where added layers would create visual noise.",
+      "use_when": [
+        "action lives inside an app bar, dialog, or list-item footer",
+        "the screen already has enough visual structure"
+      ],
+      "dont_use_when": [
+        "the action needs strong visual emphasis — use btn-contained"
+      ]
+    },
+    "fab": {
+      "id": "fab",
+      "category": "action",
+      "orchestration_type": "fab",
+      "allowed_contexts": [
+        "app",
+        "glanceable",
+        "minimal-touch"
+      ],
+      "states": [
+        "default",
+        "pressed"
+      ],
+      "slots": {
+        "icon": "icon"
+      },
+      "layout_spec": {
+        "min_width": 56,
+        "min_height": 56,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "pill",
+        "background": "primary"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Circular pill-radius button, 56x56 dp, primary-color fill containing a single icon — typically anchored bottom-right.",
+      "purpose": "Persistent shortcut to the screen's main creation/composition action that must remain reachable while content scrolls.",
+      "use_when": [
+        "a single primary action needs to stay reachable across long scrollable content",
+        "in glanceable or minimal-touch contexts where space for text is limited"
+      ],
+      "dont_use_when": [
+        "more than one action needs equal emphasis",
+        "the action is contextual to a list item rather than the screen"
+      ]
+    },
+    "switch": {
+      "id": "switch",
+      "category": "selection",
+      "orchestration_type": "button",
+      "allowed_contexts": [
+        "app",
+        "focused"
+      ],
+      "states": [
+        "off",
+        "on",
+        "disabled"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 48,
+        "min_height": 48,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "pill",
+        "background": "surface-2"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Pill-shaped track with a sliding thumb that moves left (off) or right (on); track tints to primary color when on.",
+      "purpose": "Toggle a single boolean setting that takes effect immediately — no Save needed.",
+      "use_when": [
+        "a setting is binary and applies immediately",
+        "appearing in a settings list as a row trailing control"
+      ],
+      "dont_use_when": [
+        "the choice needs to be confirmed or saved later — use a checkbox",
+        "more than two states are needed"
+      ]
+    },
+    "checkbox": {
+      "id": "checkbox",
+      "category": "selection",
+      "orchestration_type": "button",
+      "allowed_contexts": [
+        "app",
+        "focused"
+      ],
+      "states": [
+        "off",
+        "on",
+        "indeterminate",
+        "disabled"
+      ],
+      "slots": {
+        "label": "text | optional"
+      },
+      "layout_spec": {
+        "min_width": 48,
+        "min_height": 48,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 8
+      },
+      "tokens": {
+        "radius": "4",
+        "background": "transparent"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Square 4dp-radius box with a checkmark when on; an optional inline text label sits to the right.",
+      "purpose": "Select zero, one or many items from a list — also expresses indeterminate state in select-all rows.",
+      "use_when": [
+        "users may pick multiple options",
+        "Edit/Select mode header offering 'Select all' affordance"
+      ],
+      "dont_use_when": [
+        "the choice is mutually exclusive — use radio",
+        "the action takes effect instantly with no save step — use switch"
+      ]
+    },
+    "radio": {
+      "id": "radio",
+      "category": "selection",
+      "orchestration_type": "button",
+      "allowed_contexts": [
+        "app",
+        "focused"
+      ],
+      "states": [
+        "off",
+        "on",
+        "disabled"
+      ],
+      "slots": {
+        "label": "text | optional"
+      },
+      "layout_spec": {
+        "min_width": 48,
+        "min_height": 48,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 8
+      },
+      "tokens": {
+        "radius": "pill",
+        "background": "transparent"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Circular outline with a filled inner dot when on; an optional inline text label sits to the right.",
+      "purpose": "Pick exactly one option from a small mutually-exclusive set — typical for visible groups of 2–6 choices.",
+      "use_when": [
+        "the choice is mutually exclusive and the full set should stay visible",
+        "presenting a settings choice (sort by, theme, etc.)"
+      ],
+      "dont_use_when": [
+        "multiple selections are allowed — use checkbox",
+        "the set has many options — use a dropdown or list"
+      ]
+    },
+    "chip": {
+      "id": "chip",
+      "category": "selection",
+      "orchestration_type": "chip",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "focused",
+        "glanceable"
+      ],
+      "states": [
+        "default",
+        "selected",
+        "disabled"
+      ],
+      "slots": {
+        "label": "text",
+        "icon": "icon | optional"
+      },
+      "layout_spec": {
+        "min_width": 56,
+        "min_height": 32,
+        "padding": {
+          "top": 6,
+          "right": 12,
+          "bottom": 6,
+          "left": 12
+        },
+        "gap": 4
+      },
+      "tokens": {
+        "radius": "pill",
+        "background": "surface-2",
+        "text_style_title": "label-sm"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "Pill-shaped 32dp tall surface-2 container with label-sm text and optional leading icon, tints to primary when selected.",
+      "purpose": "Compact filter or quick-select control — typically arranged in a horizontal scrolling row.",
+      "use_when": [
+        "filtering, suggesting, or representing tags",
+        "the user needs quick toggle of contextual attributes"
+      ],
+      "dont_use_when": [
+        "the choice is a primary/destination action — use a button",
+        "the set is exclusive radio-style — use radio"
+      ]
+    },
+    "input": {
+      "id": "input",
+      "category": "input",
+      "orchestration_type": "input",
+      "allowed_contexts": [
+        "app",
+        "focused"
+      ],
+      "states": [
+        "default",
+        "focused",
+        "error",
+        "disabled"
+      ],
+      "slots": {
+        "label": "text | optional",
+        "value": "text",
+        "icon": "icon | optional"
+      },
+      "layout_spec": {
+        "min_width": 200,
+        "min_height": 48,
+        "padding": {
+          "top": 10,
+          "right": 16,
+          "bottom": 10,
+          "left": 16
+        },
+        "gap": 4
+      },
+      "tokens": {
+        "radius": "12",
+        "background": "surface-2",
+        "text_style_value": "body-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "12dp-radius surface-2 text field, 48dp tall, with optional leading/trailing icon and a label that floats above on focus.",
+      "purpose": "Single-line free-text entry for forms — names, emails, numeric values, search queries within a flow.",
+      "use_when": [
+        "the user types a value the system can't predict",
+        "forms, sign-up, settings entry"
+      ],
+      "dont_use_when": [
+        "the input is a query intended to filter content — use search",
+        "the value is a binary or chosen option — use switch / radio"
+      ]
+    },
+    "search": {
+      "id": "search",
+      "category": "input",
+      "orchestration_type": "search-bar",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "focused"
+      ],
+      "states": [
+        "default",
+        "focused"
+      ],
+      "slots": {
+        "value": "text",
+        "icon": "icon"
+      },
+      "layout_spec": {
+        "min_width": 240,
+        "min_height": 48,
+        "padding": {
+          "top": 10,
+          "right": 16,
+          "bottom": 10,
+          "left": 16
+        },
+        "gap": 8
+      },
+      "tokens": {
+        "radius": "pill",
+        "background": "surface-2",
+        "text_style_value": "body-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Pill-shaped 48dp text field with leading magnifier icon — shows recent suggestions and auto-complete on focus.",
+      "purpose": "Help users find content fast across large data sets — pinned at the top of list/browse surfaces.",
+      "use_when": [
+        "the screen has a lot of items and finding one specific entry is the primary task",
+        "exposing recent terms / suggestions adds value"
+      ],
+      "dont_use_when": [
+        "no searchable corpus exists — use input",
+        "all items fit on screen at once and filtering chips are enough"
+      ]
+    },
+    "status-bar": {
+      "id": "status-bar",
+      "category": "chrome",
+      "orchestration_type": "status-bar",
+      "allowed_contexts": [
+        "lock",
+        "home",
+        "app"
+      ],
+      "states": [
+        "default",
+        "live-activity"
+      ],
+      "slots": {
+        "value": "text"
+      },
+      "layout_spec": {
+        "min_width": 360,
+        "min_height": 28,
+        "padding": {
+          "top": 8,
+          "right": 16,
+          "bottom": 8,
+          "left": 16
+        },
+        "gap": 4
+      },
+      "tokens": {
+        "background": "transparent",
+        "text_style_value": "label-xs"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 1
+      },
+      "description": "Translucent 28dp-tall strip at the top of every screen showing time, signal, battery and notification icons in label-xs text.",
+      "purpose": "System chrome — informs the user about device state across all contexts (lock, home, app).",
+      "use_when": [
+        "any full-screen surface that owns the top edge"
+      ],
+      "dont_use_when": [
+        "the surface is presented as a modal/sheet underneath the system status — already handled by host"
+      ]
+    },
+    "appbar": {
+      "id": "appbar",
+      "category": "chrome",
+      "orchestration_type": "appbar",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default",
+        "scrolled"
+      ],
+      "slots": {
+        "title": "text",
+        "icon": "icon | optional",
+        "actions": "action-group | optional"
+      },
+      "layout_spec": {
+        "min_width": 360,
+        "min_height": 56,
+        "padding": {
+          "top": 12,
+          "right": 16,
+          "bottom": 12,
+          "left": 16
+        },
+        "gap": 12
+      },
+      "tokens": {
+        "background": "transparent",
+        "text_style_title": "title-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "56dp tall transparent bar with optional back icon, a title-md title, and up to three trailing action icons.",
+      "purpose": "Identify the current screen and surface up to three priority actions plus a back/menu affordance.",
+      "use_when": [
+        "every app screen — shows where the user is and the available global actions",
+        "screens that need a back button or section title"
+      ],
+      "dont_use_when": [
+        "very compact dialogs/sheets where a header alone suffices",
+        "full-bleed media views — hide the chrome instead"
+      ]
+    },
+    "bottomnav": {
+      "id": "bottomnav",
+      "category": "chrome",
+      "orchestration_type": "bottomnav",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {
+        "actions": "action-group"
+      },
+      "layout_spec": {
+        "min_width": 360,
+        "min_height": 56,
+        "padding": {
+          "top": 8,
+          "right": 12,
+          "bottom": 8,
+          "left": 12
+        },
+        "gap": 4
+      },
+      "tokens": {
+        "background": "surface-2",
+        "text_style_title": "label-xs"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "56dp tall surface-2 bar at the bottom holding 3–5 navigation destinations as icon + label-xs cells.",
+      "purpose": "Top-level destination switching across the app's primary sections — always visible, single-tap reach.",
+      "use_when": [
+        "the app has 3–5 peer destinations the user moves between often"
+      ],
+      "dont_use_when": [
+        "the app has only one destination",
+        "navigation is hierarchical (deep drill-down) — use back button + tab-bar"
+      ]
+    },
+    "pill-tab": {
+      "id": "pill-tab",
+      "category": "navigation",
+      "orchestration_type": "bottomnav",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "minimal-touch"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {
+        "actions": "action-group"
+      },
+      "layout_spec": {
+        "min_width": 220,
+        "min_height": 56,
+        "padding": {
+          "top": 6,
+          "right": 10,
+          "bottom": 6,
+          "left": 10
+        },
+        "gap": 4
+      },
+      "tokens": {
+        "radius": "pill",
+        "background": "surface-2"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Pill-shaped 56dp tall surface-2 segmented control floating near the bottom — typically 2–4 cells with selected one filled.",
+      "purpose": "Compact floating navigation between a small set of peer modes (e.g., List/Grid, Day/Week/Month).",
+      "use_when": [
+        "switching between a tiny set of view modes within a single screen",
+        "the screen is glanceable / minimal-touch and a full bottomnav would be too heavy"
+      ],
+      "dont_use_when": [
+        "the app needs to switch between top-level destinations — use bottomnav"
+      ]
+    },
+    "tab-bar": {
+      "id": "tab-bar",
+      "category": "navigation",
+      "orchestration_type": "tab-bar",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {
+        "actions": "action-group"
+      },
+      "layout_spec": {
+        "min_width": 240,
+        "min_height": 48,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "background": "transparent",
+        "text_style_title": "label-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Horizontal row of 48dp text-label tabs on a transparent track with a moving indicator under the active label.",
+      "purpose": "Switch between sub-categories of one section (Subtab pattern) — fixed if 4 or fewer, scrollable beyond.",
+      "use_when": [
+        "splitting a section into 2–N peer sub-categories",
+        "subtabs sit beneath the app bar / search field"
+      ],
+      "dont_use_when": [
+        "navigation is between top-level destinations — use bottomnav",
+        "only 2 modes — pill-tab feels lighter"
+      ]
+    },
+    "card": {
+      "id": "card",
+      "category": "container",
+      "orchestration_type": "card",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "focused"
+      ],
+      "states": [
+        "default",
+        "hover",
+        "pressed"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text | optional",
+        "icon": "icon | optional",
+        "actions": "action-group | optional"
+      },
+      "layout_spec": {
+        "min_width": 160,
+        "min_height": 72,
+        "padding": {
+          "top": 16,
+          "right": 16,
+          "bottom": 16,
+          "left": 16
+        },
+        "gap": 8
+      },
+      "tokens": {
+        "radius": "22",
+        "background": "surface-2",
+        "text_style_title": "title-sm",
+        "text_style_value": "body-sm"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 2
+      },
+      "description": "22dp-radius surface-2 container, 16dp padding, holds a title-sm header, optional body-sm value, icon and actions.",
+      "purpose": "Generic content container for grouping related text/actions when no more specialized card fits.",
+      "use_when": [
+        "grouping related title + body + actions on a content surface",
+        "no more specialized card (eta_card, weather_glance_card…) applies"
+      ],
+      "dont_use_when": [
+        "showing a list — use list-item",
+        "showing a glanceable summary — use the typed *_summary_card variants"
+      ]
+    },
+    "list-item": {
+      "id": "list-item",
+      "category": "container",
+      "orchestration_type": "list-item",
+      "allowed_contexts": [
+        "app",
+        "focused"
+      ],
+      "states": [
+        "default",
+        "pressed",
+        "selected"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text | optional",
+        "icon": "icon | optional",
+        "actions": "action-group | optional"
+      },
+      "layout_spec": {
+        "min_width": 320,
+        "min_height": 56,
+        "padding": {
+          "top": 12,
+          "right": 16,
+          "bottom": 12,
+          "left": 16
+        },
+        "gap": 12
+      },
+      "tokens": {
+        "background": "transparent",
+        "text_style_title": "body-md",
+        "text_style_value": "label-sm"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Transparent 56dp tall row with leading icon, body-md title, optional secondary text on the right and trailing actions.",
+      "purpose": "Single entry in a vertically scrolling list — selectable, swipable, with consistent vertical rhythm across the list.",
+      "use_when": [
+        "rendering each item in a list (settings, contacts, messages, files)",
+        "items follow the same shape and could be many"
+      ],
+      "dont_use_when": [
+        "items have heterogeneous shapes — use card",
+        "the row needs a strong selection indicator and is part of a small set — use card.radio"
+      ]
+    },
+    "dialog": {
+      "id": "dialog",
+      "category": "overlay",
+      "orchestration_type": "dialog",
+      "allowed_contexts": [
+        "system-dialog"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text",
+        "actions": "action-group"
+      },
+      "layout_spec": {
+        "min_width": 280,
+        "min_height": 120,
+        "padding": {
+          "top": 24,
+          "right": 24,
+          "bottom": 16,
+          "left": 24
+        },
+        "gap": 8
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "dialog-surface",
+        "text_style_title": "title-md",
+        "text_style_value": "body-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "28dp-radius modal surface (~280dp wide), title-md heading and body-md description with right-aligned action buttons.",
+      "purpose": "Block the user to confirm a decision (delete, sign out) or display blocking content (date picker, chooser).",
+      "use_when": [
+        "the user must confirm a destructive or important action",
+        "a flow needs structured input (date/time/color picker)"
+      ],
+      "dont_use_when": [
+        "the message is informational and dismissible — use snackbar / action toast",
+        "removing trivially-restorable data — skip the confirm"
+      ]
+    },
+    "snackbar": {
+      "id": "snackbar",
+      "category": "notification",
+      "orchestration_type": "card",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {
+        "value": "text",
+        "actions": "action-group | optional"
+      },
+      "layout_spec": {
+        "min_width": 288,
+        "min_height": 48,
+        "padding": {
+          "top": 10,
+          "right": 12,
+          "bottom": 10,
+          "left": 16
+        },
+        "gap": 12
+      },
+      "tokens": {
+        "radius": "16",
+        "background": "surface-3",
+        "text_style_value": "body-sm"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "16dp-radius surface-3 pill, 48dp tall, body-sm message left, optional action label right — auto-dismisses after a few seconds.",
+      "purpose": "Confirm a system-initiated event with optional one-tap follow-up (e.g., '1 file downloaded — Open file').",
+      "use_when": [
+        "informing about a completed action with a meaningful follow-up",
+        "the message is non-blocking and timely"
+      ],
+      "dont_use_when": [
+        "the user must acknowledge — use dialog",
+        "providing dismiss-only buttons (Close, OK, Done) — One UI guideline forbids this"
+      ]
+    },
+    "divider": {
+      "id": "divider",
+      "category": "primitive",
+      "orchestration_type": "content",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "lock"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 0,
+        "min_height": 1,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "background": "divider"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 3
+      },
+      "description": "Single-pixel horizontal hairline using the divider token color, full available width.",
+      "purpose": "Visually separate adjacent rows or sections that share a surface.",
+      "use_when": [
+        "between list items that lack contrast on their own",
+        "between subgroups inside a card.stacked-group"
+      ],
+      "dont_use_when": [
+        "rows already have card backgrounds — no extra divider needed"
+      ]
+    },
+    "badge": {
+      "id": "badge",
+      "category": "primitive",
+      "orchestration_type": "content",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "lock"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {
+        "value": "text"
+      },
+      "layout_spec": {
+        "min_width": 16,
+        "min_height": 16,
+        "padding": {
+          "top": 2,
+          "right": 6,
+          "bottom": 2,
+          "left": 6
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "pill",
+        "background": "error",
+        "text_style_value": "label-xs"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 3
+      },
+      "description": "Tiny pill (>=16dp), error-colored fill with label-xs count text — typically attached to an icon's top-right.",
+      "purpose": "Indicate unread/unseen counts or status alerts on icons in app bars, tabs and home-screen icons.",
+      "use_when": [
+        "counts of unread items, alerts, available updates",
+        "small textual badges (numbers, '!' or single short labels)"
+      ],
+      "dont_use_when": [
+        "long strings — use a chip"
+      ]
+    },
+    "now-bar": {
+      "id": "now-bar",
+      "category": "widget",
+      "orchestration_type": "now-bar",
+      "allowed_contexts": [
+        "lock",
+        "home",
+        "glanceable",
+        "driving",
+        "minimal-touch"
+      ],
+      "states": [
+        "default",
+        "compact",
+        "glance"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text | optional",
+        "icon": "icon",
+        "actions": "action-group | optional"
+      },
+      "layout_spec": {
+        "min_width": 280,
+        "min_height": 56,
+        "padding": {
+          "top": 8,
+          "right": 12,
+          "bottom": 8,
+          "left": 12
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "pill",
+        "background": "glass-bg",
+        "text_style_title": "label-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "Generic pill-shaped 56dp glass widget anchored above the gesture bar — leading icon, label-md title, optional trailing actions.",
+      "purpose": "Persistent contextual now-bar slot — default container when no specialized variant (media, charging, single-line) applies.",
+      "use_when": [
+        "showing live state from an app the user is engaged with",
+        "the surface is lock/home/glanceable/driving"
+      ],
+      "dont_use_when": [
+        "showing media playback — use now-bar.media-player",
+        "showing charging — use now-bar.charging"
+      ]
+    },
+    "qs-toggle": {
+      "id": "qs-toggle",
+      "category": "overlay",
+      "orchestration_type": "qs-toggle",
+      "allowed_contexts": [
+        "quick-settings"
+      ],
+      "states": [
+        "off",
+        "on"
+      ],
+      "slots": {
+        "label": "text",
+        "icon": "icon"
+      },
+      "layout_spec": {
+        "min_width": 64,
+        "min_height": 64,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 4
+      },
+      "tokens": {
+        "radius": "14",
+        "background": "surface-2",
+        "text_style_title": "label-xs"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Square 64x64dp tile, 14dp radius, surface-2 background — icon + label-xs label, tints to primary when on.",
+      "purpose": "Single binary toggle inside the Quick Settings panel (Wi-Fi, Bluetooth, DND).",
+      "use_when": [
+        "a binary system feature needs one-tap toggle from QS",
+        "tile arranged in a grid with peers"
+      ],
+      "dont_use_when": [
+        "the value isn't binary — use slider or detail screen",
+        "outside Quick Settings — use switch"
+      ]
+    },
+    "qs-grid": {
+      "id": "qs-grid",
+      "category": "overlay",
+      "orchestration_type": "qs-toggle",
+      "allowed_contexts": [
+        "quick-settings"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {
+        "actions": "action-group"
+      },
+      "layout_spec": {
+        "min_width": 360,
+        "min_height": 220,
+        "padding": {
+          "top": 8,
+          "right": 12,
+          "bottom": 8,
+          "left": 12
+        },
+        "gap": 12
+      },
+      "tokens": {
+        "background": "transparent"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "Transparent grid container (~360x220dp) holding 6–10 qs-toggle tiles in a 4×N layout inside the Quick Settings shade.",
+      "purpose": "The matrix that hosts and arranges all qs-toggle tiles in the Quick Settings panel.",
+      "use_when": [
+        "modeling the expanded Quick Settings shade with multiple toggles"
+      ],
+      "dont_use_when": [
+        "showing just one toggle inline — use qs-toggle directly"
+      ]
+    },
+    "media-card": {
+      "id": "media-card",
+      "category": "media",
+      "orchestration_type": "media-card",
+      "allowed_contexts": [
+        "app",
+        "quick-settings",
+        "glanceable"
+      ],
+      "states": [
+        "default",
+        "compact"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text | optional",
+        "icon": "icon",
+        "actions": "action-group"
+      },
+      "layout_spec": {
+        "min_width": 280,
+        "min_height": 140,
+        "padding": {
+          "top": 16,
+          "right": 16,
+          "bottom": 16,
+          "left": 16
+        },
+        "gap": 12
+      },
+      "tokens": {
+        "radius": "22",
+        "background": "surface-2",
+        "text_style_title": "title-sm",
+        "text_style_value": "label-sm"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "22dp-radius surface-2 card (~280x140dp) with album art + title + subtitle stacked over a row of transport controls.",
+      "purpose": "Full media preview with playback controls — typical of the Quick Settings media tile and lock-screen widget.",
+      "use_when": [
+        "media is currently active and the user wants quick transport control",
+        "Quick Settings or glanceable surfaces"
+      ],
+      "dont_use_when": [
+        "showing the now-bar — use now-bar.media-player",
+        "playback context belongs in an immersive screen — use media-player.tile"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "Espresso", "value": "Sabrina Carpenter · Short n' Sweet", "icon": "music-note", "scenario": "pop song playing" },
+          { "label": "Hard Fork", "value": "NYT · Episode 92 · 47 min", "icon": "podcast", "scenario": "tech podcast" },
+          { "label": "Deep Focus", "value": "Spotify playlist · 2h 18m", "icon": "spotify", "scenario": "work playlist" },
+          { "label": "BTS Radio", "value": "Apple Music · Live", "icon": "apple-music", "scenario": "live radio" },
+          { "label": "Yellowstone S5E8", "value": "Paramount+ · 12 min in", "icon": "video", "scenario": "video casting" }
+        ],
+        "guidance": "label = track / show / playlist title (the foreground item). value = artist · album, or service · episode/duration. If casting video, mention the platform. Always real-feeling media metadata."
+      }
+    },
+    "notification-card": {
+      "id": "notification-card",
+      "category": "notification",
+      "orchestration_type": "notification-card",
+      "allowed_contexts": [
+        "notification-shade",
+        "lock",
+        "glanceable"
+      ],
+      "states": [
+        "default",
+        "expanded",
+        "compact"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text",
+        "icon": "icon",
+        "actions": "action-group | optional"
+      },
+      "layout_spec": {
+        "min_width": 320,
+        "min_height": 64,
+        "padding": {
+          "top": 12,
+          "right": 14,
+          "bottom": 12,
+          "left": 14
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "18",
+        "background": "glass-bg",
+        "text_style_title": "label-md",
+        "text_style_value": "body-sm"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "18dp-radius glass card with app icon, title and one-line preview — expands to show full content + actions.",
+      "purpose": "Standard heads-up / shade notification — surface an app event the user should know about.",
+      "use_when": [
+        "delivering a routine app notification (message, calendar, reminder)",
+        "in lock or notification-shade contexts"
+      ],
+      "dont_use_when": [
+        "live/ongoing event — use notification.live",
+        "AI-generated content — use notification.ai-regular"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "Messages · Mom", "value": "Don't forget dinner at 7 — call when you're close", "icon": "message", "scenario": "incoming text" },
+          { "label": "Calendar", "value": "Design review starts in 10 min · Conf Rm 4", "icon": "calendar", "scenario": "meeting reminder" },
+          { "label": "Toss · Payment received", "value": "₩45,000 from Sora Kim", "icon": "money", "scenario": "payment notification" },
+          { "label": "Coupang · Delivery", "value": "Your package was left at the door", "icon": "package", "scenario": "delivery update" },
+          { "label": "Health · Step goal", "value": "You hit 10,000 steps — nice work!", "icon": "footsteps", "scenario": "fitness milestone" }
+        ],
+        "guidance": "label = app name + optional sub-source (e.g. 'Messages · Mom', 'Calendar'). value = a short one-line preview of the event content. Realistic copy — include names, amounts, places."
+      }
+    },
+    "widget-small": {
+      "id": "widget-small",
+      "category": "widget",
+      "orchestration_type": "widget",
+      "allowed_contexts": [
+        "home",
+        "lock",
+        "glanceable"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {
+        "title": "text | optional",
+        "value": "text",
+        "icon": "icon | optional"
+      },
+      "layout_spec": {
+        "min_width": 96,
+        "min_height": 96,
+        "padding": {
+          "top": 10,
+          "right": 10,
+          "bottom": 10,
+          "left": 10
+        },
+        "gap": 4
+      },
+      "tokens": {
+        "radius": "16",
+        "background": "glass-bg",
+        "text_style_value": "title-sm"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Square 96x96dp glass tile, 16dp radius, with optional leading icon and a prominent value (title-sm) — fits home/lock 1×1 grid cell.",
+      "purpose": "Glanceable mini-widget for one piece of information (today's steps, calendar count, weather temp).",
+      "use_when": [
+        "home/lock screen needs a single value at a glance",
+        "the metric makes sense without context"
+      ],
+      "dont_use_when": [
+        "the metric needs richer context — use a typed *_summary_card",
+        "no value is available — hide the widget"
+      ]
+    },
+    "keyboard": {
+      "id": "keyboard",
+      "category": "chrome",
+      "orchestration_type": "content",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 360,
+        "min_height": 260,
+        "padding": {
+          "top": 6,
+          "right": 3,
+          "bottom": 12,
+          "left": 3
+        },
+        "gap": 4
+      },
+      "tokens": {
+        "background": "surface-3"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "Full-width software keyboard, ~260dp tall, surface-3 background — slides up from the bottom when an input is focused.",
+      "purpose": "OS-managed text entry surface — the registry references it so layouts can budget vertical space when fields are focused.",
+      "use_when": [
+        "modeling screens that show a focused text field",
+        "reserving content area above the keyboard in edit mode"
+      ],
+      "dont_use_when": [
+        "no input is focused — the keyboard is hidden"
+      ]
+    },
+    "eta_card": {
+      "id": "eta_card",
+      "category": "info-card",
+      "orchestration_type": "card",
+      "allowed_contexts": [
+        "driving",
+        "glanceable",
+        "quick-view"
+      ],
+      "states": [
+        "default",
+        "compact",
+        "glance"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text",
+        "icon": "icon"
+      },
+      "layout_spec": {
+        "min_width": 160,
+        "min_height": 72,
+        "padding": {
+          "top": 16,
+          "right": 16,
+          "bottom": 16,
+          "left": 16
+        },
+        "gap": 8
+      },
+      "tokens": {
+        "radius": "medium",
+        "background": "surface-primary",
+        "text_style_title": "label-sm",
+        "text_style_value": "headline-md"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 1
+      },
+      "_status": "planned — not yet rendered by genui.html",
+      "description": "Compact card with a small label-sm caption and a large headline-md ETA value plus optional route icon.",
+      "purpose": "Glanceable arrival-time read-out for navigation, ride-share, transit — readable at speed.",
+      "use_when": [
+        "driving / minimal-touch contexts that need a one-glance ETA",
+        "showing arrival time with no extra interaction"
+      ],
+      "dont_use_when": [
+        "the user needs full route control — use navigation_turn_card or open the maps app"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "ETA · Home", "value": "12 min · light traffic", "icon": "navigation", "scenario": "commute home" },
+          { "label": "Arrival", "value": "3:45 PM · 2 stops", "icon": "transit", "scenario": "transit to meeting" },
+          { "label": "Driver arriving", "value": "4 min away · Lee S.", "icon": "car", "scenario": "ride share pickup" },
+          { "label": "Flight AA 218", "value": "Lands 9:12 PM · on time", "icon": "plane", "scenario": "flight tracking" },
+          { "label": "Delivery", "value": "Arrives 6:20 PM · 3 stops away", "icon": "package", "scenario": "package tracking" }
+        ],
+        "guidance": "label = category + short context (e.g. 'ETA · Home', 'Driver arriving'). value = arrival time + secondary fact (traffic, stops, driver name, status). Always concrete numbers."
+      }
+    },
+    "message_summary_card": {
+      "id": "message_summary_card",
+      "category": "info-card",
+      "orchestration_type": "card",
+      "allowed_contexts": [
+        "driving",
+        "glanceable",
+        "quick-view"
+      ],
+      "states": [
+        "default",
+        "compact",
+        "glance"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text",
+        "icon": "icon"
+      },
+      "layout_spec": {
+        "min_width": 200,
+        "min_height": 64,
+        "padding": {
+          "top": 12,
+          "right": 14,
+          "bottom": 12,
+          "left": 14
+        },
+        "gap": 6
+      },
+      "tokens": {
+        "radius": "medium",
+        "background": "surface-primary",
+        "text_style_title": "label-sm",
+        "text_style_value": "body-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "_status": "planned — not yet rendered by genui.html",
+      "description": "Compact card with sender label-sm and a body-md preview of the latest message — taps into the conversation.",
+      "purpose": "Glanceable preview of an unread/recent message that lets the user open or reply quickly.",
+      "use_when": [
+        "showing the most recent unread message in a glanceable summary",
+        "driving / quick-view contexts"
+      ],
+      "dont_use_when": [
+        "showing a list of messages — use list-item rows in an inbox"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "Mom", "value": "Don't forget dinner at 7 — call when you're close", "icon": "message", "scenario": "family text" },
+          { "label": "Slack · #design", "value": "Eun-bi: Pushed the new tokens, can you review?", "icon": "slack", "scenario": "work chat" },
+          { "label": "Sora (3 new)", "value": "Running 5 min late, sorry!", "icon": "message", "scenario": "friend group chat" },
+          { "label": "Email · Stripe", "value": "Your receipt for $42.18 — thanks for using Stripe", "icon": "mail", "scenario": "transactional email" },
+          { "label": "WhatsApp · Dad", "value": "Photo: kitchen renovation update", "icon": "whatsapp", "scenario": "media message" }
+        ],
+        "guidance": "label = sender name + optional channel/count (e.g. 'Mom', 'Slack · #design', 'Sora (3 new)'). value = a single-line message preview, written like a real text — keep punctuation and personality."
+      }
+    },
+    "media_control_bar": {
+      "id": "media_control_bar",
+      "category": "media",
+      "orchestration_type": "card",
+      "allowed_contexts": [
+        "driving",
+        "glanceable",
+        "minimal-touch",
+        "quick-view"
+      ],
+      "states": [
+        "default",
+        "compact"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text | optional",
+        "icon": "icon",
+        "actions": "action-group"
+      },
+      "layout_spec": {
+        "min_width": 240,
+        "min_height": 64,
+        "padding": {
+          "top": 10,
+          "right": 12,
+          "bottom": 10,
+          "left": 12
+        },
+        "gap": 12
+      },
+      "tokens": {
+        "radius": "pill",
+        "background": "surface-primary",
+        "text_style_title": "label-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "_status": "semantic — rendered via fallback template",
+      "description": "Pill-shaped 64dp tall row with album thumb, label-md title and a 3-button transport (prev / play-pause / next).",
+      "purpose": "Compact transport control for active media when the surface can't accommodate full art (driving, glanceable).",
+      "use_when": [
+        "driving / minimal-touch / quick-view surfaces with active media",
+        "space is too tight for media-card"
+      ],
+      "dont_use_when": [
+        "no media is playing — hide",
+        "rich preview is preferred — use media-card"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "Blinding Lights", "value": "The Weeknd · After Hours", "icon": "music-note", "scenario": "driving playlist" },
+          { "label": "Daily Tech Brief", "value": "NPR · Episode 412 · 18 min left", "icon": "podcast", "scenario": "podcast on commute" },
+          { "label": "Focus Flow", "value": "Spotify · Lo-fi beats", "icon": "spotify", "scenario": "background work audio" },
+          { "label": "Audiobook", "value": "Project Hail Mary · Ch. 14", "icon": "book", "scenario": "audiobook listening" },
+          { "label": "Live Radio", "value": "KCRW 89.9 FM · Morning Becomes Eclectic", "icon": "radio", "scenario": "live radio" }
+        ],
+        "guidance": "label = track / episode / station name (the foreground item). value = artist · album, or show · episode + secondary detail (time remaining, source). Always real-feeling music/podcast metadata."
+      }
+    },
+    "action_chip_row": {
+      "id": "action_chip_row",
+      "category": "selection",
+      "orchestration_type": "chip",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "focused",
+        "glanceable",
+        "minimal-touch"
+      ],
+      "states": [
+        "default",
+        "compact"
+      ],
+      "slots": {
+        "actions": "action-group"
+      },
+      "layout_spec": {
+        "min_width": 240,
+        "min_height": 44,
+        "padding": {
+          "top": 6,
+          "right": 8,
+          "bottom": 6,
+          "left": 8
+        },
+        "gap": 6
+      },
+      "tokens": {
+        "radius": "pill",
+        "background": "surface-2",
+        "text_style_title": "label-sm"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "_status": "semantic — rendered via fallback template",
+      "description": "Horizontal pill-row container, ~44dp tall, holds 2–5 action chips on a surface-2 backplate.",
+      "purpose": "Group of low-emphasis quick actions tied to the surrounding card or content.",
+      "use_when": [
+        "offering 2–5 contextual quick actions under a piece of content",
+        "actions should feel like equally-weighted siblings"
+      ],
+      "dont_use_when": [
+        "any action should dominate — promote it to a button",
+        "actions need persistent screen-level placement — use bottom nav or app bar"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "Quick replies", "value": "Yes, please / On my way / Call you back", "icon": null, "scenario": "messaging" },
+          { "label": "Filters", "value": "All · Unread · Starred · Mentions", "icon": null, "scenario": "inbox filter" },
+          { "label": "Actions", "value": "Save · Share · Edit · Delete", "icon": null, "scenario": "card overflow actions" },
+          { "label": "Recipe filters", "value": "Under 30 min / Vegetarian / Gluten-free", "icon": null, "scenario": "cooking app" },
+          { "label": "Workout focus", "value": "Cardio · Strength · Mobility · Recovery", "icon": null, "scenario": "fitness app" }
+        ],
+        "guidance": "value contains comma- or slash-separated chip labels (3–5 chips). label is the row's purpose. Chips should be short verbs/nouns, not full sentences."
+      }
+    },
+    "calendar_summary_card": {
+      "id": "calendar_summary_card",
+      "category": "info-card",
+      "orchestration_type": "card",
+      "allowed_contexts": [
+        "glanceable",
+        "home",
+        "lock",
+        "quick-view"
+      ],
+      "states": [
+        "default",
+        "compact",
+        "glance"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text",
+        "icon": "icon"
+      },
+      "layout_spec": {
+        "min_width": 200,
+        "min_height": 72,
+        "padding": {
+          "top": 12,
+          "right": 14,
+          "bottom": 12,
+          "left": 14
+        },
+        "gap": 6
+      },
+      "tokens": {
+        "radius": "medium",
+        "background": "surface-2",
+        "text_style_title": "label-sm",
+        "text_style_value": "title-md"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 2
+      },
+      "_status": "semantic — rendered via fallback template",
+      "description": "Card with a label-sm date/header and a title-md value showing the next event title and time.",
+      "purpose": "Glanceable summary of the user's next calendar event — what and when, no further interaction.",
+      "use_when": [
+        "home / lock / quick-view glanceable summary of upcoming events"
+      ],
+      "dont_use_when": [
+        "no upcoming event — hide the card",
+        "the user needs to manage events — use the calendar app"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "Next up · Today", "value": "Design review · 2:00 PM · Conf Rm 4", "icon": "calendar", "scenario": "work meeting" },
+          { "label": "Tomorrow", "value": "Flight to SFO · 7:45 AM · Terminal B", "icon": "plane", "scenario": "travel" },
+          { "label": "In 30 min", "value": "Yoga with Sora · Glow Studio", "icon": "yoga", "scenario": "fitness class" },
+          { "label": "This week · Fri", "value": "Mom's birthday dinner · 7:00 PM", "icon": "cake", "scenario": "personal event" },
+          { "label": "Today · 5 events", "value": "1:1 with Eun-bi · 11:30 AM next", "icon": "calendar", "scenario": "busy day overview" }
+        ],
+        "guidance": "label = when (e.g. 'Next up · Today', 'Tomorrow', 'In 30 min'). value = event title + time + optional location. Time first when imminent, location when relevant."
+      }
+    },
+    "weather_glance_card": {
+      "id": "weather_glance_card",
+      "category": "info-card",
+      "orchestration_type": "card",
+      "allowed_contexts": [
+        "glanceable",
+        "home",
+        "lock",
+        "quick-view"
+      ],
+      "states": [
+        "default",
+        "compact",
+        "glance"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text",
+        "icon": "icon"
+      },
+      "layout_spec": {
+        "min_width": 160,
+        "min_height": 72,
+        "padding": {
+          "top": 12,
+          "right": 14,
+          "bottom": 12,
+          "left": 14
+        },
+        "gap": 6
+      },
+      "tokens": {
+        "radius": "medium",
+        "background": "surface-2",
+        "text_style_title": "label-sm",
+        "text_style_value": "headline-md"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 2
+      },
+      "_status": "semantic — rendered via fallback template",
+      "description": "Card with weather-condition icon, label-sm location/condition and a large headline-md temperature.",
+      "purpose": "Glanceable current temperature + condition for the user's location.",
+      "use_when": [
+        "home / lock / quick-view summary of current weather"
+      ],
+      "dont_use_when": [
+        "the user needs the full forecast — open the weather app"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "Seoul · Partly cloudy", "value": "18°C · feels 16°", "icon": "weather-cloud-sun", "scenario": "default home glance" },
+          { "label": "San Francisco · Foggy", "value": "13°C · H 17 / L 11", "icon": "weather-fog", "scenario": "morning fog" },
+          { "label": "Today · Rain expected", "value": "9°C now · rain by 4 PM", "icon": "weather-rain", "scenario": "rain warning" },
+          { "label": "Busan · Sunny", "value": "24°C · UV 7 high", "icon": "weather-sun", "scenario": "beach day" },
+          { "label": "Tomorrow", "value": "Snow · −2°C / 1°C", "icon": "weather-snow", "scenario": "winter forecast" }
+        ],
+        "guidance": "label = location + condition phrase (e.g. 'Seoul · Partly cloudy'). value = temperature + secondary fact (feels-like, high/low, when rain starts, UV). Use real city names."
+      }
+    },
+    "navigation_turn_card": {
+      "id": "navigation_turn_card",
+      "category": "info-card",
+      "orchestration_type": "card",
+      "allowed_contexts": [
+        "driving",
+        "glanceable",
+        "minimal-touch",
+        "quick-view"
+      ],
+      "states": [
+        "default",
+        "compact",
+        "glance"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text",
+        "icon": "icon"
+      },
+      "layout_spec": {
+        "min_width": 200,
+        "min_height": 80,
+        "padding": {
+          "top": 14,
+          "right": 14,
+          "bottom": 14,
+          "left": 14
+        },
+        "gap": 8
+      },
+      "tokens": {
+        "radius": "medium",
+        "background": "primary",
+        "text_style_title": "label-sm",
+        "text_style_value": "headline-md"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 1
+      },
+      "_status": "semantic — rendered via fallback template",
+      "description": "High-emphasis primary-color card showing turn arrow icon, label-sm distance and a headline-md instruction.",
+      "purpose": "Driving directions card — the next maneuver shown with maximum legibility, hands-free contexts.",
+      "use_when": [
+        "active turn-by-turn navigation",
+        "driving / minimal-touch contexts that need the next instruction prominent"
+      ],
+      "dont_use_when": [
+        "navigation isn't active — use eta_card",
+        "the user needs full route detail — open the maps app"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "In 400 m", "value": "Turn right onto Teheran-ro", "icon": "arrow-right", "scenario": "city driving" },
+          { "label": "In 1.2 km", "value": "Take exit 14B toward Gangnam", "icon": "highway-exit", "scenario": "highway exit" },
+          { "label": "Now", "value": "Continue straight for 3 km", "icon": "arrow-up", "scenario": "long stretch" },
+          { "label": "In 200 ft", "value": "Sharp left onto Mission St", "icon": "arrow-left-sharp", "scenario": "tight turn" },
+          { "label": "In 50 m", "value": "Arrive at 1234 Market St", "icon": "pin", "scenario": "near destination" }
+        ],
+        "guidance": "label = distance to maneuver (e.g. 'In 400 m', 'Now', 'In 200 ft'). value = imperative direction with street/landmark name. Use units consistent with the locale (m/km vs ft/mi)."
+      }
+    },
+    "reminder_card": {
+      "id": "reminder_card",
+      "category": "info-card",
+      "orchestration_type": "card",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "lock",
+        "glanceable"
+      ],
+      "states": [
+        "default",
+        "compact",
+        "glance"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text",
+        "icon": "icon"
+      },
+      "layout_spec": {
+        "min_width": 200,
+        "min_height": 64,
+        "padding": {
+          "top": 12,
+          "right": 14,
+          "bottom": 12,
+          "left": 14
+        },
+        "gap": 6
+      },
+      "tokens": {
+        "radius": "medium",
+        "background": "surface-2",
+        "text_style_title": "label-sm",
+        "text_style_value": "body-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "_status": "semantic — rendered via fallback template",
+      "description": "Card with reminder icon, label-sm time/due and a body-md task summary — interactive, opens the reminder.",
+      "purpose": "Glanceable reminder/to-do summary that lets the user mark complete or open the full task.",
+      "use_when": [
+        "showing the next due reminder on home / lock / quick-view"
+      ],
+      "dont_use_when": [
+        "no active reminders — hide",
+        "showing a list of reminders — use list-item rows"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "Today · 6:00 PM", "value": "Pick up dry cleaning on the way home", "icon": "alarm", "scenario": "errand reminder" },
+          { "label": "In 15 min", "value": "Take medication · 1 tablet with water", "icon": "pill", "scenario": "medication" },
+          { "label": "Tomorrow · 9 AM", "value": "Submit Q2 expense report", "icon": "document", "scenario": "work task" },
+          { "label": "Overdue · yesterday", "value": "Call dentist to reschedule", "icon": "alert", "scenario": "overdue task" },
+          { "label": "When I leave home", "value": "Don't forget gym bag", "icon": "location", "scenario": "location-based" }
+        ],
+        "guidance": "label = when it fires (time, relative time, or trigger phrase). value = the task as a short imperative sentence. Keep it personal and specific."
+      }
+    },
+    "quick_toggle_row": {
+      "id": "quick_toggle_row",
+      "category": "selection",
+      "orchestration_type": "qs-toggle",
+      "allowed_contexts": [
+        "app",
+        "quick-settings",
+        "focused"
+      ],
+      "states": [
+        "default",
+        "compact"
+      ],
+      "slots": {
+        "actions": "action-group"
+      },
+      "layout_spec": {
+        "min_width": 280,
+        "min_height": 56,
+        "padding": {
+          "top": 8,
+          "right": 10,
+          "bottom": 8,
+          "left": 10
+        },
+        "gap": 8
+      },
+      "tokens": {
+        "radius": "16",
+        "background": "surface-2",
+        "text_style_title": "label-xs"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "_status": "semantic — rendered via fallback template",
+      "description": "Row of compact 16dp-radius toggle tiles on surface-2, each tile labelled with a tiny icon and label-xs caption.",
+      "purpose": "Bundle 3–6 fast on/off toggles (Wi-Fi, Bluetooth, Do Not Disturb…) into a single quick-settings strip.",
+      "use_when": [
+        "presenting a horizontal cluster of binary system toggles",
+        "embedded in quick-settings or focused panels"
+      ],
+      "dont_use_when": [
+        "toggles need detail / configuration — use card.toggle-row",
+        "only one toggle is needed — use switch"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "Connectivity", "value": "Wi-Fi · Bluetooth · Mobile data · Airplane mode", "icon": "wifi", "scenario": "default quick settings" },
+          { "label": "Focus", "value": "Do Not Disturb · Silent · Vibrate · Bedtime", "icon": "moon", "scenario": "evening focus" },
+          { "label": "Display", "value": "Dark mode · Auto-brightness · Blue-light filter · Rotation lock", "icon": "sun", "scenario": "display tuning" },
+          { "label": "Driving", "value": "Driving mode · Auto-reply · Voice only · Hotspot", "icon": "car", "scenario": "driving setup" },
+          { "label": "Cooking mode", "value": "Screen on · Voice control · Hands-free · Big text", "icon": "chef", "scenario": "kitchen helper" }
+        ],
+        "guidance": "label = toggle group purpose. value = 3–6 short toggle names separated by ' · ' (each tile shows one). Toggles are binary, so names should be nouns/states, not actions."
+      }
+    },
+    "input_summary_card": {
+      "id": "input_summary_card",
+      "category": "input",
+      "orchestration_type": "card",
+      "allowed_contexts": [
+        "app",
+        "focused"
+      ],
+      "states": [
+        "default",
+        "compact"
+      ],
+      "slots": {
+        "title": "text",
+        "value": "text",
+        "icon": "icon | optional"
+      },
+      "layout_spec": {
+        "min_width": 240,
+        "min_height": 64,
+        "padding": {
+          "top": 12,
+          "right": 14,
+          "bottom": 12,
+          "left": 14
+        },
+        "gap": 6
+      },
+      "tokens": {
+        "radius": "12",
+        "background": "surface-2",
+        "text_style_title": "label-sm",
+        "text_style_value": "body-md"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "_status": "semantic — rendered via fallback template",
+      "description": "12dp-radius card, 64dp tall on surface-2, with a small label and a body-md value plus optional icon — looks like a populated input.",
+      "purpose": "Summary read-out of an already-entered field that opens the editor on tap (e.g., date picker preview, filter applied).",
+      "use_when": [
+        "showing the current state of a structured input that opens its own editor",
+        "in glanceable summary screens where edits happen in a sub-flow"
+      ],
+      "dont_use_when": [
+        "the field is editable in place — use input"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "Step 3 of 8", "value": "Sauté garlic for 2 min until fragrant", "icon": "cooking-step", "scenario": "cooking guidance" },
+          { "label": "Today's workout", "value": "30-min HIIT · Beginner friendly", "icon": "workout", "scenario": "fitness app" },
+          { "label": "Filter applied", "value": "Pasta · Under 30 min · Vegetarian", "icon": "filter", "scenario": "recipe search" },
+          { "label": "Account", "value": "kyu@k-arts.ac.kr", "icon": "user", "scenario": "settings entry" },
+          { "label": "Trip dates", "value": "Apr 28 – May 3 · 5 nights", "icon": "calendar", "scenario": "travel booking" },
+          { "label": "Shipping address", "value": "1234 Sejong-daero · Seoul 04524", "icon": "pin", "scenario": "checkout summary" },
+          { "label": "Sleep target", "value": "11:30 PM bedtime · 7h 30m goal", "icon": "moon", "scenario": "sleep settings" },
+          { "label": "Voice memo", "value": "Recorded · 2 min 14 sec · auto-transcribed", "icon": "mic", "scenario": "voice capture" }
+        ],
+        "guidance": "Used as a 'summary read-out' card — label is the field name, step, or progress; value is the populated content. Always concrete (real names, real durations, real values), never generic placeholders. If the field is empty, do not render this component."
+      }
+    },
+    "status-bar.default": {
+      "id": "status-bar.default",
+      "category": "chrome",
+      "orchestration_type": "system-status",
+      "_figma_node": "3010:2142",
+      "allowed_contexts": [
+        "lock",
+        "home",
+        "app",
+        "quick-settings",
+        "notification-shade",
+        "system-dialog"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 411,
+        "min_height": 35,
+        "padding": {
+          "top": 0,
+          "right": 14,
+          "bottom": 0,
+          "left": 18
+        },
+        "gap": 4
+      },
+      "tokens": {
+        "radius": "0",
+        "background": "transparent",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 14,
+          "lineHeight": 16
+        }
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 0
+      },
+      "description": "Full-width 35dp One UI status bar with bold time on the left and signal/wifi/battery icons on the right.",
+      "purpose": "Reference instance of the OS status bar used inside Figma layouts when building any full-screen Samsung surface.",
+      "use_when": [
+        "modelling lock, home, app, quick-settings or notification-shade",
+        "layouts need to budget the top safe area"
+      ],
+      "dont_use_when": [
+        "live activity is active — use status-bar with live-activity state"
+      ]
+    },
+    "status-bar.live-activity-chip": {
+      "id": "status-bar.live-activity-chip",
+      "category": "primitive",
+      "orchestration_type": "inline-live-activity",
+      "_figma_node": "3010:2144",
+      "allowed_contexts": [
+        "app",
+        "system-dialog",
+        "quick-settings",
+        "notification-shade"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 76,
+        "min_height": 24,
+        "padding": {
+          "top": 4,
+          "right": 10,
+          "bottom": 4,
+          "left": 8
+        },
+        "gap": 6
+      },
+      "tokens": {
+        "radius": "12",
+        "background": "rgba(23,23,26,0.3)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 500,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "Compact 12dp-radius dark-glass pill (~76x24dp) with mini icon and 12sp label — embedded in the status bar.",
+      "purpose": "Persistent status indicator inside the status bar for live activities (timer, recording, navigation).",
+      "use_when": [
+        "an ongoing system event needs always-visible micro status",
+        "the user should be able to tap to expand"
+      ],
+      "dont_use_when": [
+        "status fits a label-only badge — use badge",
+        "richer content needed in the shade — use notification.live"
+      ]
+    },
+    "quick-settings.icons-row": {
+      "id": "quick-settings.icons-row",
+      "category": "chrome",
+      "orchestration_type": "quick-settings-header",
+      "_figma_node": "3010:2142",
+      "allowed_contexts": [
+        "quick-settings"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 408,
+        "min_height": 40,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 16
+      },
+      "tokens": {
+        "radius": "0",
+        "background": "transparent",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 16,
+          "lineHeight": 20
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "Header strip (~408x40dp) of the expanded quick-settings panel showing date, profile and the small status icons row.",
+      "purpose": "Anchor the top of the quick-settings panel — provides date/identity and a slot for system shortcuts.",
+      "use_when": [
+        "modeling the expanded quick-settings shade"
+      ],
+      "dont_use_when": [
+        "outside the quick-settings shade"
+      ]
+    },
+    "single-toggle.half-toggle": {
+      "id": "single-toggle.half-toggle",
+      "category": "selection",
+      "orchestration_type": "quick-toggle-half",
+      "_figma_node": "3010:2142",
+      "allowed_contexts": [
+        "quick-settings"
+      ],
+      "states": [
+        "default",
+        "active",
+        "disabled"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 199,
+        "min_height": 88,
+        "padding": {
+          "top": 16,
+          "right": 16,
+          "bottom": 16,
+          "left": 16
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "50",
+        "background": "rgba(180,180,180,0.2)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 14,
+          "lineHeight": 18
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 400,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Wide rounded tile (~199x88dp), 50dp radius on translucent grey, with bold title + small caption — fills half a quick-settings row.",
+      "purpose": "Quick-settings toggle that needs both an icon AND a status caption (e.g., Wi-Fi name, Bluetooth device).",
+      "use_when": [
+        "the toggle's value is more useful with status detail visible",
+        "in the expanded quick-settings panel"
+      ],
+      "dont_use_when": [
+        "the toggle is purely binary with no status — use single-toggle.single-toggle"
+      ]
+    },
+    "single-toggle.single-toggle": {
+      "id": "single-toggle.single-toggle",
+      "category": "selection",
+      "orchestration_type": "quick-toggle-single",
+      "_figma_node": "3010:2142",
+      "allowed_contexts": [
+        "quick-settings"
+      ],
+      "states": [
+        "default",
+        "active",
+        "disabled"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 88,
+        "min_height": 88,
+        "padding": {
+          "top": 20,
+          "right": 20,
+          "bottom": 20,
+          "left": 20
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "50",
+        "background": "rgba(180,180,180,0.2)"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Square 88x88dp icon-only tile, 50dp radius on translucent grey — used in the collapsed quick-settings strip.",
+      "purpose": "Compact icon-only toggle for the collapsed/condensed quick-settings row where space is tight.",
+      "use_when": [
+        "the collapsed quick-settings strip beneath the status bar",
+        "the toggle is widely understood from icon alone"
+      ],
+      "dont_use_when": [
+        "the user needs status text — use single-toggle.half-toggle"
+      ]
+    },
+    "single-toggle.half-shortcut": {
+      "id": "single-toggle.half-shortcut",
+      "category": "selection",
+      "orchestration_type": "quick-shortcut-half",
+      "_figma_node": "3010:2142",
+      "allowed_contexts": [
+        "quick-settings"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 199,
+        "min_height": 88,
+        "padding": {
+          "top": 16,
+          "right": 16,
+          "bottom": 16,
+          "left": 16
+        },
+        "gap": 12
+      },
+      "tokens": {
+        "radius": "50",
+        "background": "rgba(180,180,180,0.2)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 14,
+          "lineHeight": 18
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 400,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "Wide rounded tile (~199x88dp), 50dp radius, with title + caption — same footprint as half-toggle but launches a flow instead of toggling.",
+      "purpose": "Quick-settings shortcut that opens a deeper screen (Edit, Devices, Modes) rather than flipping a switch.",
+      "use_when": [
+        "exposing a frequently-needed deep entry point in quick-settings",
+        "the action is navigation, not a toggle"
+      ],
+      "dont_use_when": [
+        "the action is a binary toggle — use single-toggle.half-toggle"
+      ]
+    },
+    "quick-settings.slider-vertical": {
+      "id": "quick-settings.slider-vertical",
+      "category": "input",
+      "orchestration_type": "vertical-slider",
+      "_figma_node": "3010:2142",
+      "allowed_contexts": [
+        "quick-settings"
+      ],
+      "states": [
+        "default",
+        "active"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 88,
+        "min_height": 300,
+        "padding": {
+          "top": 20,
+          "right": 0,
+          "bottom": 20,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "44",
+        "background": "rgba(180,180,180,0.2)"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 4
+      },
+      "description": "Tall vertical pill (~88x300dp), 44dp radius, translucent grey track that fills upward as the value grows.",
+      "purpose": "Adjust brightness, volume or media playback level inside the quick-settings panel with instant feedback.",
+      "use_when": [
+        "the user changes a continuous value (brightness, volume) within Quick Settings",
+        "real-time feedback (audible/visual) is part of the interaction"
+      ],
+      "dont_use_when": [
+        "the value is a small set of choices — use radio or chip",
+        "outside the quick-settings layout — use the standard horizontal slider"
+      ]
+    },
+    "quick-settings.smartthings-card": {
+      "id": "quick-settings.smartthings-card",
+      "category": "container",
+      "orchestration_type": "smartthings-rollup",
+      "_figma_node": "3010:2142",
+      "allowed_contexts": [
+        "quick-settings"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 408,
+        "min_height": 86,
+        "padding": {
+          "top": 14,
+          "right": 18,
+          "bottom": 14,
+          "left": 18
+        },
+        "gap": 14
+      },
+      "tokens": {
+        "radius": "50",
+        "background": "rgba(180,180,180,0.2)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 16,
+          "lineHeight": 20
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 400,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 5
+      },
+      "description": "Wide 50dp-radius rolled-up tile (~408x86dp) on translucent grey, summarizing connected SmartThings devices.",
+      "purpose": "Single entry point in quick-settings that rolls multiple smart-home devices into a glanceable summary.",
+      "use_when": [
+        "the user has SmartThings devices and wants quick control without opening the full app"
+      ],
+      "dont_use_when": [
+        "no smart devices are connected — hide entirely"
+      ]
+    },
+    "now-bar.media-player": {
+      "id": "now-bar.media-player",
+      "category": "widget",
+      "orchestration_type": "now-bar",
+      "_figma_node": "744:3582",
+      "allowed_contexts": [
+        "lock",
+        "home"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 248,
+        "min_height": 64,
+        "padding": {
+          "top": 12,
+          "right": 18,
+          "bottom": 12,
+          "left": 12
+        },
+        "gap": 14
+      },
+      "tokens": {
+        "radius": "53",
+        "background": "rgba(23,23,26,0.3)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 16,
+          "lineHeight": 20
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 500,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Pill-shaped 64dp glass bar (~248dp wide) with album art thumbnail, title, artist, and play/pause controls.",
+      "purpose": "Persistent media controls on lock/home screens — quick playback access without unlocking.",
+      "use_when": [
+        "media is currently playing or paused"
+      ],
+      "dont_use_when": [
+        "no active media — show another now-bar variant or hide"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "APT.", "value": "ROSÉ & Bruno Mars", "icon": "music-note", "scenario": "K-pop on lock screen" },
+          { "label": "Lofi Girl Radio", "value": "YouTube Music · Live", "icon": "youtube-music", "scenario": "background lofi" },
+          { "label": "The Daily", "value": "NYT · 22 min left", "icon": "podcast", "scenario": "morning podcast" },
+          { "label": "Sleep Sounds", "value": "Calm · Rain on leaves", "icon": "rain", "scenario": "bedtime audio" },
+          { "label": "Dune (audiobook)", "value": "Frank Herbert · Ch. 22 of 48", "icon": "book", "scenario": "audiobook lock screen" }
+        ],
+        "guidance": "label = currently playing track / show title. value = artist or service + secondary detail (live, time remaining, chapter). Keep it short — the now-bar is narrow."
+      }
+    },
+    "now-bar.dual-line": {
+      "id": "now-bar.dual-line",
+      "category": "widget",
+      "orchestration_type": "now-bar",
+      "_figma_node": "744:3582",
+      "allowed_contexts": [
+        "lock",
+        "home"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 248,
+        "min_height": 64,
+        "padding": {
+          "top": 12,
+          "right": 18,
+          "bottom": 12,
+          "left": 12
+        },
+        "gap": 14
+      },
+      "tokens": {
+        "radius": "53",
+        "background": "rgba(23,23,26,0.3)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 16,
+          "lineHeight": 20
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 500,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Pill-shaped 64dp glass now-bar showing two stacked text lines: bold title and lighter status — leading icon and trailing action.",
+      "purpose": "Generic two-line now-bar slot for activities that need both a label and a status (timer, ride, transit).",
+      "use_when": [
+        "the activity needs both a name and a status string"
+      ],
+      "dont_use_when": [
+        "only one short string is needed — use now-bar.single-line",
+        "the activity is media playback — use now-bar.media-player"
+      ]
+    },
+    "now-bar.single-line": {
+      "id": "now-bar.single-line",
+      "category": "widget",
+      "orchestration_type": "now-bar",
+      "_figma_node": "744:3582",
+      "allowed_contexts": [
+        "lock",
+        "home"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 248,
+        "min_height": 64,
+        "padding": {
+          "top": 12,
+          "right": 18,
+          "bottom": 12,
+          "left": 12
+        },
+        "gap": 14
+      },
+      "tokens": {
+        "radius": "53",
+        "background": "rgba(23,23,26,0.3)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 26,
+          "lineHeight": 30
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "Pill-shaped 64dp glass now-bar with one large 26sp value and a leading icon — emphasized for headline state.",
+      "purpose": "Headline now-bar slot for a single big number/state (timer countdown, score, distance).",
+      "use_when": [
+        "the activity is best represented by one prominent value"
+      ],
+      "dont_use_when": [
+        "additional context is essential — use now-bar.dual-line"
+      ]
+    },
+    "now-bar.charging": {
+      "id": "now-bar.charging",
+      "category": "widget",
+      "orchestration_type": "now-bar-alert",
+      "_figma_node": "744:3582",
+      "allowed_contexts": [
+        "lock",
+        "home"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 248,
+        "min_height": 64,
+        "padding": {
+          "top": 12,
+          "right": 18,
+          "bottom": 12,
+          "left": 12
+        },
+        "gap": 14
+      },
+      "tokens": {
+        "radius": "53",
+        "background": "rgba(3,78,110,0.8)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 16,
+          "lineHeight": 20
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 500,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "Pill-shaped 64dp now-bar with a deep teal-blue alert tint, lightning icon and percentage + ETA strings.",
+      "purpose": "Confirm the device started charging — distinguished color signals an alert-level state change.",
+      "use_when": [
+        "device just started charging or charge state is notable",
+        "user benefits from a brief tinted confirmation"
+      ],
+      "dont_use_when": [
+        "battery is steady — use lock-screen.widget-battery instead"
+      ]
+    },
+    "lock-screen.clock": {
+      "id": "lock-screen.clock",
+      "category": "widget",
+      "orchestration_type": "lock-clock",
+      "_figma_node": "3010:2143",
+      "allowed_contexts": [
+        "lock"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 164,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "0",
+        "background": "transparent",
+        "text_style_title": {
+          "family": "SamsungNrDefault-V6",
+          "weight": 400,
+          "size": 112,
+          "lineHeight": 82
+        }
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 0
+      },
+      "description": "Massive 112sp Samsung-Sans clock display, two-line stacked HH/MM, fully transparent backdrop — fills 412x164dp lock area.",
+      "purpose": "Anchor the lock screen — primary time read-out users glance at when waking the device.",
+      "use_when": [
+        "lock screen — primary time display"
+      ],
+      "dont_use_when": [
+        "any non-lock context — use the status-bar time instead"
+      ]
+    },
+    "lock-screen.weather-date": {
+      "id": "lock-screen.weather-date",
+      "category": "widget",
+      "orchestration_type": "lock-weather-date",
+      "_figma_node": "3010:2143",
+      "allowed_contexts": [
+        "lock"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 24,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 6
+      },
+      "tokens": {
+        "radius": "0",
+        "background": "transparent",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 500,
+          "size": 14,
+          "lineHeight": 18
+        }
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 1
+      },
+      "description": "Single 14sp transparent text line just below the lock clock combining weather icon + temp and date string.",
+      "purpose": "Provide contextual day/weather info adjacent to the lock-screen clock at a glance.",
+      "use_when": [
+        "the user benefits from the time + date + weather strip on the lock screen"
+      ],
+      "dont_use_when": [
+        "weather data is unavailable — degrade to date only"
+      ]
+    },
+    "lock-screen.widget-battery": {
+      "id": "lock-screen.widget-battery",
+      "category": "widget",
+      "orchestration_type": "lock-widget",
+      "_figma_node": "3010:2143",
+      "allowed_contexts": [
+        "lock"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 138,
+        "min_height": 62,
+        "padding": {
+          "top": 10,
+          "right": 14,
+          "bottom": 10,
+          "left": 14
+        },
+        "gap": 8
+      },
+      "tokens": {
+        "radius": "20",
+        "background": "rgba(23,23,26,0.3)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 14,
+          "lineHeight": 18
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 400,
+          "size": 11,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Small 138x62dp glass tile, 20dp radius, with battery icon, percentage title and short status caption.",
+      "purpose": "Glanceable battery summary widget pinned in the lock-screen widget row.",
+      "use_when": [
+        "lock-screen widget row when battery is the priority metric"
+      ],
+      "dont_use_when": [
+        "device just started charging — promote to now-bar.charging"
+      ]
+    },
+    "lock-screen.widget-activity": {
+      "id": "lock-screen.widget-activity",
+      "category": "widget",
+      "orchestration_type": "lock-widget",
+      "_figma_node": "3010:2143",
+      "allowed_contexts": [
+        "lock"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 138,
+        "min_height": 62,
+        "padding": {
+          "top": 10,
+          "right": 14,
+          "bottom": 10,
+          "left": 14
+        },
+        "gap": 8
+      },
+      "tokens": {
+        "radius": "20",
+        "background": "rgba(23,23,26,0.3)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 14,
+          "lineHeight": 18
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 400,
+          "size": 11,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Small 138x62dp glass tile, 20dp radius, with activity icon, count title (steps/calories) and unit caption.",
+      "purpose": "Glanceable activity/health summary widget pinned in the lock-screen widget row.",
+      "use_when": [
+        "lock-screen widget row showing today's activity progress"
+      ],
+      "dont_use_when": [
+        "no activity data — hide the slot"
+      ]
+    },
+    "lock-screen.shortcut-circle": {
+      "id": "lock-screen.shortcut-circle",
+      "category": "action",
+      "orchestration_type": "lock-shortcut",
+      "_figma_node": "3010:2143",
+      "allowed_contexts": [
+        "lock"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 47,
+        "min_height": 47,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "61",
+        "background": "rgba(23,23,26,0.3)"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "47dp circular icon button on translucent dark glass, fully rounded — sits in the lock-screen bottom corners.",
+      "purpose": "One-tap launcher for two key apps (typically Phone, Camera or Flashlight) directly from a locked device.",
+      "use_when": [
+        "exposing exactly one or two priority shortcuts on the lock screen"
+      ],
+      "dont_use_when": [
+        "outside the lock context — use fab or a regular button"
+      ]
+    },
+    "notification.ai-regular": {
+      "id": "notification.ai-regular",
+      "category": "notification",
+      "orchestration_type": "ai-notification",
+      "_figma_node": "989:22754",
+      "allowed_contexts": [
+        "notification-shade"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 415,
+        "min_height": 86,
+        "padding": {
+          "top": 14,
+          "right": 18,
+          "bottom": 14,
+          "left": 18
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "32",
+        "background": "linear-gradient(135deg,#3E7DFF 0%,#6EE5C7 100%)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 14,
+          "lineHeight": 18
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 400,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "32dp-radius wide card on a blue-to-mint diagonal gradient — branded as a Galaxy AI generated notification.",
+      "purpose": "Surface a Galaxy AI suggestion or summary in the notification shade, distinguished by gradient.",
+      "use_when": [
+        "the notification content is AI-generated (summaries, smart replies)",
+        "users should recognize the suggestion as AI-driven"
+      ],
+      "dont_use_when": [
+        "the notification originates from a user/app event — use notification-card"
+      ],
+      "typical_content": {
+        "examples": [
+          { "label": "Galaxy AI · Inbox summary", "value": "3 unread: 1 about Friday's dinner, 2 work follow-ups", "icon": "ai-spark", "scenario": "smart inbox digest" },
+          { "label": "Smart reply suggestion", "value": "Want me to draft 'Sounds good, see you at 7'?", "icon": "ai-spark", "scenario": "suggested response" },
+          { "label": "Routine ready", "value": "It's 10 PM — start your wind-down? Lights, Do Not Disturb on", "icon": "ai-routine", "scenario": "proactive routine" },
+          { "label": "Trip recap", "value": "You took 47 photos in Busan — make a highlight reel?", "icon": "ai-spark", "scenario": "memory suggestion" },
+          { "label": "Meeting prep", "value": "Design review in 30 min — here's a 2-line summary of last week's notes", "icon": "ai-doc", "scenario": "calendar AI assist" }
+        ],
+        "guidance": "label = 'Galaxy AI · <topic>' or a short AI capability tag (e.g. 'Smart reply suggestion'). value = the AI's actual offer or summary, written in a helpful first-person voice. Always frame it as a suggestion or read-out, not a command."
+      }
+    },
+    "notification.live": {
+      "id": "notification.live",
+      "category": "notification",
+      "orchestration_type": "live-notification",
+      "_figma_node": "989:22754",
+      "allowed_contexts": [
+        "notification-shade"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 415,
+        "min_height": 86,
+        "padding": {
+          "top": 14,
+          "right": 18,
+          "bottom": 14,
+          "left": 18
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "32",
+        "background": "rgba(23,23,26,0.3)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 14,
+          "lineHeight": 18
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 400,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "32dp-radius translucent dark glass notification with progress/status display (timer, ride, navigation).",
+      "purpose": "Persistent live activity surfaced in the notification shade — represents an in-progress event the user is tracking.",
+      "use_when": [
+        "ongoing events the user is actively monitoring (timer, ride, delivery)",
+        "the activity has time-relevant state changes"
+      ],
+      "dont_use_when": [
+        "completed or one-shot notifications — use notification-card",
+        "compact status only — use status-bar live-activity"
+      ]
+    },
+    "notification.stack": {
+      "id": "notification.stack",
+      "category": "notification",
+      "orchestration_type": "stacked-notification",
+      "_figma_node": "989:22754",
+      "allowed_contexts": [
+        "notification-shade"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 415,
+        "min_height": 91,
+        "padding": {
+          "top": 14,
+          "right": 18,
+          "bottom": 14,
+          "left": 18
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "32",
+        "background": "rgba(23,23,26,0.3)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 14,
+          "lineHeight": 18
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 400,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "32dp-radius translucent dark card showing 'N more from this app' with peek of stacked notifications behind.",
+      "purpose": "Collapse multiple notifications from the same app into one entry to keep the shade scannable.",
+      "use_when": [
+        "an app has produced 3+ notifications close in time",
+        "stacking improves scannability of the shade"
+      ],
+      "dont_use_when": [
+        "only one or two notifications exist — show them individually"
+      ]
+    },
+    "media-player.tile": {
+      "id": "media-player.tile",
+      "category": "media",
+      "orchestration_type": "media-player-tile",
+      "_figma_node": "1003:13034",
+      "allowed_contexts": [
+        "notification-shade",
+        "quick-settings",
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 400,
+        "min_height": 180,
+        "padding": {
+          "top": 14,
+          "right": 29,
+          "bottom": 14,
+          "left": 29
+        },
+        "gap": 2
+      },
+      "tokens": {
+        "radius": "36",
+        "background": "image-backed",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 16,
+          "lineHeight": 20
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 500,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "36dp-radius tile (~400x180dp) using album art as the full background, with overlaid title, artist and transport row.",
+      "purpose": "Immersive media player tile in the notification shade or media app — visual content takes priority.",
+      "use_when": [
+        "presenting playing media with a strong visual identity (album cover, video preview)",
+        "shade or quick-settings expanded media tile"
+      ],
+      "dont_use_when": [
+        "no album art available — use media-card",
+        "extreme glanceability is needed — use media_control_bar"
+      ]
+    },
+    "notifications.section-label": {
+      "id": "notifications.section-label",
+      "category": "primitive",
+      "orchestration_type": "section-label",
+      "_figma_node": "989:22754",
+      "allowed_contexts": [
+        "notification-shade",
+        "quick-settings"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 200,
+        "min_height": 34,
+        "padding": {
+          "top": 10,
+          "right": 0,
+          "bottom": 10,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "0",
+        "background": "transparent",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 400,
+          "size": 14,
+          "lineHeight": 18
+        }
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 5
+      },
+      "description": "Single text label (14sp) on transparent ground — typographic section divider above grouped notification cards.",
+      "purpose": "Group notifications by source/category in the shade ('Today', 'Older', 'Silent').",
+      "use_when": [
+        "the shade needs categorical separation between notification groups"
+      ],
+      "dont_use_when": [
+        "only a few notifications exist and grouping adds no value"
+      ]
+    },
+    "dialog.website-share-header": {
+      "id": "dialog.website-share-header",
+      "category": "container",
+      "orchestration_type": "dialog-header",
+      "_figma_node": "3010:2144",
+      "allowed_contexts": [
+        "system-dialog"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 380,
+        "min_height": 78,
+        "padding": {
+          "top": 14,
+          "right": 16,
+          "bottom": 14,
+          "left": 16
+        },
+        "gap": 12
+      },
+      "tokens": {
+        "radius": "24",
+        "background": "rgba(23,23,26,0.6)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 16,
+          "lineHeight": 20
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 400,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "24dp-radius dark glass header (380x78dp) with site title and small URL, leading favicon — dressed for share-target dialogs.",
+      "purpose": "Identify the originating webpage at the top of a website-share or save dialog.",
+      "use_when": [
+        "share/save dialogs initiated from the browser",
+        "modals that need to show URL provenance"
+      ],
+      "dont_use_when": [
+        "the share is not from a browser context — use dialog title/value"
+      ]
+    },
+    "dialog.browser-top-bar": {
+      "id": "dialog.browser-top-bar",
+      "category": "chrome",
+      "orchestration_type": "browser-top-bar",
+      "_figma_node": "3010:2144",
+      "allowed_contexts": [
+        "system-dialog"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 380,
+        "min_height": 80,
+        "padding": {
+          "top": 12,
+          "right": 14,
+          "bottom": 12,
+          "left": 14
+        },
+        "gap": 12
+      },
+      "tokens": {
+        "radius": "48",
+        "background": "rgba(23,23,26,0.6)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 500,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Pill-radius (48dp) translucent dark address bar header for the in-app browser modal showing URL hostname.",
+      "purpose": "Header chrome for share-target and browser-style modals — identifies the source URL with minimal weight.",
+      "use_when": [
+        "share-target sheets that show a webpage URL",
+        "in-app browser confirmation modals"
+      ],
+      "dont_use_when": [
+        "regular app screens — use appbar"
+      ]
+    },
+    "dialog.icon-grid-box": {
+      "id": "dialog.icon-grid-box",
+      "category": "container",
+      "orchestration_type": "icon-picker-grid",
+      "_figma_node": "3010:2144",
+      "allowed_contexts": [
+        "system-dialog"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 380,
+        "min_height": 280,
+        "padding": {
+          "top": 16,
+          "right": 14,
+          "bottom": 16,
+          "left": 14
+        },
+        "gap": 14
+      },
+      "tokens": {
+        "radius": "24",
+        "background": "rgba(23,23,26,0.6)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 500,
+          "size": 12,
+          "lineHeight": 14
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "24dp-radius translucent dark grid (380x280dp) hosting share-target apps as 4-column icon+label cells.",
+      "purpose": "Picker surface for share-targets / app selection inside a system dialog.",
+      "use_when": [
+        "presenting a share sheet or app chooser",
+        "8+ targets need to be browsable in a tight modal"
+      ],
+      "dont_use_when": [
+        "fewer than 5 targets fit linearly — use list-item rows"
+      ]
+    },
+    "dialog.page-indicator": {
+      "id": "dialog.page-indicator",
+      "category": "primitive",
+      "orchestration_type": "page-indicator",
+      "_figma_node": "3010:2144",
+      "allowed_contexts": [
+        "system-dialog"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 40,
+        "min_height": 6,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 4
+      },
+      "tokens": {
+        "radius": "3",
+        "background": "rgba(255,255,255,0.3)"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 6
+      },
+      "description": "Row of 3-radius pill dots (~6dp tall), 30% white, indicating multiple steps/pages in a wizard or paged dialog.",
+      "purpose": "Show how many pages a multi-step modal/wizard has and where the user is currently.",
+      "use_when": [
+        "wizards, onboarding modals, paged dialogs"
+      ],
+      "dont_use_when": [
+        "single-page dialogs"
+      ]
+    },
+    "dialog.nav-gesture-bar": {
+      "id": "dialog.nav-gesture-bar",
+      "category": "primitive",
+      "orchestration_type": "home-gesture-bar",
+      "_figma_node": "3010:2144",
+      "allowed_contexts": [
+        "lock",
+        "home",
+        "app",
+        "system-dialog",
+        "quick-settings",
+        "notification-shade"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 144,
+        "min_height": 4,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "2",
+        "background": "rgba(255,255,255,0.6)"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 6
+      },
+      "description": "Short horizontal bar (~144x4dp), 2dp radius, 60% white — the home gesture-bar handle at the bottom safe area.",
+      "purpose": "Render the system home/gesture-bar handle inside layouts to reserve and visualize the bottom safe area.",
+      "use_when": [
+        "modeling any full-screen surface where gesture nav is active"
+      ],
+      "dont_use_when": [
+        "device runs three-button nav — use container.nav-buttons-light"
+      ]
+    },
+    "system.dim-overlay": {
+      "id": "system.dim-overlay",
+      "category": "overlay",
+      "orchestration_type": "modal-dim",
+      "_figma_node": "3010:2144",
+      "allowed_contexts": [
+        "system-dialog"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 451,
+        "min_height": 978,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "40",
+        "background": "rgba(0,0,0,0.2)"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 6
+      },
+      "description": "Full-screen scrim (rgba 0,0,0,0.2) with a 40dp outer radius — sits beneath modal dialog/sheet content.",
+      "purpose": "Visually de-emphasize the underlying screen and trap touch events for modal flows.",
+      "use_when": [
+        "presenting a system dialog or sheet that must take focus",
+        "dimming areas outside an Edit window per One UI guidelines"
+      ],
+      "dont_use_when": [
+        "the surface is non-modal (snackbar, action toast)"
+      ]
+    },
+    "search.dark": {
+      "id": "search.dark",
+      "category": "input",
+      "orchestration_type": "search-bar",
+      "_figma_node": "47:221",
+      "allowed_contexts": [
+        "app",
+        "home"
+      ],
+      "states": [
+        "default",
+        "focus"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 58,
+        "padding": {
+          "top": 17,
+          "right": 20,
+          "bottom": 17,
+          "left": 20
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "30",
+        "background": "#17171A",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 16,
+          "lineHeight": 20
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "Pill-shaped 58dp search field, near-black (#17171A) fill, 30dp radius — sized to a full-width 412dp module.",
+      "purpose": "Primary search affordance for dark-themed app shells (Samsung Internet dark, Gallery dark, etc.).",
+      "use_when": [
+        "the host shell is dark themed",
+        "search is the primary affordance at the top of a list/browse screen"
+      ],
+      "dont_use_when": [
+        "the shell is light — use search.light",
+        "the search invokes Galaxy AI — use search.galaxy-ai"
+      ]
+    },
+    "search.light": {
+      "id": "search.light",
+      "category": "input",
+      "orchestration_type": "search-bar",
+      "_figma_node": "547:9639",
+      "allowed_contexts": [
+        "app",
+        "home"
+      ],
+      "states": [
+        "default",
+        "focus"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 58,
+        "padding": {
+          "top": 17,
+          "right": 20,
+          "bottom": 17,
+          "left": 20
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "30",
+        "background": "#FCFCFF",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 16,
+          "lineHeight": 20
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "Pill-shaped 58dp search field, near-white (#FCFCFF) fill, 30dp radius — sized to a full-width 412dp module.",
+      "purpose": "Primary search affordance for light-themed app shells.",
+      "use_when": [
+        "the host shell is light themed",
+        "search is the primary affordance at the top of a list/browse screen"
+      ],
+      "dont_use_when": [
+        "the shell is dark — use search.dark",
+        "the search invokes Galaxy AI — use search.galaxy-ai-light"
+      ]
+    },
+    "search.galaxy-ai": {
+      "id": "search.galaxy-ai",
+      "category": "input",
+      "orchestration_type": "search-bar-ai",
+      "_figma_node": "47:228",
+      "allowed_contexts": [
+        "app",
+        "home"
+      ],
+      "states": [
+        "default",
+        "focus"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 58,
+        "padding": {
+          "top": 17,
+          "right": 20,
+          "bottom": 17,
+          "left": 20
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "30",
+        "background": "linear-gradient(90deg,#364B6F 0%,#384247 64.807%,#2D2D30 87.168%)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 16,
+          "lineHeight": 20,
+          "fill": "linear-gradient(90deg,#66A1F3,#22C9A6)"
+        },
+        "shadow": "-1px 0 4px 1px rgba(78,102,139,0.58)"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Pill-shaped 58dp search field on a dark blue-to-grey gradient with a blue-to-teal AI gradient text fill and soft glow shadow.",
+      "purpose": "Branded search entry point that signals Galaxy AI assistance — natural-language, summarization, or generative search.",
+      "use_when": [
+        "the dark-themed surface needs to advertise AI search capability",
+        "the user is asking a question vs. typing a keyword"
+      ],
+      "dont_use_when": [
+        "the search runs purely lexical matching — use search.dark",
+        "shell is light themed — use search.galaxy-ai-light"
+      ]
+    },
+    "search.galaxy-ai-light": {
+      "id": "search.galaxy-ai-light",
+      "category": "input",
+      "orchestration_type": "search-bar-ai",
+      "_figma_node": "547:9646",
+      "allowed_contexts": [
+        "app",
+        "home"
+      ],
+      "states": [
+        "default",
+        "focus"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 58,
+        "padding": {
+          "top": 17,
+          "right": 20,
+          "bottom": 17,
+          "left": 20
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "30",
+        "background": "linear-gradient(90deg,#364B6F 0%,#91B0BF 64.807%,#CFCFCF 87.168%)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 16,
+          "lineHeight": 20,
+          "fill": "linear-gradient(90deg,#66A1F3,#22C9A6)"
+        },
+        "shadow": "-1px 0 4px 1px rgba(78,102,139,0.58)"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Pill-shaped 58dp search field on a deep-blue-to-light-grey gradient with blue-to-teal AI gradient text fill and soft glow shadow.",
+      "purpose": "Light-theme variant of Galaxy AI search — same intent as search.galaxy-ai but designed for light shells.",
+      "use_when": [
+        "the light-themed surface needs to advertise AI search capability"
+      ],
+      "dont_use_when": [
+        "the search runs purely lexical matching — use search.light",
+        "shell is dark themed — use search.galaxy-ai"
+      ]
+    },
+    "button.dark": {
+      "id": "button.dark",
+      "category": "action",
+      "orchestration_type": "button",
+      "_figma_node": "452:1381",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "system-dialog"
+      ],
+      "states": [
+        "default",
+        "pressed",
+        "disabled"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 406,
+        "min_height": 74,
+        "padding": {
+          "top": 18,
+          "right": 24,
+          "bottom": 18,
+          "left": 24
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "#17171A",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 20,
+          "lineHeight": 12
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Wide pill-shaped button (~406x74dp), 28dp radius, near-black surface with light-on-dark label — full bleed across content width.",
+      "purpose": "Confirm/secondary action on dark surfaces (system dialogs, dark app shell footers).",
+      "use_when": [
+        "the host surface is dark and the button must read as elevated chrome",
+        "needing a full-width confirm-style action"
+      ],
+      "dont_use_when": [
+        "the surface is light — use button.light",
+        "the action is primary — use button.accent"
+      ]
+    },
+    "button.light": {
+      "id": "button.light",
+      "category": "action",
+      "orchestration_type": "button",
+      "_figma_node": "452:1383",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "system-dialog"
+      ],
+      "states": [
+        "default",
+        "pressed",
+        "disabled"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 406,
+        "min_height": 74,
+        "padding": {
+          "top": 18,
+          "right": 24,
+          "bottom": 18,
+          "left": 24
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "#FCFCFF",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 20,
+          "lineHeight": 12
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Wide pill-shaped button (~406x74dp), 28dp radius, near-white surface with dark-on-light label — full bleed across content width.",
+      "purpose": "Confirm/secondary action on light surfaces, mirroring button.dark for theme parity.",
+      "use_when": [
+        "the host surface is light and the button must read as elevated chrome",
+        "needing a full-width confirm-style action in light theme"
+      ],
+      "dont_use_when": [
+        "the surface is dark — use button.dark",
+        "the action is primary — use button.accent"
+      ]
+    },
+    "button.accent": {
+      "id": "button.accent",
+      "category": "action",
+      "orchestration_type": "button-primary",
+      "_figma_node": "452:1392",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "system-dialog"
+      ],
+      "states": [
+        "default",
+        "pressed",
+        "disabled"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 406,
+        "min_height": 74,
+        "padding": {
+          "top": 18,
+          "right": 24,
+          "bottom": 18,
+          "left": 24
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "#387AFF",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 20,
+          "lineHeight": 12
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "Wide pill-shaped button (~406x74dp), 28dp radius, saturated Samsung blue (#387AFF) fill with white label.",
+      "purpose": "Primary CTA — the highest-priority action on the screen, visually committing the user to a result (Continue, Save, Pay, etc.).",
+      "use_when": [
+        "presenting the destination action of a flow",
+        "exactly one action must dominate the surface"
+      ],
+      "dont_use_when": [
+        "more than one action competes — promote only one to accent",
+        "the action is destructive — pair with a flat cancel and use specific destructive styling if available"
+      ]
+    },
+    "button.galaxy-ai": {
+      "id": "button.galaxy-ai",
+      "category": "action",
+      "orchestration_type": "button-ai",
+      "_figma_node": "452:1395",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "system-dialog"
+      ],
+      "states": [
+        "default",
+        "pressed",
+        "disabled"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 406,
+        "min_height": 74,
+        "padding": {
+          "top": 18,
+          "right": 24,
+          "bottom": 18,
+          "left": 24
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "linear-gradient(86.3deg,#66A1F3 3.4%,#22C9A6 99.3%)",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 20,
+          "lineHeight": 12
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 1
+      },
+      "description": "Wide pill button (~406x74dp), 28dp radius, blue-to-teal gradient fill signalling a Galaxy AI feature.",
+      "purpose": "Primary CTA when the action invokes Galaxy AI (summarize, translate, generate) — used to brand AI-powered results.",
+      "use_when": [
+        "the action triggers an on-device or cloud AI feature",
+        "users should recognize the action as an AI capability"
+      ],
+      "dont_use_when": [
+        "the action is not AI-related — use button.accent instead"
+      ]
+    },
+    "button.header-small": {
+      "id": "button.header-small",
+      "category": "action",
+      "orchestration_type": "button-inline",
+      "_figma_node": "444:529",
+      "allowed_contexts": [
+        "app",
+        "home",
+        "system-dialog"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 90,
+        "min_height": 36,
+        "padding": {
+          "top": 10,
+          "right": 12,
+          "bottom": 10,
+          "left": 12
+        },
+        "gap": 8
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "#17171A",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 14,
+          "lineHeight": 18
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "Compact pill button (~90x36dp), 28dp radius, dark fill with 14sp label — sized to sit inline with header text.",
+      "purpose": "Inline header action (e.g., 'Edit', 'See all', 'Done') anchored to a section title or app-bar trailing slot.",
+      "use_when": [
+        "an action is tied to a specific header/section, not the whole screen",
+        "space is limited and a full-width button would overpower the header"
+      ],
+      "dont_use_when": [
+        "the action is the screen-level CTA — promote to button.accent"
+      ]
+    },
+    "container.app-shell-dark": {
+      "id": "container.app-shell-dark",
+      "category": "container",
+      "orchestration_type": "app-shell",
+      "_figma_node": "390:427",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 900,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "16",
+        "background": "#010102"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 0
+      },
+      "description": "Full-screen dark (#010102) shell, 16dp outer radius — the root container for any dark-themed app screen.",
+      "purpose": "Provide a single coherent dark canvas for the entire app screen, framing children consistently.",
+      "use_when": [
+        "the app uses Dark theme as the host shell",
+        "the screen needs the corner-rounded container treatment"
+      ],
+      "dont_use_when": [
+        "the app is light themed — use container.app-shell-light"
+      ]
+    },
+    "container.app-shell-light": {
+      "id": "container.app-shell-light",
+      "category": "container",
+      "orchestration_type": "app-shell",
+      "_figma_node": "390:426",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 900,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 4
+      },
+      "tokens": {
+        "radius": "32",
+        "background": "#F1F1F3"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 0
+      },
+      "description": "Full-screen light (#F1F1F3) shell with a 32dp outer radius — the root container for any light-themed app screen.",
+      "purpose": "Provide a single coherent light canvas for the entire app screen, framing children consistently.",
+      "use_when": [
+        "the app uses Light theme as the host shell"
+      ],
+      "dont_use_when": [
+        "the app is dark themed — use container.app-shell-dark"
+      ]
+    },
+    "container.content-area": {
+      "id": "container.content-area",
+      "category": "container",
+      "orchestration_type": "content-area",
+      "_figma_node": "247:548",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 400,
+        "padding": {
+          "top": 10,
+          "right": 10,
+          "bottom": 10,
+          "left": 10
+        },
+        "gap": 20
+      },
+      "tokens": {
+        "radius": "38",
+        "background": "inherit-from-app-shell"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 0
+      },
+      "description": "Inner 38dp-radius scrollable area inside the app shell, 10dp padding all around, inherits theme background.",
+      "purpose": "Hold the scrollable body of an app screen between header chrome and bottom safe area.",
+      "use_when": [
+        "every app screen — children stack vertically inside the shell"
+      ],
+      "dont_use_when": [
+        "rendering a glanceable widget — use widget-small or now-bar"
+      ]
+    },
+    "container.header": {
+      "id": "container.header",
+      "category": "container",
+      "orchestration_type": "app-header",
+      "_figma_node": "384:403",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 438,
+        "min_height": 240,
+        "padding": {
+          "top": 0,
+          "right": 19,
+          "bottom": 0,
+          "left": 19
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "0",
+        "background": "transparent",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 36,
+          "lineHeight": 40
+        },
+        "text_style_value": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 14,
+          "lineHeight": 18
+        }
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 1
+      },
+      "description": "Tall (~240dp) transparent header zone with a giant 36sp display title and 14sp supporting text — sits at the top of an app screen.",
+      "purpose": "Expandable app-bar header that gives a screen its identity and supports collapsing into a regular appbar on scroll.",
+      "use_when": [
+        "first-depth screens that benefit from a hero title (Settings, Inbox, Browse)",
+        "expandable app-bar pattern as documented in One UI"
+      ],
+      "dont_use_when": [
+        "second-depth screens — keep app-bar collapsed",
+        "landscape/full-screen views — expandable bar is not supported"
+      ]
+    },
+    "container.status-bar-app": {
+      "id": "container.status-bar-app",
+      "category": "chrome",
+      "orchestration_type": "app-status-bar",
+      "_figma_node": "247:460",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 44,
+        "padding": {
+          "top": 16,
+          "right": 24,
+          "bottom": 16,
+          "left": 24
+        },
+        "gap": 6
+      },
+      "tokens": {
+        "radius": "0",
+        "background": "transparent",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 15,
+          "lineHeight": 12
+        }
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 0
+      },
+      "description": "App-shell-aware top safe-area strip (~412x44dp), transparent — composes time/icons inside an app's framing.",
+      "purpose": "Reserve and align the top safe-area inside an app shell (Samsung style: time left, icons right).",
+      "use_when": [
+        "designing inside an app shell where the system status bar is rendered as a content child"
+      ],
+      "dont_use_when": [
+        "the global system bar is already provided by the platform — use status-bar"
+      ]
+    },
+    "container.nav-gestures-dark": {
+      "id": "container.nav-gestures-dark",
+      "category": "chrome",
+      "orchestration_type": "nav-bar-gestures",
+      "_figma_node": "247:476",
+      "allowed_contexts": [
+        "app",
+        "home"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 24,
+        "padding": {
+          "top": 10,
+          "right": 134,
+          "bottom": 10,
+          "left": 134
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "0",
+        "background": "transparent"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 6
+      },
+      "description": "Bottom safe-area strip (~412x24dp) housing the gesture-bar handle on dark themes — transparent background.",
+      "purpose": "Reserve the bottom gesture-bar safe area in dark-themed app shells without rendering nav buttons.",
+      "use_when": [
+        "the device runs in gesture nav mode and the host shell is dark"
+      ],
+      "dont_use_when": [
+        "device uses three-button nav — use container.nav-buttons-light"
+      ]
+    },
+    "container.nav-buttons-light": {
+      "id": "container.nav-buttons-light",
+      "category": "chrome",
+      "orchestration_type": "nav-bar-buttons",
+      "_figma_node": "53:779",
+      "allowed_contexts": [
+        "app",
+        "home"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 56,
+        "padding": {
+          "top": 19,
+          "right": 0,
+          "bottom": 19,
+          "left": 0
+        },
+        "gap": 90.5
+      },
+      "tokens": {
+        "radius": "0",
+        "background": "transparent"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 6
+      },
+      "description": "Bottom safe-area strip (~412x56dp) holding the three-button navigation (Recents / Home / Back) on light themes.",
+      "purpose": "Render the legacy three-button nav for users who disabled gestures, in light-themed shells.",
+      "use_when": [
+        "the device runs in three-button nav mode and the host shell is light"
+      ],
+      "dont_use_when": [
+        "device uses gesture nav — use container.nav-gestures-dark"
+      ]
+    },
+    "card.toggle-row": {
+      "id": "card.toggle-row",
+      "category": "container",
+      "orchestration_type": "card-toggle",
+      "_figma_node": "245:400",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default",
+        "on",
+        "off",
+        "disabled"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 78,
+        "padding": {
+          "top": 20,
+          "right": 20,
+          "bottom": 20,
+          "left": 20
+        },
+        "gap": 20
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "#17171A",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 18,
+          "lineHeight": 22
+        },
+        "text_style_value": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 14,
+          "lineHeight": 18
+        },
+        "separator_color": "#5F5F61"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "28dp-radius dark (#17171A) card row, ~78dp tall, with title + supporting text on the left and a switch on the right.",
+      "purpose": "Settings entry that combines a label, helper copy and a toggle in one tappable row — dark theme.",
+      "use_when": [
+        "settings rows that benefit from helper text alongside a toggle",
+        "dark-themed app shells"
+      ],
+      "dont_use_when": [
+        "light shell — use card.toggle-row-light",
+        "no helper text needed and the row is dense — use list-item + switch"
+      ]
+    },
+    "card.toggle-row-light": {
+      "id": "card.toggle-row-light",
+      "category": "container",
+      "orchestration_type": "card-toggle",
+      "_figma_node": "245:432",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default",
+        "on",
+        "off",
+        "disabled"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 78,
+        "padding": {
+          "top": 20,
+          "right": 20,
+          "bottom": 20,
+          "left": 20
+        },
+        "gap": 20
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "#FCFCFF",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 18,
+          "lineHeight": 22
+        },
+        "text_style_value": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 14,
+          "lineHeight": 18
+        },
+        "separator_color": "#EAEAEA"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "28dp-radius near-white (#FCFCFF) card row, ~78dp tall, with title + supporting text and a switch — light theme.",
+      "purpose": "Settings entry that combines a label, helper copy and a toggle in one tappable row — light theme.",
+      "use_when": [
+        "settings rows that benefit from helper text alongside a toggle",
+        "light-themed app shells"
+      ],
+      "dont_use_when": [
+        "dark shell — use card.toggle-row"
+      ]
+    },
+    "card.menu-item": {
+      "id": "card.menu-item",
+      "category": "container",
+      "orchestration_type": "card-menu",
+      "_figma_node": "247:562",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 391,
+        "min_height": 64,
+        "padding": {
+          "top": 20,
+          "right": 20,
+          "bottom": 20,
+          "left": 20
+        },
+        "gap": 20
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "inherit-from-theme-container",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 18,
+          "lineHeight": 22
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "28dp-radius card row (~391x64dp) inheriting theme background, single 18sp title — pure label, no helper text or trailing control.",
+      "purpose": "Single-line menu entry inside a settings or chooser group — title-only.",
+      "use_when": [
+        "list of single-purpose menu entries with no auxiliary content",
+        "stacked inside card.stacked-group"
+      ],
+      "dont_use_when": [
+        "the row needs helper text — use card.menu-item-body",
+        "the row needs trailing chevron navigation — use card.chevron-nav"
+      ]
+    },
+    "card.menu-item-body": {
+      "id": "card.menu-item-body",
+      "category": "container",
+      "orchestration_type": "card-menu-body",
+      "_figma_node": "247:568",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 391,
+        "min_height": 90,
+        "padding": {
+          "top": 20,
+          "right": 20,
+          "bottom": 20,
+          "left": 20
+        },
+        "gap": 10
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "inherit-from-theme-container",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 18,
+          "lineHeight": 22
+        },
+        "text_style_value": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 14,
+          "lineHeight": 18
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "28dp-radius card row (~391x90dp) with an 18sp title and a 14sp body line beneath it — inherits theme.",
+      "purpose": "Menu entry that needs a description line under the title for clarity (privacy explanations, multi-step settings).",
+      "use_when": [
+        "a menu entry's purpose isn't obvious from the title alone",
+        "the row should still feel like a list entry"
+      ],
+      "dont_use_when": [
+        "the description is too long — promote to card.subheading",
+        "no description is needed — use card.menu-item"
+      ]
+    },
+    "card.subheading": {
+      "id": "card.subheading",
+      "category": "container",
+      "orchestration_type": "card-subheading",
+      "_figma_node": "247:575",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 391,
+        "min_height": 110,
+        "padding": {
+          "top": 20,
+          "right": 20,
+          "bottom": 20,
+          "left": 20
+        },
+        "gap": 24
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "inherit-from-theme-container",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 18,
+          "lineHeight": 22
+        },
+        "text_style_value": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 14,
+          "lineHeight": 18
+        }
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 4
+      },
+      "description": "Tall (~391x110dp) 28dp-radius card with a heading title and multi-line description body — non-interactive.",
+      "purpose": "Section subheader card explaining a group of settings or controls that follow it.",
+      "use_when": [
+        "introducing a settings group with multi-line guidance",
+        "providing context above a stacked group of menu rows"
+      ],
+      "dont_use_when": [
+        "the row is interactive — use card.menu-item-body",
+        "the section needs only a one-line label — use a primitive section label"
+      ]
+    },
+    "card.chevron-nav": {
+      "id": "card.chevron-nav",
+      "category": "container",
+      "orchestration_type": "card-navigation",
+      "_figma_node": "547:9294",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default",
+        "pressed"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 64,
+        "padding": {
+          "top": 20,
+          "right": 20,
+          "bottom": 20,
+          "left": 20
+        },
+        "gap": 20
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "inherit-from-theme-container",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 18,
+          "lineHeight": 22
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "28dp-radius card row (~412x64dp), 18sp title with a trailing chevron — entire surface is the tap target.",
+      "purpose": "Drill-down navigation entry that opens a deeper screen (sub-settings, account, profile).",
+      "use_when": [
+        "a row leads to another screen rather than toggling state",
+        "users need to recognize 'tap here to dive in'"
+      ],
+      "dont_use_when": [
+        "the row toggles a setting — use card.toggle-row",
+        "the row selects a value — use card.radio"
+      ]
+    },
+    "card.radio": {
+      "id": "card.radio",
+      "category": "selection",
+      "orchestration_type": "card-radio",
+      "_figma_node": "547:9295",
+      "allowed_contexts": [
+        "app",
+        "system-dialog"
+      ],
+      "states": [
+        "default",
+        "selected"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 64,
+        "padding": {
+          "top": 20,
+          "right": 20,
+          "bottom": 20,
+          "left": 20
+        },
+        "gap": 20
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "inherit-from-theme-container",
+        "text_style_title": {
+          "family": "ABeeZee",
+          "weight": 400,
+          "size": 18,
+          "lineHeight": 22
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 3
+      },
+      "description": "Full-width 28dp-radius card row, 64dp tall, with a leading title and a trailing radio dot — entire row is the tap target.",
+      "purpose": "Single-select option presented as a substantial card — used when the choice deserves more than a row in a list.",
+      "use_when": [
+        "presenting a small set of mutually-exclusive options inside a settings or dialog flow",
+        "each option benefits from generous touch area"
+      ],
+      "dont_use_when": [
+        "the choice list is dense — use radio inside list-item",
+        "selections are not exclusive — use checkbox / chip"
+      ]
+    },
+    "card.stacked-group": {
+      "id": "card.stacked-group",
+      "category": "container",
+      "orchestration_type": "card-stacked-group",
+      "_figma_node": "547:7197",
+      "allowed_contexts": [
+        "app"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 412,
+        "min_height": 200,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "28",
+        "background": "inherit-from-theme-container",
+        "separator_color": "#EAEAEA",
+        "inner_radius_policy": "first-last-only"
+      },
+      "behavior": {
+        "interactive": false,
+        "collapse_priority": 4
+      },
+      "description": "Single 28dp-radius outer shell that visually merges multiple card rows — only first/last children keep rounded corners, dividers between them.",
+      "purpose": "Group consecutive card rows (toggle, menu, chevron) into one cohesive section without per-row gaps.",
+      "use_when": [
+        "settings screens grouping related rows under one header",
+        "you want the look-and-feel of a single bordered group"
+      ],
+      "dont_use_when": [
+        "rows are unrelated and should feel separate"
+      ]
+    },
+    "switch.modern": {
+      "id": "switch.modern",
+      "category": "selection",
+      "orchestration_type": "switch",
+      "_figma_node": "242:531",
+      "allowed_contexts": [
+        "app",
+        "system-dialog",
+        "quick-settings"
+      ],
+      "states": [
+        "on",
+        "off",
+        "disabled"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 40,
+        "min_height": 22,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "gap": 0
+      },
+      "tokens": {
+        "radius": "22.5",
+        "background": "#0381FE",
+        "background_off": "#9A999E"
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 2
+      },
+      "description": "Compact 40x22dp pill switch using current Samsung blue (#0381FE) on, neutral grey off — modern One UI styling.",
+      "purpose": "Theme-aligned drop-in replacement for the legacy switch — same intent, refreshed visuals for newer surfaces.",
+      "use_when": [
+        "settings rows on modern One UI surfaces",
+        "matching the latest Samsung visual language"
+      ],
+      "dont_use_when": [
+        "preserving legacy styling intentionally — use switch"
+      ]
+    },
+    "system.dialog-surface": {
+      "id": "system.dialog-surface",
+      "category": "overlay",
+      "orchestration_type": "modal-dialog-surface",
+      "_figma_node": "3010:2144",
+      "allowed_contexts": [
+        "system-dialog"
+      ],
+      "states": [
+        "default"
+      ],
+      "slots": {},
+      "layout_spec": {
+        "min_width": 415,
+        "min_height": 500,
+        "padding": {
+          "top": 20,
+          "right": 18,
+          "bottom": 20,
+          "left": 18
+        },
+        "gap": 20
+      },
+      "tokens": {
+        "radius": "32",
+        "background": "rgba(23,23,26,0.6)",
+        "text_style_title": {
+          "family": "One UI Sans APP VF",
+          "weight": 600,
+          "size": 18,
+          "lineHeight": 24
+        },
+        "text_style_value": {
+          "family": "One UI Sans APP VF",
+          "weight": 400,
+          "size": 14,
+          "lineHeight": 18
+        }
+      },
+      "behavior": {
+        "interactive": true,
+        "collapse_priority": 0
+      },
+      "description": "32dp-radius translucent dark glass surface (~415x500dp) for system-level dialogs — title 18sp, body 14sp.",
+      "purpose": "Container for full system dialogs (permissions, share targets, account chooser) layered above app content.",
+      "use_when": [
+        "presenting a system-level dialog over apps",
+        "share-targets, permission requests, account chooser"
+      ],
+      "dont_use_when": [
+        "in-app confirmations — use dialog"
+      ]
+    }
+  },
+  "vocabulary": {
+    "note": "STEP 3 (component_selector) must select component_type ONLY from semantic_allowed_types. The broader allowed_types list includes UI primitives used by the composer/renderer but is NOT exposed to the planner.",
+    "semantic_allowed_types": [
+      "eta_card",
+      "message_summary_card",
+      "media_control_bar",
+      "action_chip_row",
+      "calendar_summary_card",
+      "weather_glance_card",
+      "navigation_turn_card",
+      "reminder_card",
+      "quick_toggle_row",
+      "input_summary_card"
+    ],
+    "allowed_types": [
+      "btn-contained",
+      "btn-outlined",
+      "btn-flat",
+      "fab",
+      "switch",
+      "checkbox",
+      "radio",
+      "chip",
+      "input",
+      "search",
+      "status-bar",
+      "appbar",
+      "bottomnav",
+      "pill-tab",
+      "tab-bar",
+      "card",
+      "list-item",
+      "dialog",
+      "snackbar",
+      "divider",
+      "badge",
+      "now-bar",
+      "qs-toggle",
+      "qs-grid",
+      "media-card",
+      "notification-card",
+      "widget-small",
+      "keyboard",
+      "eta_card",
+      "message_summary_card",
+      "media_control_bar",
+      "action_chip_row",
+      "calendar_summary_card",
+      "weather_glance_card",
+      "navigation_turn_card",
+      "reminder_card",
+      "quick_toggle_row",
+      "input_summary_card",
+      "status-bar.default",
+      "status-bar.live-activity-chip",
+      "quick-settings.icons-row",
+      "single-toggle.half-toggle",
+      "single-toggle.single-toggle",
+      "single-toggle.half-shortcut",
+      "quick-settings.slider-vertical",
+      "quick-settings.smartthings-card",
+      "now-bar.media-player",
+      "now-bar.dual-line",
+      "now-bar.single-line",
+      "now-bar.charging",
+      "lock-screen.clock",
+      "lock-screen.weather-date",
+      "lock-screen.widget-battery",
+      "lock-screen.widget-activity",
+      "lock-screen.shortcut-circle",
+      "notification.ai-regular",
+      "notification.live",
+      "notification.stack",
+      "media-player.tile",
+      "notifications.section-label",
+      "dialog.website-share-header",
+      "dialog.browser-top-bar",
+      "dialog.icon-grid-box",
+      "dialog.page-indicator",
+      "dialog.nav-gesture-bar",
+      "system.dim-overlay",
+      "search.dark",
+      "search.light",
+      "search.galaxy-ai",
+      "search.galaxy-ai-light",
+      "button.dark",
+      "button.light",
+      "button.accent",
+      "button.galaxy-ai",
+      "button.header-small",
+      "container.app-shell-dark",
+      "container.app-shell-light",
+      "container.content-area",
+      "container.header",
+      "container.status-bar-app",
+      "container.nav-gestures-dark",
+      "container.nav-buttons-light",
+      "card.toggle-row",
+      "card.toggle-row-light",
+      "card.menu-item",
+      "card.menu-item-body",
+      "card.subheading",
+      "card.chevron-nav",
+      "card.radio",
+      "card.stacked-group",
+      "switch.modern",
+      "system.dialog-surface"
+    ]
+  }
+}

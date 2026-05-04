@@ -1,0 +1,8 @@
+{
+  "name": "samsung-oneui-design-system",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  }
+}

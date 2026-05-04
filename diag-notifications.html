@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notifications — Fidelity Diagnostic</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#0b0b0e; color:#eaeaea;
+    font-family:'Inter',-apple-system,system-ui,sans-serif; font-size:13px;
+    padding:24px; min-height:100vh;
+  }
+  h1 { font-size:16px; font-weight:700; margin-bottom:4px; }
+  .sub { color:#9a9aa2; font-size:12px; margin-bottom:20px; }
+  .panels { display:grid; grid-template-columns:1fr 1fr; gap:32px; align-items:start; }
+  .panel { display:flex; flex-direction:column; gap:10px; }
+  .panel h2 { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; color:#7a7a82; }
+  .meta { color:#666; font-size:10px; font-family:ui-monospace,monospace; }
+  .stage {
+    position:relative; width:451px; height:978px;
+    border-radius:40px; overflow:hidden; border:1px solid #222;
+    background:#171717; box-shadow:0 24px 60px rgba(0,0,0,0.5);
+  }
+  .stage .rules-item { position:absolute; }
+</style>
+</head>
+<body>
+  <h1>Notifications — Fidelity Diagnostic</h1>
+  <p class="sub">Figma node <code>989:22754</code> · reference 451×978 · 1:1 pixel scale</p>
+
+  <div class="panels">
+    <div class="panel">
+      <h2>Rules-rendered output — notificationShadeRules + atomics</h2>
+      <div class="stage" id="stageRules"></div>
+      <div class="meta" id="rulesMeta">loading…</div>
+    </div>
+    <div class="panel">
+      <h2>Figma reference (wallpaper only)</h2>
+      <div class="stage" style="background:#0c0c10;">
+        <img src="assets/figma/notifications/background.png" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">
+      </div>
+      <div class="meta">Open Figma node 989:22754 side-by-side for full comparison</div>
+    </div>
+  </div>
+
+<script src="figma-refs/icon_library.js"></script>
+<script src="generator.js"></script>
+<script src="app/atomics.js"></script>
+<script src="app/rules-renderer.js"></script>
+<script>
+  window.addEventListener('load', function () {
+    var stage = document.getElementById('stageRules');
+    var plan = window.Generator.notificationShadeRules({ contextTags: ['media-playing'] });
+    plan.components.forEach(function (comp) {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'rules-item';
+      var p = comp.position;
+      wrapper.style.left = p.x + 'px';
+      wrapper.style.top = p.y + 'px';
+      wrapper.style.width = p.w + 'px';
+      wrapper.style.height = p.h + 'px';
+      wrapper.innerHTML = window.GalaxyAtomics.NotifScreen();
+      stage.appendChild(wrapper);
+    });
+    window.__lastRulesPlan = plan;
+    document.getElementById('rulesMeta').textContent =
+      'components: ' + plan.components.length + ' · role: notifScreen (full surface)';
+  });
+</script>
+</body>
+</html>

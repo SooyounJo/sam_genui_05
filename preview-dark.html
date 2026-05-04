@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design System Preview: Samsung (Dark)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --samsung-blue: #1428A0;
+    --black: #000000;
+    --white: #ffffff;
+    --near-white: #f7f7f7;
+    --near-black: #1d1d1f;
+    --dark-gray: #313131;
+    --mid-gray: #575757;
+    --light-text: #6e6e73;
+    --muted: #dadada;
+    --action-blue: #3388e9;
+    --bright-blue: #3581ff;
+    --cyan-blue: #0e9ff9;
+    --galaxy-yellow: #fff01f;
+    --accent-glow: #9bd6ff;
+    --border-light: #dddddd;
+    --border-subtle: #eaeaea;
+    --dark-surface: #1a1a1a;
+    --dark-surface-2: #222222;
+    --dark-surface-3: #2a2a2a;
+    --overlay: rgba(0,0,0,0.7);
+    --shadow-card: 0px 4px 17px 0px rgba(0,0,0,0.4);
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    --gradient-ai: linear-gradient(135deg, #64e9e3, #9ffac7);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--black);
+    color: rgba(255,255,255,0.85);
+    font-family: var(--font-body);
+    font-size: 16px; font-weight: 400; line-height: 1.50;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 56px;
+    background: var(--dark-surface);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .nav-brand { font-size: 18px; font-weight: 700; color: #ffffff; text-decoration: none; letter-spacing: 0.5px; }
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links a { font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.6); text-decoration: none; transition: color 0.15s; }
+  .nav-links a:hover { color: #ffffff; }
+  .nav-cta {
+    display: inline-block; background: var(--white); color: var(--black);
+    padding: 6px 20px; border-radius: 36px; font-size: 14px; font-weight: 700;
+    text-decoration: none; transition: opacity 0.15s;
+  }
+  .nav-cta:hover { opacity: 0.88; }
+
+  .hero { padding: 96px 32px 80px; text-align: center; background: var(--dark-surface); }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: 56px; font-weight: 700; line-height: 1.07;
+    color: #ffffff; margin-bottom: 16px;
+  }
+  .hero p { font-size: 18px; font-weight: 400; line-height: 1.55; color: rgba(255,255,255,0.6); max-width: 600px; margin: 0 auto 32px; }
+  .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-filled {
+    display: inline-block; background: var(--white); color: var(--black);
+    padding: 6px 24px; height: 48px; line-height: 36px; border-radius: 36px; border: none;
+    font-family: var(--font-body); font-size: 14px; font-weight: 700;
+    text-decoration: none; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-filled:hover { opacity: 0.85; }
+  .btn-outlined {
+    display: inline-block; background: transparent; color: rgba(255,255,255,0.7);
+    padding: 6px 24px; height: 48px; line-height: 36px; border-radius: 36px;
+    border: 1px solid rgba(255,255,255,0.3);
+    font-family: var(--font-body); font-size: 14px; font-weight: 700;
+    text-decoration: none; cursor: pointer; transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-outlined:hover { border-color: #fff; color: #fff; }
+
+  .section { padding: 64px 32px; max-width: 988px; margin: 0 auto; }
+  .section-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+  .section-title { font-family: var(--font-display); font-size: 48px; font-weight: 700; line-height: 1.16; margin-bottom: 32px; color: #ffffff; }
+  .section-divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 0; }
+
+  .section-elevated { background: var(--dark-surface); padding: 64px 32px; }
+  .section-elevated .section-inner { max-width: 988px; margin: 0 auto; }
+
+  .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .color-swatch { border-radius: 20px; overflow: hidden; background: var(--dark-surface-2); box-shadow: 0 0 0 1px rgba(255,255,255,0.06); }
+  .color-swatch-block { height: 72px; width: 100%; }
+  .color-swatch-info { padding: 10px 12px; }
+  .color-swatch-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; color: #ffffff; }
+  .color-swatch-hex { font-size: 12px; color: rgba(255,255,255,0.5); font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace; }
+  .color-swatch-role { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+  .color-group-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.7); margin: 24px 0 10px; }
+
+  .type-sample { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .type-sample:last-child { border-bottom: none; }
+  .type-meta { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace; font-size: 12px; font-weight: 400; color: rgba(255,255,255,0.4); margin-top: 8px; }
+
+  .button-row { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+  .button-item { text-align: center; }
+  .button-label { font-size: 12px; font-weight: 400; color: rgba(255,255,255,0.4); margin-top: 8px; }
+  .btn-text-link {
+    display: inline-block; background: transparent; color: #ffffff;
+    font-family: var(--font-body); font-size: 14px; font-weight: 400;
+    text-decoration: underline; cursor: pointer; border: none; padding: 6px 12px;
+  }
+  .btn-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); color: #ffffff; border: none;
+    font-size: 14px; cursor: pointer;
+  }
+  .btn-samsung-blue {
+    display: inline-block; background: var(--samsung-blue); color: #ffffff;
+    padding: 6px 24px; height: 48px; line-height: 36px; border-radius: 36px; border: none;
+    font-family: var(--font-body); font-size: 14px; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+  }
+  .gradient-badge {
+    display: inline-block; padding: 8px 20px; border-radius: 36px;
+    background: linear-gradient(135deg, #64e9e3, #9ffac7); color: var(--black);
+    font-size: 14px; font-weight: 700;
+  }
+
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .card { background: var(--dark-surface-2); border-radius: 20px; padding: 32px 24px; border: 1px solid rgba(255,255,255,0.06); transition: box-shadow 0.3s; }
+  .card:hover { box-shadow: var(--shadow-card); }
+  .card h3 { font-family: var(--font-display); font-size: 24px; font-weight: 700; line-height: 1.33; margin-bottom: 8px; color: #ffffff; }
+  .card p { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.50; }
+  .card-link { font-size: 14px; color: var(--bright-blue); text-decoration: underline; margin-top: 12px; display: inline-block; }
+  .card-link:hover { opacity: 0.7; }
+
+  .card-light { background: var(--dark-surface-3); border: 1px solid rgba(255,255,255,0.1); }
+
+  .form-group { margin-bottom: 20px; max-width: 400px; }
+  .form-label { display: block; font-size: 14px; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
+  .form-input {
+    width: 100%; background: var(--dark-surface-2); color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.15); padding: 12px 16px; border-radius: 20px;
+    font-family: var(--font-body); font-size: 16px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--action-blue); box-shadow: 0 0 0 3px rgba(51,136,233,0.3); }
+  .form-input--focus { border-color: var(--action-blue); box-shadow: 0 0 0 3px rgba(51,136,233,0.3); }
+  .form-input--error { border-color: #ff453a; box-shadow: 0 0 0 3px rgba(255,69,58,0.3); }
+  .form-input::placeholder { color: rgba(255,255,255,0.3); }
+  .form-state-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+  .spacing-row { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+  .spacing-item { text-align: center; }
+  .spacing-block { background: var(--samsung-blue); border-radius: 4px; margin-bottom: 6px; height: 28px; }
+  .spacing-value { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.4); }
+
+  .radius-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+  .radius-item { text-align: center; }
+  .radius-box { width: 64px; height: 64px; background: var(--white); margin-bottom: 6px; }
+  .radius-label { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.4); }
+  .radius-context { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+  .elevation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+  .elevation-card { background: var(--dark-surface-2); border-radius: 20px; padding: 24px; text-align: center; border: 1px solid rgba(255,255,255,0.06); }
+  .elevation-label { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: #ffffff; }
+  .elevation-desc { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace; font-size: 11px; color: rgba(255,255,255,0.4); }
+
+  .footer { padding: 32px; text-align: center; background: var(--dark-surface); font-size: 12px; color: rgba(255,255,255,0.4); }
+  .footer a { color: var(--bright-blue); text-decoration: underline; }
+
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 36px; }
+    .section-title { font-size: 28px; }
+    .nav-links { display: none; }
+    .section { padding: 48px 24px; }
+    .section-elevated { padding: 48px 24px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="#">SAMSUNG</a>
+  <ul class="nav-links">
+    <li><a href="#colors">Colors</a></li>
+    <li><a href="#typography">Typography</a></li>
+    <li><a href="#buttons">Buttons</a></li>
+    <li><a href="#cards">Cards</a></li>
+    <li><a href="#forms">Forms</a></li>
+    <li><a href="#spacing">Spacing</a></li>
+  </ul>
+  <a class="nav-cta" href="#">Buy now</a>
+</nav>
+
+<section class="hero">
+  <h1>Design System<br>Inspired by Samsung</h1>
+  <p>Dark mode catalog generated from DESIGN.md. Colors, typography, components, and spacing from Samsung's One UI web experience.</p>
+  <div class="hero-buttons">
+    <a class="btn-filled" href="#">Buy now</a>
+    <a class="btn-outlined" href="#">Learn more</a>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="colors">
+  <div class="section-label">01 / Colors</div>
+  <h2 class="section-title">Color Palette</h2>
+
+  <div class="color-group-label">Primary Brand</div>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#1428A0"></div><div class="color-swatch-info"><div class="color-swatch-name">Samsung Blue</div><div class="color-swatch-hex">#1428A0</div><div class="color-swatch-role">Brand accent, wordmark</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#000000; border-bottom:1px solid rgba(255,255,255,0.1)"></div><div class="color-swatch-info"><div class="color-swatch-name">Pure Black</div><div class="color-swatch-hex">#000000</div><div class="color-swatch-role">Hero backgrounds, nav</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#ffffff"></div><div class="color-swatch-info"><div class="color-swatch-name">Pure White</div><div class="color-swatch-hex">#FFFFFF</div><div class="color-swatch-role">Content surfaces</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#f7f7f7"></div><div class="color-swatch-info"><div class="color-swatch-name">Near White</div><div class="color-swatch-hex">#F7F7F7</div><div class="color-swatch-role">Alternate surfaces</div></div></div>
+  </div>
+
+  <div class="color-group-label">Interactive</div>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#3388e9"></div><div class="color-swatch-info"><div class="color-swatch-name">Action Blue</div><div class="color-swatch-hex">#3388E9</div><div class="color-swatch-role">Active elements, links</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#3581ff"></div><div class="color-swatch-info"><div class="color-swatch-name">Bright Blue</div><div class="color-swatch-hex">#3581FF</div><div class="color-swatch-role">Links on dark bg</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#0e9ff9"></div><div class="color-swatch-info"><div class="color-swatch-name">Cyan Blue</div><div class="color-swatch-hex">#0E9FF9</div><div class="color-swatch-role">Feature highlights</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#9bd6ff"></div><div class="color-swatch-info"><div class="color-swatch-name">Accent Glow</div><div class="color-swatch-hex">#9BD6FF</div><div class="color-swatch-role">Promo banners, hover</div></div></div>
+  </div>
+
+  <div class="color-group-label">Special Accents</div>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#fff01f"></div><div class="color-swatch-info"><div class="color-swatch-name">Galaxy Yellow</div><div class="color-swatch-hex">#FFF01F</div><div class="color-swatch-role">Galaxy AI accent</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:linear-gradient(135deg, #64e9e3, #9ffac7)"></div><div class="color-swatch-info"><div class="color-swatch-name">AI Gradient</div><div class="color-swatch-hex">#64E9E3 - #9FFAC7</div><div class="color-swatch-role">Galaxy AI features</div></div></div>
+  </div>
+
+  <div class="color-group-label">Dark Surfaces</div>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#1a1a1a"></div><div class="color-swatch-info"><div class="color-swatch-name">Dark Surface 1</div><div class="color-swatch-hex">#1A1A1A</div><div class="color-swatch-role">Nav, footer, panels</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#222222"></div><div class="color-swatch-info"><div class="color-swatch-name">Dark Surface 2</div><div class="color-swatch-hex">#222222</div><div class="color-swatch-role">Cards, swatches</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#2a2a2a"></div><div class="color-swatch-info"><div class="color-swatch-name">Dark Surface 3</div><div class="color-swatch-hex">#2A2A2A</div><div class="color-swatch-role">Elevated cards</div></div></div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="typography">
+  <div class="section-label">02 / Typography</div>
+  <h2 class="section-title">Typography Scale</h2>
+
+  <div class="type-sample"><div style="font-family:var(--font-display); font-size:64px; font-weight:700; line-height:1.125; color:#fff;">Display Hero</div><div class="type-meta">Display Hero -- 64px / 700 / 1.125 / SamsungSharpSans</div></div>
+  <div class="type-sample"><div style="font-family:var(--font-display); font-size:56px; font-weight:700; line-height:1.07; color:#fff;">Section Heading</div><div class="type-meta">Section Heading -- 56px / 700 / 1.07 / SamsungSharpSans</div></div>
+  <div class="type-sample"><div style="font-family:var(--font-display); font-size:48px; font-weight:700; line-height:1.16; color:#fff;">Sub-heading</div><div class="type-meta">Sub-heading -- 48px / 700 / 1.16 / SamsungSharpSans</div></div>
+  <div class="type-sample"><div style="font-family:var(--font-display); font-size:32px; font-weight:700; line-height:1.25; color:#fff;">Feature Title</div><div class="type-meta">Feature Title -- 32px / 700 / 1.25 / SamsungSharpSans</div></div>
+  <div class="type-sample"><div style="font-family:var(--font-display); font-size:24px; font-weight:700; line-height:1.33; color:#fff;">Card Title</div><div class="type-meta">Card Title -- 24px / 700 / 1.33 / SamsungSharpSans</div></div>
+  <div class="type-sample"><div style="font-family:var(--font-body); font-size:18px; font-weight:400; line-height:1.55; color:rgba(255,255,255,0.85);">Body Large -- Galaxy AI transforms how you communicate, create, and connect. Experience the next level of mobile intelligence.</div><div class="type-meta">Body Large -- 18px / 400 / 1.55 / SamsungOne</div></div>
+  <div class="type-sample"><div style="font-family:var(--font-body); font-size:16px; font-weight:400; line-height:1.50; color:rgba(255,255,255,0.85);">Body -- The all-new design brings incredible capability. Powerful features let you do more than ever with your Galaxy device.</div><div class="type-meta">Body -- 16px / 400 / 1.50 / SamsungOne</div></div>
+  <div class="type-sample"><div style="font-family:var(--font-body); font-size:14px; font-weight:700; line-height:1.43; color:#fff;">Button Text -- Buy now</div><div class="type-meta">Button Text -- 14px / 700 / 1.43 / SamsungOne</div></div>
+  <div class="type-sample"><div style="font-family:var(--font-body); font-size:12px; font-weight:400; line-height:1.33; color:rgba(255,255,255,0.5);">Disclaimer -- Terms and conditions apply. See samsung.com for details.</div><div class="type-meta">Disclaimer -- 12px / 400 / 1.33 / SamsungOne</div></div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="buttons">
+  <div class="section-label">03 / Buttons</div>
+  <h2 class="section-title">Button Variants</h2>
+  <div class="button-row">
+    <div class="button-item"><a class="btn-filled" href="#">Buy now</a><div class="button-label">Primary Filled</div></div>
+    <div class="button-item"><a class="btn-outlined" href="#">Learn more</a><div class="button-label">Secondary Outlined</div></div>
+    <div class="button-item"><a class="btn-samsung-blue" href="#">Samsung Blue</a><div class="button-label">Brand Accent</div></div>
+    <div class="button-item"><a class="btn-text-link" href="#">Learn more</a><div class="button-label">Text Link</div></div>
+    <div class="button-item"><button class="btn-icon">&#9654;</button><div class="button-label">Icon (Circular)</div></div>
+    <div class="button-item"><span class="gradient-badge">Galaxy AI</span><div class="button-label">AI Gradient Badge</div></div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section-elevated">
+<div class="section-inner" id="cards">
+  <div class="section-label">04 / Cards</div>
+  <h2 class="section-title">Card Components</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3>Galaxy S25 Ultra</h3>
+      <p>The ultimate Galaxy experience. Powered by Galaxy AI with a stunning titanium design and the most advanced camera system.</p>
+      <a class="card-link" href="#">Learn more</a>
+    </div>
+    <div class="card" style="box-shadow: var(--shadow-card);">
+      <h3>Galaxy Z Fold</h3>
+      <p>Unfold your world. The most powerful foldable smartphone with a massive inner display and Galaxy AI multitasking.</p>
+      <a class="card-link" href="#">Learn more</a>
+    </div>
+    <div class="card card-light">
+      <h3>Galaxy Book</h3>
+      <p>Work smarter everywhere. Ultra-thin design with Galaxy ecosystem connectivity and all-day battery life.</p>
+      <a class="card-link" href="#">Learn more</a>
+    </div>
+  </div>
+</div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="forms">
+  <div class="section-label">05 / Forms</div>
+  <h2 class="section-title">Form Elements</h2>
+  <div class="form-group"><label class="form-label">Samsung Account</label><input class="form-input" type="text" placeholder="email@example.com"><div class="form-state-label">Default</div></div>
+  <div class="form-group"><label class="form-label">Password</label><input class="form-input form-input--focus" type="password" value="mypassword123"><div class="form-state-label">Focus (blue ring)</div></div>
+  <div class="form-group"><label class="form-label">Email</label><input class="form-input form-input--error" type="text" value="invalid@"><div class="form-state-label">Error (red ring)</div></div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="spacing">
+  <div class="section-label">06 / Spacing</div>
+  <h2 class="section-title">Spacing Scale</h2>
+  <div class="spacing-row">
+    <div class="spacing-item"><div class="spacing-block" style="width:6px"></div><div class="spacing-value">6</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:8px"></div><div class="spacing-value">8</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:12px"></div><div class="spacing-value">12</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:16px"></div><div class="spacing-value">16</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:20px"></div><div class="spacing-value">20</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:24px"></div><div class="spacing-value">24</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:28px"></div><div class="spacing-value">28</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:32px"></div><div class="spacing-value">32</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:48px"></div><div class="spacing-value">48</div></div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="radius">
+  <div class="section-label">07 / Radius</div>
+  <h2 class="section-title">Border Radius Scale</h2>
+  <div class="radius-row">
+    <div class="radius-item"><div class="radius-box" style="border-radius:4px"></div><div class="radius-label">4px</div><div class="radius-context">Micro</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:11px"></div><div class="radius-label">11px</div><div class="radius-context">Modals</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:20px"></div><div class="radius-label">20px</div><div class="radius-context">Cards</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:36px"></div><div class="radius-label">36px</div><div class="radius-context">Buttons (Pill)</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:50%"></div><div class="radius-label">50%</div><div class="radius-context">Icons</div></div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="elevation">
+  <div class="section-label">08 / Elevation</div>
+  <h2 class="section-title">Elevation & Depth</h2>
+  <div class="elevation-grid">
+    <div class="elevation-card"><div class="elevation-label">Level 0: Flat</div><div class="elevation-desc">No shadow, solid bg</div></div>
+    <div class="elevation-card" style="background:#000; border:1px solid rgba(255,255,255,0.15);"><div class="elevation-label">Navigation</div><div class="elevation-desc">Solid black, opaque</div></div>
+    <div class="elevation-card" style="box-shadow:0px 4px 17px 0px rgba(0,0,0,0.4);"><div class="elevation-label">Card Shadow</div><div class="elevation-desc">4px 17px 0.4</div></div>
+    <div class="elevation-card" style="box-shadow:0 0 0 3px rgba(51,136,233,0.3); border:1px solid #3388e9;"><div class="elevation-label">Focus Ring</div><div class="elevation-desc">Action Blue ring</div></div>
+    <div class="elevation-card" style="background:var(--dark-surface-3);"><div class="elevation-label">Elevated Surface</div><div class="elevation-desc">#2A2A2A</div></div>
+  </div>
+</section>
+
+<footer class="footer">
+  Generated from <a href="https://samsung.com/">samsung.com</a> DESIGN.md -- awesome-design-md (Dark)
+</footer>
+
+</body>
+</html>

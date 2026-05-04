@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Samsung One UI 8.5 - Motion & Animation Library (Ambient Design)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0381FE;
+    --primary-dark: #0072DE;
+    --primary-light: #3E91FF;
+    --primary-10: rgba(3,129,254,0.10);
+    --bg: #FCFCFC;
+    --surface: #FFFFFF;
+    --surface-dim: #F2F2F2;
+    --text-primary: #252525;
+    --text-secondary: #666666;
+    --text-disabled: #858585;
+    --divider: #E4E4E4;
+    --error: #D32F2F;
+    --success: #2E7D32;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-md: 18px;
+    --radius-lg: 22px;
+    --radius-xl: 26px;
+    --shadow-1: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-2: 0 4px 12px rgba(0,0,0,0.10);
+    --shadow-3: 0 8px 24px rgba(0,0,0,0.12);
+
+    /* ===== ONE UI EASING CURVES ===== */
+    --ease-standard: cubic-bezier(0.3, 0.0, 0.0, 1.0);
+    --ease-decelerate: cubic-bezier(0.0, 0.0, 0.0, 1.0);
+    --ease-accelerate: cubic-bezier(0.3, 0.0, 1.0, 1.0);
+    --ease-emphasized: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+    --ease-spring: cubic-bezier(0.2, 0.6, 0.4, 1.0);
+    --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1.0);
+    --ease-elastic: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+
+    /* ===== ONE UI DURATIONS ===== */
+    --dur-instant: 100ms;
+    --dur-fast: 200ms;
+    --dur-normal: 300ms;
+    --dur-slow: 400ms;
+    --dur-emphasis: 500ms;
+    --dur-complex: 600ms;
+    --dur-page: 800ms;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text-primary); font-family: var(--font); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+  /* ===== LAYOUT ===== */
+  .page-header {
+    position: sticky; top: 0; z-index: 200;
+    background: #000; color: #fff; padding: 0 24px; height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .page-header h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+  .page-header nav { display: flex; gap: 8px; }
+  .page-header nav a {
+    color: rgba(255,255,255,0.7); font-size: 12px; text-decoration: none;
+    padding: 6px 12px; border-radius: 999px; transition: all 0.2s;
+  }
+  .page-header nav a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+  .toc {
+    background: var(--surface); border-bottom: 1px solid var(--divider);
+    padding: 16px 24px; display: flex; flex-wrap: wrap; gap: 8px;
+    position: sticky; top: 56px; z-index: 100;
+  }
+  .toc a {
+    font-size: 13px; color: var(--text-secondary); text-decoration: none;
+    padding: 6px 14px; border-radius: var(--radius-lg); background: var(--surface-dim);
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .toc a:hover { background: var(--primary-10); color: var(--primary); }
+
+  .section { padding: 48px 24px; max-width: 1100px; margin: 0 auto; }
+  .section + .section { border-top: 1px solid var(--divider); }
+  .section-label { font-size: 12px; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .section-title { font-size: 34px; font-weight: 700; line-height: 1.2; margin-bottom: 8px; }
+  .section-desc { font-size: 15px; color: var(--text-secondary); margin-bottom: 32px; max-width: 640px; line-height: 1.6; }
+
+  .card { background: var(--surface); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-1); margin-bottom: 16px; }
+  .card-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .card-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+  .spec { display: inline-block; font-size: 11px; font-family: ui-monospace, monospace; color: var(--text-disabled); background: var(--surface-dim); padding: 2px 8px; border-radius: 4px; margin-top: 8px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } .toc { display: none; } .section-title { font-size: 24px; } .page-header nav { display: none; } }
+
+  /* ===== DEMO STAGE ===== */
+  .demo-stage {
+    background: var(--surface-dim); border-radius: var(--radius-xl);
+    padding: 40px; display: flex; align-items: center; justify-content: center;
+    min-height: 200px; position: relative; overflow: hidden;
+  }
+  .demo-stage-dark {
+    background: #171717;
+  }
+
+  /* ===== REPLAY BUTTON ===== */
+  .replay-btn {
+    position: absolute; top: 12px; right: 12px;
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    background: rgba(0,0,0,0.06); color: var(--text-secondary);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; transition: all 0.2s;
+  }
+  .replay-btn:hover { background: rgba(0,0,0,0.12); }
+  .demo-stage-dark .replay-btn { background: rgba(255,255,255,0.1); color: #aaa; }
+
+  /* ===== EASING CURVE VISUALIZER ===== */
+  .curve-canvas {
+    width: 120px; height: 120px; position: relative;
+    border-left: 2px solid var(--divider); border-bottom: 2px solid var(--divider);
+  }
+  .curve-path { fill: none; stroke: var(--primary); stroke-width: 2.5; }
+  .curve-grid { stroke: var(--divider); stroke-width: 0.5; stroke-dasharray: 2,4; }
+  .curve-label { font-size: 11px; font-family: ui-monospace, monospace; color: var(--text-disabled); margin-top: 8px; text-align: center; }
+  .curve-name { font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+
+  /* ===== ANIMATED DEMO OBJECTS ===== */
+  .demo-box {
+    width: 56px; height: 56px; border-radius: var(--radius-md);
+    background: var(--primary); display: flex; align-items: center;
+    justify-content: center; color: #fff; font-weight: 700; font-size: 14px;
+  }
+  .demo-circle {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--primary);
+  }
+  .demo-pill {
+    height: 48px; padding: 0 24px; border-radius: 999px;
+    background: var(--primary); color: #fff; display: flex;
+    align-items: center; font-weight: 600; font-size: 14px;
+  }
+  .demo-card {
+    width: 200px; background: var(--surface); border-radius: var(--radius-xl);
+    padding: 16px; box-shadow: var(--shadow-2); text-align: center;
+  }
+  .demo-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .demo-card p { font-size: 12px; color: var(--text-secondary); }
+
+  /* ===== ANIMATION CLASSES ===== */
+
+  /* Fade */
+  .anim-fade-in { animation: fadeIn var(--dur-normal) var(--ease-decelerate) forwards; }
+  .anim-fade-out { animation: fadeOut var(--dur-fast) var(--ease-accelerate) forwards; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+  /* Slide Up */
+  .anim-slide-up { animation: slideUp var(--dur-normal) var(--ease-emphasized) forwards; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Slide Down */
+  .anim-slide-down { animation: slideDown var(--dur-normal) var(--ease-emphasized) forwards; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-40px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Slide Left */
+  .anim-slide-left { animation: slideLeft var(--dur-normal) var(--ease-standard) forwards; }
+  @keyframes slideLeft { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* Slide Right */
+  .anim-slide-right { animation: slideRight var(--dur-normal) var(--ease-standard) forwards; }
+  @keyframes slideRight { from { opacity: 0; transform: translateX(-60px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* Scale Up */
+  .anim-scale-up { animation: scaleUp var(--dur-normal) var(--ease-spring) forwards; }
+  @keyframes scaleUp { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
+
+  /* Scale Down (exit) */
+  .anim-scale-down { animation: scaleDown var(--dur-fast) var(--ease-accelerate) forwards; }
+  @keyframes scaleDown { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.85); } }
+
+  /* Bounce */
+  .anim-bounce { animation: bounce var(--dur-emphasis) var(--ease-bounce) forwards; }
+  @keyframes bounce { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: scale(1); } }
+
+  /* Spring Pop */
+  .anim-spring { animation: springPop var(--dur-complex) var(--ease-elastic) forwards; }
+  @keyframes springPop { from { transform: scale(0); } to { transform: scale(1); } }
+
+  /* Bottom Sheet Rise */
+  .anim-sheet-rise { animation: sheetRise var(--dur-slow) var(--ease-emphasized) forwards; }
+  @keyframes sheetRise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  /* Dialog Appear */
+  .anim-dialog { animation: dialogAppear var(--dur-normal) var(--ease-spring) forwards; }
+  @keyframes dialogAppear { from { opacity: 0; transform: scale(0.85) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+  /* FAB Morph */
+  .anim-fab-expand { animation: fabExpand var(--dur-slow) var(--ease-emphasized) forwards; }
+  @keyframes fabExpand {
+    0% { width: 56px; border-radius: 50%; }
+    50% { width: 56px; border-radius: 28px; }
+    100% { width: 200px; border-radius: 28px; }
+  }
+
+  /* Ripple */
+  .ripple-host {
+    position: relative; overflow: hidden; cursor: pointer;
+    width: 200px; height: 56px; border-radius: var(--radius-md);
+    background: var(--primary); color: #fff; display: flex;
+    align-items: center; justify-content: center; font-weight: 600;
+  }
+  .ripple-ring {
+    position: absolute; border-radius: 50%; background: rgba(255,255,255,0.3);
+    transform: scale(0); pointer-events: none;
+  }
+  .ripple-ring.active { animation: rippleExpand 600ms var(--ease-decelerate) forwards; }
+  @keyframes rippleExpand { to { transform: scale(4); opacity: 0; } }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    background: linear-gradient(90deg, #E8E8E8 25%, #F5F5F5 50%, #E8E8E8 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite ease-in-out;
+    border-radius: 8px;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* Pulse */
+  .anim-pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  /* Spin */
+  .anim-spin { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Shake (error) */
+  .anim-shake { animation: shake 0.5s var(--ease-spring); }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+
+  /* Stagger */
+  .stagger-item { opacity: 0; transform: translateY(20px); }
+  .stagger-item.animate { animation: slideUp var(--dur-normal) var(--ease-emphasized) forwards; }
+  .stagger-item:nth-child(1).animate { animation-delay: 0ms; }
+  .stagger-item:nth-child(2).animate { animation-delay: 60ms; }
+  .stagger-item:nth-child(3).animate { animation-delay: 120ms; }
+  .stagger-item:nth-child(4).animate { animation-delay: 180ms; }
+  .stagger-item:nth-child(5).animate { animation-delay: 240ms; }
+
+  /* Switch toggle */
+  .switch-demo { position: relative; width: 52px; height: 32px; border-radius: 16px; background: #C7C7CC; cursor: pointer; transition: background 0.3s var(--ease-standard); }
+  .switch-demo.on { background: var(--primary-light); }
+  .switch-demo-thumb {
+    position: absolute; top: 2px; left: 2px; width: 28px; height: 28px;
+    border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: transform 0.3s var(--ease-standard);
+  }
+  .switch-demo.on .switch-demo-thumb { transform: translateX(20px); }
+
+  /* Checkbox tick */
+  .check-demo {
+    width: 24px; height: 24px; border-radius: 4px; border: 2px solid #888;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: all 0.2s var(--ease-standard);
+  }
+  .check-demo.checked { background: var(--primary-light); border-color: var(--primary-light); }
+  .check-demo svg { transform: scale(0); transition: transform 0.2s var(--ease-bounce); }
+  .check-demo.checked svg { transform: scale(1); }
+
+  /* Page transition */
+  .page-demo {
+    width: 200px; height: 300px; background: var(--surface); border-radius: 20px;
+    box-shadow: var(--shadow-2); overflow: hidden; position: relative;
+  }
+  .page-demo-header { height: 40px; background: var(--primary); display: flex; align-items: center; padding: 0 12px; }
+  .page-demo-header span { color: #fff; font-size: 13px; font-weight: 600; }
+  .page-demo-body { padding: 16px; }
+  .page-demo-line { height: 8px; background: var(--surface-dim); border-radius: 4px; margin-bottom: 8px; }
+
+  .page-slide-enter { animation: pageSlideIn var(--dur-page) var(--ease-emphasized) forwards; }
+  @keyframes pageSlideIn {
+    from { transform: translateX(100%) scale(0.92); opacity: 0; }
+    to { transform: translateX(0) scale(1); opacity: 1; }
+  }
+
+  /* Notification drop */
+  .notif-demo {
+    width: 280px; padding: 14px 16px; background: var(--surface);
+    border-radius: 16px; box-shadow: var(--shadow-3); display: flex; gap: 12px;
+    align-items: center;
+  }
+  .notif-icon { width: 38px; height: 38px; border-radius: 50%; background: var(--primary-10); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--primary); font-size: 18px; }
+  .notif-text h5 { font-size: 14px; font-weight: 600; }
+  .notif-text p { font-size: 12px; color: var(--text-secondary); }
+  .anim-notif { animation: notifDrop var(--dur-slow) var(--ease-spring) forwards; }
+  @keyframes notifDrop {
+    0% { opacity: 0; transform: translateY(-60px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Snackbar slide */
+  .anim-snackbar { animation: snackbarSlide var(--dur-normal) var(--ease-emphasized) forwards; }
+  @keyframes snackbarSlide {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .snack-demo {
+    padding: 14px 20px; background: #474747; color: #FAFAFA;
+    border-radius: var(--radius-md); font-size: 14px; display: inline-flex; gap: 16px; align-items: center;
+  }
+  .snack-demo button { background: none; border: none; color: #7CB8FF; font-weight: 600; font-size: 14px; cursor: pointer; font-family: var(--font); }
+
+  /* Shared axis (container transform) */
+  .container-demo {
+    width: 260px; height: 160px; border-radius: 20px; overflow: hidden;
+    position: relative; cursor: pointer;
+  }
+  .container-a, .container-b {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; transition: all var(--dur-slow) var(--ease-emphasized);
+  }
+  .container-a { background: linear-gradient(135deg, #64e9e3, #9ffac7); }
+  .container-b { background: linear-gradient(135deg, #BFCFE2, #C6E0CF); opacity: 0; transform: scale(1.1); }
+  .container-demo.flipped .container-a { opacity: 0; transform: scale(0.9); }
+  .container-demo.flipped .container-b { opacity: 1; transform: scale(1); }
+  .container-demo h4 { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+  .container-demo p { font-size: 12px; color: var(--text-secondary); }
+
+  /* Progress ring fill */
+  .progress-ring { width: 80px; height: 80px; }
+  .progress-ring-bg { fill: none; stroke: var(--divider); stroke-width: 6; }
+  .progress-ring-fill {
+    fill: none; stroke: var(--primary); stroke-width: 6;
+    stroke-linecap: round; stroke-dasharray: 220; stroke-dashoffset: 220;
+    transform-origin: center; transform: rotate(-90deg);
+  }
+  .progress-ring-fill.animate { animation: ringFill 1.5s var(--ease-decelerate) forwards; }
+  @keyframes ringFill { to { stroke-dashoffset: 55; } }
+
+  /* Tab indicator slide */
+  .tab-demo-bar { display: flex; position: relative; background: var(--surface); border-bottom: 1px solid var(--divider); }
+  .tab-demo-item {
+    padding: 14px 24px; font-size: 15px; font-weight: 500; color: var(--text-disabled);
+    cursor: pointer; transition: color 0.2s; border: none; background: none; font-family: var(--font);
+  }
+  .tab-demo-item.active { color: var(--text-primary); }
+  .tab-indicator {
+    position: absolute; bottom: 0; height: 2px; background: var(--text-primary);
+    border-radius: 2px; transition: left var(--dur-normal) var(--ease-standard), width var(--dur-normal) var(--ease-standard);
+  }
+
+  /* Expandable */
+  .expand-demo { width: 300px; background: var(--surface); border-radius: 20px; box-shadow: var(--shadow-1); overflow: hidden; }
+  .expand-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; }
+  .expand-header h4 { font-size: 16px; font-weight: 600; }
+  .expand-arrow { transition: transform 0.3s var(--ease-standard); }
+  .expand-demo.open .expand-arrow { transform: rotate(180deg); }
+  .expand-body { max-height: 0; overflow: hidden; transition: max-height 0.4s var(--ease-emphasized); }
+  .expand-demo.open .expand-body { max-height: 200px; }
+  .expand-content { padding: 0 20px 20px; font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+  /* Swipe to delete */
+  .swipe-demo {
+    width: 300px; height: 64px; background: var(--surface); border-radius: 16px;
+    box-shadow: var(--shadow-1); display: flex; align-items: center; padding: 0 20px;
+    position: relative; overflow: hidden; cursor: grab;
+  }
+  .swipe-bg {
+    position: absolute; right: 0; top: 0; bottom: 0; width: 80px;
+    background: var(--error); display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 20px;
+  }
+  .swipe-content {
+    position: relative; z-index: 1; background: var(--surface); width: 100%;
+    display: flex; align-items: center; gap: 12px; padding: 0 20px;
+    height: 100%; transition: transform 0.3s var(--ease-standard);
+  }
+  .swipe-demo.swiped .swipe-content { transform: translateX(-80px); }
+
+  /* ===== DURATION BAR ===== */
+  .dur-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .dur-bar-label { font-size: 13px; font-weight: 600; width: 80px; text-align: right; }
+  .dur-bar-track { flex: 1; height: 8px; background: var(--surface-dim); border-radius: 4px; position: relative; }
+  .dur-bar-fill { height: 100%; border-radius: 4px; background: var(--primary); }
+  .dur-bar-value { font-size: 11px; font-family: monospace; color: var(--text-disabled); width: 50px; }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <h1>SAMSUNG One UI Motion</h1>
+  <nav>
+    <a href="preview.html">Light Preview</a>
+    <a href="components.html">Components</a>
+    <a href="preview-dark.html">Dark Preview</a>
+  </nav>
+</header>
+
+<div class="toc">
+  <a href="#principles">Principles</a>
+  <a href="#easing">Easing Curves</a>
+  <a href="#duration">Duration Scale</a>
+  <a href="#entrances">Entrances</a>
+  <a href="#exits">Exits</a>
+  <a href="#emphasis">Emphasis</a>
+  <a href="#transitions">Page Transitions</a>
+  <a href="#components">Component Motions</a>
+  <a href="#micro">Micro-interactions</a>
+  <a href="#patterns">Patterns</a>
+  <a href="#tokens">Tokens Reference</a>
+</div>
+
+<!-- ==================== PRINCIPLES ==================== -->
+<section class="section" id="principles">
+  <div class="section-label">Foundation</div>
+  <h2 class="section-title">Motion Principles</h2>
+  <div class="section-desc">One UI motion is guided by four principles that mirror its design philosophy: Natural, Responsive, Contextual, and Delightful. Animations should feel organic and purposeful, never decorative.</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Natural</div>
+      <div class="card-desc">Motion follows real-world physics. Objects accelerate and decelerate like physical things. One UI avoids linear timing — everything has momentum.</div>
+      <div class="spec">Decelerate curves for enters, accelerate for exits</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Responsive</div>
+      <div class="card-desc">Immediate feedback on touch. Ripples start at the point of contact. State changes acknowledge user input within 100ms.</div>
+      <div class="spec">Touch feedback &lt; 100ms | Visual response &lt; 200ms</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Contextual</div>
+      <div class="card-desc">Direction matters. Elements enter from where they came from and exit toward where they're going. Spatial consistency builds mental models.</div>
+      <div class="spec">Shared axis transforms maintain spatial continuity</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Delightful</div>
+      <div class="card-desc">Subtle spring physics and overshoot in key moments create warmth. One UI 7 emphasizes organic, sentimental interactions.</div>
+      <div class="spec">Spring easing for FAB, dialogs, toggles | Bounce for celebration</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== EASING CURVES ==================== -->
+<section class="section" id="easing">
+  <div class="section-label">01 / Easing</div>
+  <h2 class="section-title">Easing Curves</h2>
+  <div class="section-desc">One UI uses Material 3-derived easing with Samsung-tuned values. The emphasized curve is the workhorse — it creates the signature One UI "soft land" feel.</div>
+
+  <div class="grid-3">
+    <!-- Standard -->
+    <div class="card" style="text-align:center;">
+      <div class="curve-name">Standard</div>
+      <svg viewBox="0 0 120 120" width="120" height="120" style="margin:0 auto;">
+        <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+        <line class="curve-grid" x1="60" y1="0" x2="60" y2="120"/>
+        <path class="curve-path" d="M 0,120 C 36,120 0,0 120,0"/>
+      </svg>
+      <div class="curve-label">cubic-bezier(0.3, 0, 0, 1)</div>
+      <div class="spec">Most transitions, general purpose</div>
+    </div>
+
+    <!-- Decelerate -->
+    <div class="card" style="text-align:center;">
+      <div class="curve-name">Decelerate</div>
+      <svg viewBox="0 0 120 120" width="120" height="120" style="margin:0 auto;">
+        <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+        <line class="curve-grid" x1="60" y1="0" x2="60" y2="120"/>
+        <path class="curve-path" d="M 0,120 C 0,120 0,0 120,0"/>
+      </svg>
+      <div class="curve-label">cubic-bezier(0, 0, 0, 1)</div>
+      <div class="spec">Entering elements, fade-in</div>
+    </div>
+
+    <!-- Accelerate -->
+    <div class="card" style="text-align:center;">
+      <div class="curve-name">Accelerate</div>
+      <svg viewBox="0 0 120 120" width="120" height="120" style="margin:0 auto;">
+        <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+        <line class="curve-grid" x1="60" y1="0" x2="60" y2="120"/>
+        <path class="curve-path" d="M 0,120 C 36,120 120,0 120,0"/>
+      </svg>
+      <div class="curve-label">cubic-bezier(0.3, 0, 1, 1)</div>
+      <div class="spec">Exiting elements, fade-out</div>
+    </div>
+
+    <!-- Emphasized -->
+    <div class="card" style="text-align:center; border: 2px solid var(--primary);">
+      <div class="curve-name" style="color:var(--primary);">Emphasized ★</div>
+      <svg viewBox="0 0 120 120" width="120" height="120" style="margin:0 auto;">
+        <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+        <line class="curve-grid" x1="60" y1="0" x2="60" y2="120"/>
+        <path class="curve-path" d="M 0,120 C 24,120 0,0 120,0" style="stroke:var(--primary); stroke-width:3;"/>
+      </svg>
+      <div class="curve-label">cubic-bezier(0.2, 0, 0, 1)</div>
+      <div class="spec">Hero transitions, page changes, sheets</div>
+    </div>
+
+    <!-- Spring -->
+    <div class="card" style="text-align:center;">
+      <div class="curve-name">Spring</div>
+      <svg viewBox="0 0 120 120" width="120" height="120" style="margin:0 auto;">
+        <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+        <line class="curve-grid" x1="60" y1="0" x2="60" y2="120"/>
+        <path class="curve-path" d="M 0,120 C 24,72 48,0 120,0"/>
+      </svg>
+      <div class="curve-label">cubic-bezier(0.2, 0.6, 0.4, 1)</div>
+      <div class="spec">Dialogs, FAB, scale-up reveals</div>
+    </div>
+
+    <!-- Bounce -->
+    <div class="card" style="text-align:center;">
+      <div class="curve-name">Bounce</div>
+      <svg viewBox="0 0 120 130" width="120" height="120" style="margin:0 auto;">
+        <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+        <line class="curve-grid" x1="60" y1="0" x2="60" y2="120"/>
+        <path class="curve-path" d="M 0,120 C 41,-7 77,0 120,0"/>
+      </svg>
+      <div class="curve-label">cubic-bezier(0.34, 1.56, 0.64, 1)</div>
+      <div class="spec">Celebration, success states, playful</div>
+    </div>
+
+    <!-- Elastic -->
+    <div class="card" style="text-align:center;">
+      <div class="curve-name">Elastic</div>
+      <svg viewBox="-5 -5 130 140" width="120" height="120" style="margin:0 auto;">
+        <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+        <line class="curve-grid" x1="60" y1="0" x2="60" y2="130"/>
+        <path class="curve-path" d="M 0,120 C 82,186 32,-30 120,0" style="stroke:#E056A0;"/>
+      </svg>
+      <div class="curve-label">cubic-bezier(0.68, -0.55, 0.27, 1.55)</div>
+      <div class="spec">Playful pop, Unlock Warp animation</div>
+    </div>
+  </div>
+
+  <!-- Samsung One UI Basic Path Interpolator -->
+  <div style="margin-top:32px;">
+    <h3 style="font-size:18px; font-weight:700; margin-bottom:16px;">Samsung One UI Basic Path Interpolator</h3>
+    <div class="card" style="display:flex; align-items:center; gap:32px; border:2px solid rgba(255,240,31,0.2); background:linear-gradient(135deg, rgba(255,240,31,0.03), transparent);">
+      <div style="text-align:center; flex-shrink:0;">
+        <svg viewBox="0 0 120 120" width="120" height="120">
+          <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+          <line class="curve-grid" x1="60" y1="0" x2="60" y2="120"/>
+          <path d="M 0,120 C 26,30 0,0 120,0" fill="none" stroke="#FFF01F" stroke-width="3"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:20px; font-weight:700; margin-bottom:4px; color:#FFF01F;">One UI Basic Path <span style="font-size:12px; font-weight:400; color:var(--text-disabled); margin-left:8px;">System Default</span></div>
+        <div style="font-size:14px; font-family:monospace; color:var(--primary); margin-bottom:8px;">cubic-bezier(0.22, 0.25, 0.00, 1.00)</div>
+        <div style="font-size:14px; color:var(--text-secondary); line-height:1.6;">The foundational curve for all One UI system transitions. Accelerates quickly then slows down gradually. All other curves derive from or complement this base. Used by the OS for app open/close, page transitions, and system-level animations.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supplementary Motion Styles (Samsung Official) -->
+  <div style="margin-top:32px;">
+    <h3 style="font-size:18px; font-weight:700; margin-bottom:16px;">Supplementary Motion Styles (Samsung Official)</h3>
+    <div class="section-desc" style="margin-bottom:24px;">Four additional easing approaches from Samsung developer documentation, used alongside the derived curves for specific contexts.</div>
+    <div class="grid-3">
+      <!-- Linear -->
+      <div class="card" style="text-align:center;">
+        <div class="curve-name">Linear</div>
+        <svg viewBox="0 0 120 120" width="120" height="120" style="margin:0 auto;">
+          <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+          <line class="curve-grid" x1="60" y1="0" x2="60" y2="120"/>
+          <line x1="0" y1="120" x2="120" y2="0" stroke="#888" stroke-width="2.5"/>
+        </svg>
+        <div class="curve-label">linear</div>
+        <div class="spec">Consistent velocity throughout. For transparency shifts, screen dissolves.</div>
+      </div>
+
+      <!-- Ease In -->
+      <div class="card" style="text-align:center;">
+        <div class="curve-name">Ease In</div>
+        <svg viewBox="0 0 120 120" width="120" height="120" style="margin:0 auto;">
+          <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+          <line class="curve-grid" x1="60" y1="0" x2="60" y2="120"/>
+          <path d="M 0,120 C 50,120 100,0 120,0" fill="none" stroke="#F9A825" stroke-width="2.5"/>
+        </svg>
+        <div class="curve-label">ease-in</div>
+        <div class="spec">Starts slow, accelerates. When origin is visible but endpoint undefined (exits).</div>
+      </div>
+
+      <!-- Ease Out -->
+      <div class="card" style="text-align:center;">
+        <div class="curve-name">Ease Out</div>
+        <svg viewBox="0 0 120 120" width="120" height="120" style="margin:0 auto;">
+          <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+          <line class="curve-grid" x1="60" y1="0" x2="60" y2="120"/>
+          <path d="M 0,120 C 20,120 0,0 120,0" fill="none" stroke="#AB47BC" stroke-width="2.5"/>
+        </svg>
+        <div class="curve-label">ease-out</div>
+        <div class="spec">Starts fast, decelerates. When speed reduction needs visibility. Avoid for off-screen exits.</div>
+      </div>
+
+      <!-- Ease In Out -->
+      <div class="card" style="text-align:center;">
+        <div class="curve-name">Ease In Out</div>
+        <svg viewBox="0 0 120 120" width="120" height="120" style="margin:0 auto;">
+          <line class="curve-grid" x1="0" y1="60" x2="120" y2="60"/>
+          <line class="curve-grid" x1="60" y1="0" x2="60" y2="120"/>
+          <path d="M 0,120 C 50,120 70,0 120,0" fill="none" stroke="#26A69A" stroke-width="2.5"/>
+        </svg>
+        <div class="curve-label">ease-in-out</div>
+        <div class="spec">Slow start, accelerates midway, decelerates at end. For highly visible motion sequences.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complete Reference Table -->
+  <div style="margin-top:32px;">
+    <h3 style="font-size:18px; font-weight:700; margin-bottom:16px;">Complete Easing Reference</h3>
+    <div class="card" style="padding:0; overflow-x:auto;">
+      <table style="width:100%; font-size:13px; border-collapse:collapse;">
+        <tr style="border-bottom:1px solid var(--divider);"><th style="text-align:left; padding:12px 16px; font-weight:600; color:var(--primary);">Name</th><th style="text-align:left; padding:12px 16px; font-weight:600; color:var(--primary);">Value</th><th style="text-align:left; padding:12px 16px; font-weight:600; color:var(--primary);">Category</th><th style="text-align:left; padding:12px 16px; font-weight:600; color:var(--primary);">Use</th></tr>
+        <tr style="background:rgba(255,240,31,0.03);"><td style="padding:10px 16px; font-weight:600; color:#FFF01F;">One UI Basic Path</td><td style="padding:10px 16px; font-family:monospace;">(0.22, 0.25, 0.00, 1.00)</td><td style="padding:10px 16px;">System</td><td style="padding:10px 16px; color:var(--text-secondary);">All system-level OS transitions</td></tr>
+        <tr><td style="padding:10px 16px;">Standard</td><td style="padding:10px 16px; font-family:monospace;">(0.3, 0, 0, 1)</td><td style="padding:10px 16px;">Derived</td><td style="padding:10px 16px; color:var(--text-secondary);">Most transitions, general purpose</td></tr>
+        <tr><td style="padding:10px 16px;">Decelerate</td><td style="padding:10px 16px; font-family:monospace;">(0, 0, 0, 1)</td><td style="padding:10px 16px;">Derived</td><td style="padding:10px 16px; color:var(--text-secondary);">Entering elements, fade-in, ripple</td></tr>
+        <tr><td style="padding:10px 16px;">Accelerate</td><td style="padding:10px 16px; font-family:monospace;">(0.3, 0, 1, 1)</td><td style="padding:10px 16px;">Derived</td><td style="padding:10px 16px; color:var(--text-secondary);">Exiting elements, fade-out</td></tr>
+        <tr style="background:rgba(3,129,254,0.05);"><td style="padding:10px 16px; font-weight:600; color:var(--primary);">Emphasized &#9733;</td><td style="padding:10px 16px; font-family:monospace;">(0.2, 0, 0, 1)</td><td style="padding:10px 16px;">Derived</td><td style="padding:10px 16px; color:var(--text-secondary);">Hero, sheets, pages, chrome fade</td></tr>
+        <tr><td style="padding:10px 16px;">Spring</td><td style="padding:10px 16px; font-family:monospace;">(0.2, 0.6, 0.4, 1)</td><td style="padding:10px 16px;">Derived</td><td style="padding:10px 16px; color:var(--text-secondary);">Dialogs, FAB, Now Bar, scale reveals</td></tr>
+        <tr><td style="padding:10px 16px;">Bounce</td><td style="padding:10px 16px; font-family:monospace;">(0.34, 1.56, 0.64, 1)</td><td style="padding:10px 16px;">Derived</td><td style="padding:10px 16px; color:var(--text-secondary);">Celebration, success, checkbox tick</td></tr>
+        <tr><td style="padding:10px 16px;">Elastic</td><td style="padding:10px 16px; font-family:monospace;">(0.68, -0.55, 0.27, 1.55)</td><td style="padding:10px 16px;">Derived</td><td style="padding:10px 16px; color:var(--text-secondary);">Playful pop, Unlock Warp</td></tr>
+        <tr style="border-top:2px solid var(--divider);"><td style="padding:10px 16px;">Linear</td><td style="padding:10px 16px; font-family:monospace;">linear</td><td style="padding:10px 16px;">Supplementary</td><td style="padding:10px 16px; color:var(--text-secondary);">Opacity/transparency shifts, dissolves</td></tr>
+        <tr><td style="padding:10px 16px;">Ease In</td><td style="padding:10px 16px; font-family:monospace;">ease-in</td><td style="padding:10px 16px;">Supplementary</td><td style="padding:10px 16px; color:var(--text-secondary);">Origin visible, endpoint undefined</td></tr>
+        <tr><td style="padding:10px 16px;">Ease Out</td><td style="padding:10px 16px; font-family:monospace;">ease-out</td><td style="padding:10px 16px;">Supplementary</td><td style="padding:10px 16px; color:var(--text-secondary);">Speed reduction needs visibility</td></tr>
+        <tr><td style="padding:10px 16px;">Ease In Out</td><td style="padding:10px 16px; font-family:monospace;">ease-in-out</td><td style="padding:10px 16px;">Supplementary</td><td style="padding:10px 16px; color:var(--text-secondary);">Highly visible motion sequences</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== DURATION SCALE ==================== -->
+<section class="section" id="duration">
+  <div class="section-label">02 / Duration</div>
+  <h2 class="section-title">Duration Scale</h2>
+  <div class="section-desc">One UI durations balance responsiveness with readability. Shorter for feedback, longer for spatial transitions.</div>
+
+  <div class="card" style="max-width:600px;">
+    <div class="dur-bar"><div class="dur-bar-label">Instant</div><div class="dur-bar-track"><div class="dur-bar-fill" style="width:12.5%;"></div></div><div class="dur-bar-value">100ms</div></div>
+    <div class="dur-bar"><div class="dur-bar-label">Fast</div><div class="dur-bar-track"><div class="dur-bar-fill" style="width:25%;"></div></div><div class="dur-bar-value">200ms</div></div>
+    <div class="dur-bar"><div class="dur-bar-label">Normal</div><div class="dur-bar-track"><div class="dur-bar-fill" style="width:37.5%;"></div></div><div class="dur-bar-value">300ms</div></div>
+    <div class="dur-bar"><div class="dur-bar-label">Slow</div><div class="dur-bar-track"><div class="dur-bar-fill" style="width:50%;"></div></div><div class="dur-bar-value">400ms</div></div>
+    <div class="dur-bar"><div class="dur-bar-label">Emphasis</div><div class="dur-bar-track"><div class="dur-bar-fill" style="width:62.5%;"></div></div><div class="dur-bar-value">500ms</div></div>
+    <div class="dur-bar"><div class="dur-bar-label">Complex</div><div class="dur-bar-track"><div class="dur-bar-fill" style="width:75%;"></div></div><div class="dur-bar-value">600ms</div></div>
+    <div class="dur-bar"><div class="dur-bar-label">Page</div><div class="dur-bar-track"><div class="dur-bar-fill" style="width:100%;"></div></div><div class="dur-bar-value">800ms</div></div>
+    <div class="spec">Ripple: 600ms | Switch: 300ms | Sheet: 400ms | Page: 800ms</div>
+  </div>
+</section>
+
+<!-- ==================== ENTRANCES ==================== -->
+<section class="section" id="entrances">
+  <div class="section-label">03 / Entrances</div>
+  <h2 class="section-title">Enter Animations</h2>
+  <div class="section-desc">Elements enter with deceleration — fast start, gentle landing. Direction communicates origin.</div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">Fade In</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replay(this, 'anim-fade-in')">&#8635;</button>
+        <div class="demo-box anim-fade-in">Fade</div>
+      </div>
+      <div class="spec">300ms | decelerate | opacity 0→1</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Slide Up</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replay(this, 'anim-slide-up')">&#8635;</button>
+        <div class="demo-box anim-slide-up">&#8593;</div>
+      </div>
+      <div class="spec">300ms | emphasized | Y +40→0 + fade</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Slide Down</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replay(this, 'anim-slide-down')">&#8635;</button>
+        <div class="demo-box anim-slide-down">&#8595;</div>
+      </div>
+      <div class="spec">300ms | emphasized | Y -40→0 + fade</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Slide Left (In)</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replay(this, 'anim-slide-left')">&#8635;</button>
+        <div class="demo-box anim-slide-left">&#8592;</div>
+      </div>
+      <div class="spec">300ms | standard | X +60→0 + fade</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Scale Up</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replay(this, 'anim-scale-up')">&#8635;</button>
+        <div class="demo-box anim-scale-up">&#x2B06;</div>
+      </div>
+      <div class="spec">300ms | spring | scale 0.7→1 + fade</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Bounce In</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replay(this, 'anim-bounce')">&#8635;</button>
+        <div class="demo-circle anim-bounce"></div>
+      </div>
+      <div class="spec">500ms | bounce | scale 0.3→1 (overshoot)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== EXITS ==================== -->
+<section class="section" id="exits">
+  <div class="section-label">04 / Exits</div>
+  <h2 class="section-title">Exit Animations</h2>
+  <div class="section-desc">Exits are faster than entrances (200ms vs 300ms) and use acceleration — slow start, quick departure. This focuses attention on what's arriving.</div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">Fade Out</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replayExit(this, 'anim-fade-out')">&#8635;</button>
+        <div class="demo-box">Fade</div>
+      </div>
+      <div class="spec">200ms | accelerate | opacity 1→0</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Scale Down</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replayExit(this, 'anim-scale-down')">&#8635;</button>
+        <div class="demo-box">&#x2B07;</div>
+      </div>
+      <div class="spec">200ms | accelerate | scale 1→0.85 + fade</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Slide Away</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replaySlideAway(this)">&#8635;</button>
+        <div class="demo-box" style="transition: all 200ms cubic-bezier(0.3,0,1,1);">&#8594;</div>
+      </div>
+      <div class="spec">200ms | accelerate | X 0→+60 + fade</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== EMPHASIS ==================== -->
+<section class="section" id="emphasis">
+  <div class="section-label">05 / Emphasis</div>
+  <h2 class="section-title">Emphasis & Feedback</h2>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">Ripple Touch</div>
+      <div class="demo-stage">
+        <div class="ripple-host" onclick="createRipple(event, this)">
+          Tap me
+        </div>
+      </div>
+      <div class="spec">600ms | decelerate | 30% white overlay | origin: touch point</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Spring Pop (FAB)</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replay(this, 'anim-spring')">&#8635;</button>
+        <div class="demo-circle anim-spring" style="background:var(--primary); box-shadow: var(--shadow-2);"></div>
+      </div>
+      <div class="spec">600ms | elastic | scale 0→1 (overshoot)</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Error Shake</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replay(this, 'anim-shake')">&#8635;</button>
+        <div style="width:200px; padding:12px 16px; border:2px solid var(--error); border-radius:var(--radius-md); font-size:14px; color:var(--error);" class="anim-shake">Invalid password</div>
+      </div>
+      <div class="spec">500ms | spring | X shake &plusmn;8px</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Pulse (Loading)</div>
+      <div class="demo-stage">
+        <div class="demo-circle anim-pulse"></div>
+      </div>
+      <div class="spec">2000ms | infinite | opacity 1→0.5→1</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Spin (Loading)</div>
+      <div class="demo-stage">
+        <div style="width:48px;height:48px;border-radius:50%;border:4px solid var(--divider);border-top-color:var(--primary);" class="anim-spin"></div>
+      </div>
+      <div class="spec">1000ms | linear | infinite rotation</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Skeleton Shimmer</div>
+      <div class="demo-stage">
+        <div style="width:200px;">
+          <div class="skeleton" style="height:16px; margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:16px; width:140px; margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:40px; margin-bottom:8px; border-radius:20px;"></div>
+          <div class="skeleton" style="height:12px; width:100px;"></div>
+        </div>
+      </div>
+      <div class="spec">1500ms | ease-in-out | infinite | gradient slide 200%</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TRANSITIONS ==================== -->
+<section class="section" id="transitions">
+  <div class="section-label">06 / Transitions</div>
+  <h2 class="section-title">Page & Container Transitions</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Page Slide (Forward)</div>
+      <div class="demo-stage" style="justify-content:center;">
+        <button class="replay-btn" onclick="replay(this, 'page-slide-enter')">&#8635;</button>
+        <div class="page-demo page-slide-enter">
+          <div class="page-demo-header"><span>Detail Page</span></div>
+          <div class="page-demo-body">
+            <div class="page-demo-line"></div>
+            <div class="page-demo-line" style="width:80%;"></div>
+            <div class="page-demo-line" style="width:60%;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="spec">800ms | emphasized | X +100% scale 0.92→1 + fade</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Container Transform</div>
+      <div class="demo-stage">
+        <div class="container-demo" onclick="this.classList.toggle('flipped')">
+          <div class="container-a">
+            <span style="font-size:40px;">&#128241;</span>
+            <h4>Galaxy S25</h4>
+            <p>Tap to transform</p>
+          </div>
+          <div class="container-b">
+            <span style="font-size:40px;">&#128187;</span>
+            <h4>Galaxy Book</h4>
+            <p>Tap to transform back</p>
+          </div>
+        </div>
+      </div>
+      <div class="spec">400ms | emphasized | cross-fade + scale | click to toggle</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== COMPONENT MOTIONS ==================== -->
+<section class="section" id="components">
+  <div class="section-label">07 / Component Motions</div>
+  <h2 class="section-title">Component-Level Animations</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Dialog Appear</div>
+      <div class="demo-stage" style="background:rgba(0,0,0,0.3); border-radius:var(--radius-xl);">
+        <button class="replay-btn" onclick="replay(this, 'anim-dialog')" style="background:rgba(255,255,255,0.15); color:#ccc;">&#8635;</button>
+        <div class="demo-card anim-dialog">
+          <h4 style="color:var(--text-primary);">Delete file?</h4>
+          <p>This cannot be undone.</p>
+        </div>
+      </div>
+      <div class="spec">300ms | spring | scale 0.85 + Y 20 + fade</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Bottom Sheet Rise</div>
+      <div class="demo-stage" style="align-items:flex-end; padding-bottom:0; overflow:hidden; min-height:220px; background:rgba(0,0,0,0.25);">
+        <button class="replay-btn" onclick="replay(this, 'anim-sheet-rise')" style="background:rgba(255,255,255,0.15); color:#ccc;">&#8635;</button>
+        <div style="width:100%; background:var(--surface); border-radius:26px 26px 0 0; padding:16px 24px 24px;" class="anim-sheet-rise">
+          <div style="width:36px;height:4px;background:#C0C0C0;border-radius:2px;margin:0 auto 12px;"></div>
+          <div style="font-size:18px; font-weight:700; color:var(--text-primary);">Share</div>
+          <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">Choose how to share this file</div>
+        </div>
+      </div>
+      <div class="spec">400ms | emphasized | Y 100%→0</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Notification Drop</div>
+      <div class="demo-stage" style="align-items:flex-start; padding-top:20px;">
+        <button class="replay-btn" onclick="replay(this, 'anim-notif')">&#8635;</button>
+        <div class="notif-demo anim-notif">
+          <div class="notif-icon">&#128172;</div>
+          <div class="notif-text">
+            <h5 style="color:var(--text-primary);">New message</h5>
+            <p>Hey! Are you free for lunch?</p>
+          </div>
+        </div>
+      </div>
+      <div class="spec">400ms | spring | Y -60 + scale 0.95 + fade</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Snackbar Slide</div>
+      <div class="demo-stage" style="align-items:flex-end; padding-bottom:20px;">
+        <button class="replay-btn" onclick="replay(this, 'anim-snackbar')">&#8635;</button>
+        <div class="snack-demo anim-snackbar">
+          File deleted <button>Undo</button>
+        </div>
+      </div>
+      <div class="spec">300ms | emphasized | Y +20→0 + fade</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Switch Toggle</div>
+      <div class="demo-stage">
+        <div style="display:flex; gap:24px; align-items:center;">
+          <div class="switch-demo" onclick="this.classList.toggle('on')"><div class="switch-demo-thumb"></div></div>
+          <div class="switch-demo on" onclick="this.classList.toggle('on')"><div class="switch-demo-thumb"></div></div>
+        </div>
+      </div>
+      <div class="spec">300ms | standard | thumb X 0↔20dp + bg color shift</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Checkbox Tick</div>
+      <div class="demo-stage">
+        <div style="display:flex; gap:24px; align-items:center;">
+          <div class="check-demo" onclick="this.classList.toggle('checked')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="check-demo checked" onclick="this.classList.toggle('checked')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="spec">200ms | bounce | scale 0→1 for tick + bg fill</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tab Indicator Slide</div>
+      <div class="demo-stage" style="padding:0; flex-direction:column; align-items:stretch;">
+        <div class="tab-demo-bar" id="tabDemoBar">
+          <button class="tab-demo-item active" onclick="switchTab(this, 0)">All</button>
+          <button class="tab-demo-item" onclick="switchTab(this, 1)">Photos</button>
+          <button class="tab-demo-item" onclick="switchTab(this, 2)">Videos</button>
+          <div class="tab-indicator" id="tabIndicator" style="left:0; width:53px;"></div>
+        </div>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:24px; font-size:14px; color:var(--text-secondary);">Tab content area</div>
+      </div>
+      <div class="spec">300ms | standard | X slide + width morph</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Progress Ring Fill</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replayRing(this)">&#8635;</button>
+        <svg class="progress-ring" viewBox="0 0 80 80">
+          <circle class="progress-ring-bg" cx="40" cy="40" r="35"/>
+          <circle class="progress-ring-fill animate" cx="40" cy="40" r="35"/>
+        </svg>
+        <div style="position:absolute; font-size:20px; font-weight:700;">75%</div>
+      </div>
+      <div class="spec">1500ms | decelerate | stroke-dashoffset 220→55</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== MICRO-INTERACTIONS ==================== -->
+<section class="section" id="micro">
+  <div class="section-label">08 / Micro-interactions</div>
+  <h2 class="section-title">Micro-interactions</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">FAB Morph to Extended</div>
+      <div class="demo-stage">
+        <button class="replay-btn" onclick="replay(this, 'anim-fab-expand')">&#8635;</button>
+        <div style="height:56px; background:var(--primary); border-radius:28px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:14px; overflow:hidden; white-space:nowrap;" class="anim-fab-expand">
+          <span style="margin-right:8px;">+</span> Compose
+        </div>
+      </div>
+      <div class="spec">400ms | emphasized | width 56→200 + radius 50%→28dp</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Expand / Collapse</div>
+      <div class="demo-stage">
+        <div class="expand-demo" id="expandDemo" onclick="this.classList.toggle('open')">
+          <div class="expand-header">
+            <h4 style="color:var(--text-primary);">Advanced settings</h4>
+            <svg class="expand-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="expand-body">
+            <div class="expand-content">Configure advanced options including notification preferences, battery optimization, and developer settings for your device.</div>
+          </div>
+        </div>
+      </div>
+      <div class="spec">400ms | emphasized | max-height 0→200px + arrow rotate</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Stagger List Enter</div>
+      <div class="demo-stage" style="flex-direction:column; gap:8px; align-items:stretch; padding:24px;">
+        <button class="replay-btn" onclick="replayStagger(this)">&#8635;</button>
+        <div class="stagger-item animate" style="padding:12px 16px; background:var(--surface); border-radius:12px; font-size:14px; box-shadow:var(--shadow-1);">&#128241; Galaxy S25 Ultra</div>
+        <div class="stagger-item animate" style="padding:12px 16px; background:var(--surface); border-radius:12px; font-size:14px; box-shadow:var(--shadow-1);">&#128187; Galaxy Book Pro</div>
+        <div class="stagger-item animate" style="padding:12px 16px; background:var(--surface); border-radius:12px; font-size:14px; box-shadow:var(--shadow-1);">&#9201; Galaxy Watch 7</div>
+        <div class="stagger-item animate" style="padding:12px 16px; background:var(--surface); border-radius:12px; font-size:14px; box-shadow:var(--shadow-1);">&#127911; Galaxy Buds 3</div>
+      </div>
+      <div class="spec">300ms each | 60ms stagger delay | emphasized | Y +20 + fade</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Swipe to Delete</div>
+      <div class="demo-stage">
+        <div class="swipe-demo" onclick="this.classList.toggle('swiped')">
+          <div class="swipe-bg">&#128465;</div>
+          <div class="swipe-content">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-10);display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:14px;">&#128233;</div>
+            <div>
+              <div style="font-size:14px; font-weight:600; color:var(--text-primary);">Team meeting notes</div>
+              <div style="font-size:12px; color:var(--text-secondary);">Tap to toggle swipe</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="spec">300ms | standard | content X 0→-80dp revealing delete bg</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PATTERNS ==================== -->
+<section class="section" id="patterns">
+  <div class="section-label">09 / Patterns</div>
+  <h2 class="section-title">Animation Patterns</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Enter vs Exit Asymmetry</div>
+      <div class="card-desc">Entrances are slower and more dramatic than exits. This focuses user attention on what's arriving, not what's leaving.</div>
+      <div style="display:flex; gap:24px; margin-top:12px;">
+        <div style="text-align:center;">
+          <div style="width:80px; height:8px; background:var(--primary); border-radius:4px; margin-bottom:4px;"></div>
+          <div class="spec">Enter: 300ms</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="width:53px; height:8px; background:var(--error); border-radius:4px; margin-bottom:4px;"></div>
+          <div class="spec">Exit: 200ms</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Stagger Delay</div>
+      <div class="card-desc">Sequential items enter with a 50-80ms delay between each, creating a cascade effect. Keeps total sequence under 500ms.</div>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <div style="width:40px;height:20px;background:var(--primary);border-radius:6px;opacity:1;"></div>
+        <div style="width:40px;height:20px;background:var(--primary);border-radius:6px;opacity:0.7;"></div>
+        <div style="width:40px;height:20px;background:var(--primary);border-radius:6px;opacity:0.4;"></div>
+        <div style="width:40px;height:20px;background:var(--primary);border-radius:6px;opacity:0.2;"></div>
+      </div>
+      <div class="spec">60ms stagger | max 5 items | total &lt; 500ms</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Spatial Continuity</div>
+      <div class="card-desc">Elements exit toward their destination and enter from their origin. A list item expanding to detail view grows from the item's position.</div>
+      <div class="spec">Container transforms preserve spatial relationships</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Reduce Motion</div>
+      <div class="card-desc">When the user enables "Reduce animations" in accessibility settings, replace all motion with instant opacity transitions (100ms fade).</div>
+      <div class="spec">@media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; } }</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ONE UI 8.5 AMBIENT MOTIONS ==================== -->
+<section class="section" id="ambient" style="background:linear-gradient(180deg, #0a0a1a 0%, #171717 100%);">
+  <div class="section-label" style="color:#3E91FF;">One UI 8.5 / Ambient Design</div>
+  <h2 class="section-title" style="color:#fff;">Ambient Design Motions</h2>
+  <div class="section-desc" style="color:rgba(255,255,255,0.5);">One UI 8.5 introduces context-aware chrome behavior, frosted glass transitions, and 6 customizable unlock animations. The system is aware of context, responsive to movement, and disciplined about when it occupies space.</div>
+
+  <div class="grid-2">
+    <!-- Chrome Fade -->
+    <div class="card" style="background:#1a1a2e; border:1px solid rgba(255,255,255,0.08);">
+      <div class="card-title" style="color:#fff;">Chrome Fade (Ambient Scroll)</div>
+      <div class="card-desc" style="color:rgba(255,255,255,0.5);">Nav bars and status bars fade to 0 opacity during downward scroll, return on upward scroll or tap.</div>
+      <div class="demo-stage demo-stage-dark" style="flex-direction:column; gap:0; padding:0; overflow:hidden; min-height:240px; position:relative;">
+        <button class="replay-btn" onclick="toggleChromeFade(this)" style="background:rgba(255,255,255,0.1); color:#aaa; z-index:10;">&#8635;</button>
+        <!-- Status bar -->
+        <div id="statusBar85" style="height:24px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between; padding:0 12px; font-size:10px; color:rgba(255,255,255,0.4); transition: opacity 0.4s cubic-bezier(0.2,0,0,1);">
+          <span>9:41</span>
+          <span>&#128268; 85%</span>
+        </div>
+        <!-- Content -->
+        <div style="flex:1; padding:16px; display:flex; flex-direction:column; gap:8px; overflow:hidden;">
+          <div style="height:12px; background:rgba(255,255,255,0.08); border-radius:6px; width:70%;"></div>
+          <div style="height:12px; background:rgba(255,255,255,0.06); border-radius:6px; width:90%;"></div>
+          <div style="height:12px; background:rgba(255,255,255,0.05); border-radius:6px; width:60%;"></div>
+          <div style="height:80px; background:rgba(255,255,255,0.04); border-radius:16px; margin:8px 0;"></div>
+          <div style="height:12px; background:rgba(255,255,255,0.06); border-radius:6px; width:85%;"></div>
+          <div style="height:12px; background:rgba(255,255,255,0.05); border-radius:6px; width:50%;"></div>
+        </div>
+        <!-- Floating Pill Nav -->
+        <div id="pillNav85" style="display:flex; justify-content:center; padding:8px 24px 12px; transition: opacity 0.4s cubic-bezier(0.2,0,0,1);">
+          <div style="display:inline-flex; gap:4px; background:rgba(255,255,255,0.1); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.12); border-radius:999px; padding:5px 6px;">
+            <div style="width:40px; height:30px; border-radius:999px; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center;">
+              <div style="width:6px; height:6px; border-radius:50%; background:#3E91FF;"></div>
+            </div>
+            <div style="width:40px; height:30px; border-radius:999px; display:flex; align-items:center; justify-content:center;">
+              <div style="width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,0.3);"></div>
+            </div>
+            <div style="width:40px; height:30px; border-radius:999px; display:flex; align-items:center; justify-content:center;">
+              <div style="width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,0.3);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="spec" style="color:rgba(255,255,255,0.3);">400ms | emphasized | opacity 1&#8594;0 on scroll-down, 0&#8594;1 on scroll-up/tap</div>
+    </div>
+
+    <!-- Glass Surface Appear -->
+    <div class="card" style="background:#1a1a2e; border:1px solid rgba(255,255,255,0.08);">
+      <div class="card-title" style="color:#fff;">Glass Surface Materialize</div>
+      <div class="card-desc" style="color:rgba(255,255,255,0.5);">Frosted glass panels appear with blur expanding outward + opacity fade-in. The glass "crystallizes" into view.</div>
+      <div class="demo-stage demo-stage-dark" style="min-height:200px;">
+        <button class="replay-btn" onclick="replayGlass(this)" style="background:rgba(255,255,255,0.1); color:#aaa;">&#8635;</button>
+        <div id="glassPanel" class="glass-materialize" style="width:220px; padding:16px 20px; background:rgba(255,255,255,0.1); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.15); border-radius:22px;">
+          <div style="font-size:14px; font-weight:600; color:#fff; margin-bottom:6px;">Quick Panel</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+            <div style="height:32px; background:rgba(62,145,255,0.2); border:1px solid rgba(62,145,255,0.3); border-radius:10px;"></div>
+            <div style="height:32px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px;"></div>
+            <div style="height:32px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px;"></div>
+            <div style="height:32px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="spec" style="color:rgba(255,255,255,0.3);">400ms | emphasized | blur 0&#8594;20px + opacity 0&#8594;1 + scale 0.95&#8594;1</div>
+    </div>
+
+    <!-- Now Bar Slide Up -->
+    <div class="card" style="background:#1a1a2e; border:1px solid rgba(255,255,255,0.08);">
+      <div class="card-title" style="color:#fff;">Now Bar Enter</div>
+      <div class="card-desc" style="color:rgba(255,255,255,0.5);">Live activity pill slides up from bottom with spring physics, settling into position with slight overshoot.</div>
+      <div class="demo-stage demo-stage-dark" style="align-items:flex-end; padding-bottom:16px; min-height:160px;">
+        <button class="replay-btn" onclick="replayNowBar(this)" style="background:rgba(255,255,255,0.1); color:#aaa;">&#8635;</button>
+        <div id="nowBarDemo" class="nowbar-enter" style="display:inline-flex; align-items:center; gap:10px; background:rgba(255,255,255,0.1); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.12); border-radius:999px; padding:8px 16px 8px 10px;">
+          <div style="width:28px; height:28px; border-radius:50%; background:#1DB954; display:flex; align-items:center; justify-content:center;">
+            <span style="color:#fff; font-size:11px;">&#9654;</span>
+          </div>
+          <div style="text-align:left;">
+            <div style="font-size:12px; font-weight:600; color:#fff;">Now Playing</div>
+            <div style="font-size:10px; color:rgba(255,255,255,0.4);">2:34 / 3:19</div>
+          </div>
+        </div>
+      </div>
+      <div class="spec" style="color:rgba(255,255,255,0.3);">500ms | spring (0.2, 0.6, 0.4, 1) | Y +60&#8594;0 + opacity + slight overshoot</div>
+    </div>
+
+    <!-- Unlock Animation: Ripple -->
+    <div class="card" style="background:#1a1a2e; border:1px solid rgba(255,255,255,0.08);">
+      <div class="card-title" style="color:#fff;">Unlock: Ripple</div>
+      <div class="card-desc" style="color:rgba(255,255,255,0.5);">One of 6 customizable unlock styles. Circular ripple expands from fingerprint sensor position, revealing home screen.</div>
+      <div class="demo-stage demo-stage-dark" style="min-height:200px; overflow:hidden;">
+        <button class="replay-btn" onclick="replayRippleUnlock(this)" style="background:rgba(255,255,255,0.1); color:#aaa; z-index:10;">&#8635;</button>
+        <div id="rippleUnlock" style="position:relative; width:200px; height:160px; border-radius:20px; overflow:hidden;">
+          <div style="position:absolute; inset:0; background:#0a0a1a; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:2;" class="unlock-cover">
+            <div style="font-size:36px; font-weight:200; color:#fff;">9:41</div>
+            <div style="font-size:11px; color:rgba(255,255,255,0.4);">Swipe to unlock</div>
+          </div>
+          <div style="position:absolute; inset:0; background:linear-gradient(135deg,#192a56,#0a0a2e); display:flex; align-items:center; justify-content:center; gap:8px; z-index:1;">
+            <div style="width:36px; height:36px; border-radius:10px; background:rgba(62,145,255,0.3);"></div>
+            <div style="width:36px; height:36px; border-radius:10px; background:rgba(37,211,102,0.3);"></div>
+            <div style="width:36px; height:36px; border-radius:10px; background:rgba(255,107,107,0.3);"></div>
+            <div style="width:36px; height:36px; border-radius:10px; background:rgba(249,168,37,0.3);"></div>
+          </div>
+          <div id="rippleCircle" style="position:absolute; bottom:20px; left:50%; width:0; height:0; border-radius:50%; background:rgba(62,145,255,0.3); transform:translateX(-50%); z-index:3; pointer-events:none;"></div>
+        </div>
+      </div>
+      <div class="spec" style="color:rgba(255,255,255,0.3);">800ms | emphasized | circle scale 0&#8594;cover + lock screen fade | 6 styles: Slide, Expand, Spread, Wave, Warp, Ripple</div>
+    </div>
+  </div>
+
+  <!-- 8.5 Motion Delta Table -->
+  <div class="card" style="background:#1a1a2e; border:1px solid rgba(255,255,255,0.08); margin-top:24px;">
+    <h3 style="font-size:18px; font-weight:700; margin-bottom:16px; color:#fff;">One UI 8.5 Motion Additions</h3>
+    <table style="width:100%; font-size:13px; border-collapse:collapse; color:rgba(255,255,255,0.7);">
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.08);"><th style="text-align:left; padding:8px 0; font-weight:600; color:#3E91FF;">Animation</th><th style="text-align:left; padding:8px 0; font-weight:600; color:#3E91FF;">Behavior</th><th style="text-align:left; padding:8px 0; font-weight:600; color:#3E91FF;">Duration</th><th style="text-align:left; padding:8px 0; font-weight:600; color:#3E91FF;">Easing</th></tr>
+      <tr><td style="padding:6px 0;">Chrome fade (scroll)</td><td>Status + nav bar opacity fade</td><td>400ms</td><td>emphasized</td></tr>
+      <tr><td style="padding:6px 0;">Chrome return (tap/scroll-up)</td><td>Bars fade back in</td><td>300ms</td><td>decelerate</td></tr>
+      <tr><td style="padding:6px 0;">Glass surface appear</td><td>Blur expand + opacity + scale</td><td>400ms</td><td>emphasized</td></tr>
+      <tr><td style="padding:6px 0;">Now Bar enter</td><td>Pill slides up with spring</td><td>500ms</td><td>spring</td></tr>
+      <tr><td style="padding:6px 0;">Now Bar content swap</td><td>Cross-fade between activities</td><td>300ms</td><td>standard</td></tr>
+      <tr><td style="padding:6px 0;">Unlock: Slide</td><td>Content slides left-to-right</td><td>600ms</td><td>emphasized</td></tr>
+      <tr><td style="padding:6px 0;">Unlock: Expand</td><td>Center point expands outward</td><td>700ms</td><td>emphasized</td></tr>
+      <tr><td style="padding:6px 0;">Unlock: Spread</td><td>Particles disperse from center</td><td>800ms</td><td>spring</td></tr>
+      <tr><td style="padding:6px 0;">Unlock: Wave</td><td>Horizontal wave sweeps across</td><td>700ms</td><td>emphasized</td></tr>
+      <tr><td style="padding:6px 0;">Unlock: Warp</td><td>Distortion warp from center</td><td>800ms</td><td>elastic</td></tr>
+      <tr><td style="padding:6px 0;">Unlock: Ripple</td><td>Circular ripple from sensor</td><td>800ms</td><td>emphasized</td></tr>
+      <tr><td style="padding:6px 0;">3D icon shadow</td><td>Shadow appears with icon render</td><td>200ms</td><td>decelerate</td></tr>
+      <tr><td style="padding:6px 0;">Media artwork transition</td><td>Full-bleed wipe to next track</td><td>600ms</td><td>emphasized</td></tr>
+      <tr><td style="padding:6px 0;">Adaptive clock reposition</td><td>Clock slides to safe zone</td><td>500ms</td><td>spring</td></tr>
+      <tr><td style="padding:6px 0;">App blur (Home Up)</td><td>Adjustable icon + wallpaper blur</td><td>400ms</td><td>standard</td></tr>
+    </table>
+  </div>
+</section>
+
+<style>
+  /* 8.5 Ambient animations */
+  .glass-materialize {
+    animation: glassMat 400ms cubic-bezier(0.2, 0, 0, 1) forwards;
+  }
+  @keyframes glassMat {
+    from { opacity: 0; transform: scale(0.95); backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
+    to { opacity: 1; transform: scale(1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  }
+  .nowbar-enter {
+    animation: nowbarUp 500ms cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+  }
+  @keyframes nowbarUp {
+    from { opacity: 0; transform: translateY(60px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .unlock-cover {
+    transition: clip-path 800ms cubic-bezier(0.2, 0, 0, 1), opacity 600ms cubic-bezier(0.2, 0, 0, 1);
+    clip-path: circle(100% at 50% 100%);
+  }
+  .unlock-cover.rippling {
+    clip-path: circle(0% at 50% 85%);
+    opacity: 0;
+  }
+</style>
+
+<script>
+  // Chrome fade toggle
+  function toggleChromeFade(btn) {
+    const status = document.getElementById('statusBar85');
+    const pill = document.getElementById('pillNav85');
+    const hidden = status.style.opacity === '0';
+    status.style.opacity = hidden ? '1' : '0';
+    pill.style.opacity = hidden ? '1' : '0';
+  }
+
+  // Glass materialize replay
+  function replayGlass(btn) {
+    const panel = document.getElementById('glassPanel');
+    panel.classList.remove('glass-materialize');
+    void panel.offsetWidth;
+    panel.classList.add('glass-materialize');
+  }
+
+  // Now Bar replay
+  function replayNowBar(btn) {
+    const bar = document.getElementById('nowBarDemo');
+    bar.classList.remove('nowbar-enter');
+    void bar.offsetWidth;
+    bar.classList.add('nowbar-enter');
+  }
+
+  // Ripple unlock replay
+  function replayRippleUnlock(btn) {
+    const cover = btn.parentElement.querySelector('.unlock-cover');
+    cover.classList.remove('rippling');
+    void cover.offsetWidth;
+    cover.classList.add('rippling');
+    setTimeout(() => { cover.classList.remove('rippling'); }, 1500);
+  }
+</script>
+
+<!-- ==================== TOKENS REFERENCE ==================== -->
+<section class="section" id="tokens" style="background:var(--surface-dim);">
+  <div class="section-label">Reference</div>
+  <h2 class="section-title">Motion Token Reference</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3 style="font-size:18px; font-weight:700; margin-bottom:16px;">Easing Tokens</h3>
+      <table style="width:100%; font-size:13px; border-collapse:collapse;">
+        <tr style="border-bottom:1px solid var(--divider);"><th style="text-align:left; padding:8px 0; font-weight:600;">Name</th><th style="text-align:left; padding:8px 0; font-weight:600;">Value</th><th style="text-align:left; padding:8px 0; font-weight:600;">Use</th></tr>
+        <tr><td style="padding:6px 0;">--ease-standard</td><td style="font-family:monospace; font-size:11px;">(0.3, 0, 0, 1)</td><td>Most transitions</td></tr>
+        <tr><td style="padding:6px 0;">--ease-decelerate</td><td style="font-family:monospace; font-size:11px;">(0, 0, 0, 1)</td><td>Entering</td></tr>
+        <tr><td style="padding:6px 0;">--ease-accelerate</td><td style="font-family:monospace; font-size:11px;">(0.3, 0, 1, 1)</td><td>Exiting</td></tr>
+        <tr><td style="padding:6px 0; color:var(--primary); font-weight:600;">--ease-emphasized</td><td style="font-family:monospace; font-size:11px;">(0.2, 0, 0, 1)</td><td>Hero, sheets, pages</td></tr>
+        <tr><td style="padding:6px 0;">--ease-spring</td><td style="font-family:monospace; font-size:11px;">(0.2, 0.6, 0.4, 1)</td><td>Dialogs, FAB, scale</td></tr>
+        <tr><td style="padding:6px 0;">--ease-bounce</td><td style="font-family:monospace; font-size:11px;">(0.34, 1.56, 0.64, 1)</td><td>Celebration, success</td></tr>
+        <tr><td style="padding:6px 0;">--ease-elastic</td><td style="font-family:monospace; font-size:11px;">(0.68, -0.55, 0.27, 1.55)</td><td>Playful pop</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:18px; font-weight:700; margin-bottom:16px;">Duration Tokens</h3>
+      <table style="width:100%; font-size:13px; border-collapse:collapse;">
+        <tr style="border-bottom:1px solid var(--divider);"><th style="text-align:left; padding:8px 0; font-weight:600;">Name</th><th style="text-align:left; padding:8px 0; font-weight:600;">Value</th><th style="text-align:left; padding:8px 0; font-weight:600;">Use</th></tr>
+        <tr><td style="padding:6px 0;">--dur-instant</td><td style="font-family:monospace;">100ms</td><td>Touch feedback, hover</td></tr>
+        <tr><td style="padding:6px 0;">--dur-fast</td><td style="font-family:monospace;">200ms</td><td>Exits, simple fades</td></tr>
+        <tr><td style="padding:6px 0;">--dur-normal</td><td style="font-family:monospace;">300ms</td><td>Standard transitions</td></tr>
+        <tr><td style="padding:6px 0;">--dur-slow</td><td style="font-family:monospace;">400ms</td><td>Bottom sheets, dialogs</td></tr>
+        <tr><td style="padding:6px 0;">--dur-emphasis</td><td style="font-family:monospace;">500ms</td><td>Bounce, celebration</td></tr>
+        <tr><td style="padding:6px 0;">--dur-complex</td><td style="font-family:monospace;">600ms</td><td>Ripple, FAB morph</td></tr>
+        <tr><td style="padding:6px 0;">--dur-page</td><td style="font-family:monospace;">800ms</td><td>Page transitions</td></tr>
+      </table>
+    </div>
+
+    <div class="card" style="grid-column: span 2;">
+      <h3 style="font-size:18px; font-weight:700; margin-bottom:16px;">Component Animation Map</h3>
+      <table style="width:100%; font-size:13px; border-collapse:collapse;">
+        <tr style="border-bottom:1px solid var(--divider);"><th style="text-align:left; padding:8px 0; font-weight:600;">Component</th><th style="text-align:left; padding:8px 0; font-weight:600;">Animation</th><th style="text-align:left; padding:8px 0; font-weight:600;">Duration</th><th style="text-align:left; padding:8px 0; font-weight:600;">Easing</th></tr>
+        <tr><td style="padding:6px 0;">Button ripple</td><td>Scale from touch point</td><td>600ms</td><td>decelerate</td></tr>
+        <tr><td style="padding:6px 0;">Switch toggle</td><td>Thumb slide + bg color</td><td>300ms</td><td>standard</td></tr>
+        <tr><td style="padding:6px 0;">Checkbox tick</td><td>Scale bounce + bg fill</td><td>200ms</td><td>bounce</td></tr>
+        <tr><td style="padding:6px 0;">Tab indicator</td><td>X slide + width morph</td><td>300ms</td><td>standard</td></tr>
+        <tr><td style="padding:6px 0;">Dialog appear</td><td>Scale + Y offset + fade</td><td>300ms</td><td>spring</td></tr>
+        <tr><td style="padding:6px 0;">Bottom sheet</td><td>Y translate from bottom</td><td>400ms</td><td>emphasized</td></tr>
+        <tr><td style="padding:6px 0;">Notification</td><td>Y drop + scale + fade</td><td>400ms</td><td>spring</td></tr>
+        <tr><td style="padding:6px 0;">Snackbar</td><td>Y slide + fade</td><td>300ms</td><td>emphasized</td></tr>
+        <tr><td style="padding:6px 0;">FAB expand</td><td>Width morph + radius</td><td>400ms</td><td>emphasized</td></tr>
+        <tr><td style="padding:6px 0;">Page forward</td><td>X slide + scale + fade</td><td>800ms</td><td>emphasized</td></tr>
+        <tr><td style="padding:6px 0;">List stagger</td><td>Y slide + fade per item</td><td>300ms + 60ms stagger</td><td>emphasized</td></tr>
+        <tr><td style="padding:6px 0;">Skeleton</td><td>Gradient shimmer</td><td>1500ms infinite</td><td>ease-in-out</td></tr>
+        <tr><td style="padding:6px 0;">Expand/collapse</td><td>Height + arrow rotate</td><td>400ms</td><td>emphasized</td></tr>
+        <tr><td style="padding:6px 0;">Swipe action</td><td>Content X translate</td><td>300ms</td><td>standard</td></tr>
+        <tr><td style="padding:6px 0;">Progress ring</td><td>Stroke-dashoffset</td><td>1500ms</td><td>decelerate</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer style="padding:32px; text-align:center; font-size:12px; color:var(--text-disabled);">
+  Samsung One UI Motion Library &mdash; Easing curves and durations derived from <a href="https://developer.samsung.com/one-ui" style="color:var(--primary);">One UI</a> &amp; Material 3 foundations
+</footer>
+
+<script>
+  // Replay an animation by removing and re-adding the class
+  function replay(btn, className) {
+    const stage = btn.parentElement;
+    const target = stage.querySelector('[class*="anim-"], [class*="page-"]');
+    if (!target) return;
+    // Find the animation class
+    const classes = Array.from(target.classList).filter(c => c.startsWith('anim-') || c.startsWith('page-'));
+    classes.forEach(c => target.classList.remove(c));
+    void target.offsetWidth; // force reflow
+    target.classList.add(className);
+  }
+
+  // Replay exit animations
+  function replayExit(btn, className) {
+    const stage = btn.parentElement;
+    const target = stage.querySelector('.demo-box');
+    if (!target) return;
+    target.style.opacity = '1';
+    target.style.transform = 'scale(1)';
+    target.classList.remove(className);
+    void target.offsetWidth;
+    target.classList.add(className);
+    setTimeout(() => {
+      target.classList.remove(className);
+      target.style.opacity = '1';
+      target.style.transform = 'scale(1)';
+    }, 800);
+  }
+
+  function replaySlideAway(btn) {
+    const stage = btn.parentElement;
+    const target = stage.querySelector('.demo-box');
+    target.style.opacity = '1';
+    target.style.transform = 'translateX(0)';
+    void target.offsetWidth;
+    target.style.opacity = '0';
+    target.style.transform = 'translateX(60px)';
+    setTimeout(() => {
+      target.style.transition = 'none';
+      target.style.opacity = '1';
+      target.style.transform = 'translateX(0)';
+      void target.offsetWidth;
+      target.style.transition = 'all 200ms cubic-bezier(0.3,0,1,1)';
+    }, 600);
+  }
+
+  // Ripple effect
+  function createRipple(e, host) {
+    const rect = host.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const ring = document.createElement('span');
+    ring.className = 'ripple-ring active';
+    ring.style.left = (x - 25) + 'px';
+    ring.style.top = (y - 25) + 'px';
+    ring.style.width = '50px';
+    ring.style.height = '50px';
+    host.appendChild(ring);
+    setTimeout(() => ring.remove(), 600);
+  }
+
+  // Replay stagger
+  function replayStagger(btn) {
+    const stage = btn.parentElement;
+    const items = stage.querySelectorAll('.stagger-item');
+    items.forEach(item => { item.classList.remove('animate'); });
+    void stage.offsetWidth;
+    items.forEach(item => { item.classList.add('animate'); });
+  }
+
+  // Tab indicator
+  function switchTab(el, index) {
+    const bar = document.getElementById('tabDemoBar');
+    const items = bar.querySelectorAll('.tab-demo-item');
+    const indicator = document.getElementById('tabIndicator');
+    items.forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    indicator.style.left = el.offsetLeft + 'px';
+    indicator.style.width = el.offsetWidth + 'px';
+  }
+  // Initialize tab indicator
+  window.addEventListener('load', () => {
+    const first = document.querySelector('#tabDemoBar .tab-demo-item.active');
+    if (first) {
+      const indicator = document.getElementById('tabIndicator');
+      indicator.style.left = first.offsetLeft + 'px';
+      indicator.style.width = first.offsetWidth + 'px';
+    }
+  });
+
+  // Replay progress ring
+  function replayRing(btn) {
+    const stage = btn.parentElement;
+    const fill = stage.querySelector('.progress-ring-fill');
+    fill.classList.remove('animate');
+    void fill.offsetWidth;
+    fill.classList.add('animate');
+  }
+</script>
+
+</body>
+</html>

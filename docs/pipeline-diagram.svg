@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1760 1080" font-family="Inter, -apple-system, sans-serif">
+
+  <!-- =========================================================
+       GenUI Pipeline v1 — Component Ordering & Placement Flow
+       Figma-pasteable SVG (landscape, 1760 × 1080)
+  =========================================================== -->
+
+  <defs>
+    <!-- Arrow marker -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3E3E46"/>
+    </marker>
+    <marker id="arrow-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#B5B5BB"/>
+    </marker>
+    <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0381FE"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1760" height="1080" fill="#FAFAFB"/>
+
+  <!-- Title bar -->
+  <rect x="0" y="0" width="1760" height="72" fill="#0F0F12"/>
+  <text x="40" y="44" fill="#FFFFFF" font-size="22" font-weight="700" letter-spacing="0.5">
+    SAMSUNG One UI 8.5 — GenUI Pipeline v1
+  </text>
+  <text x="40" y="64" fill="#8A8A92" font-size="12" font-weight="400">
+    Scenario text → component selection → deterministic ordering → LLM composition → validated layout plan
+  </text>
+  <text x="1720" y="44" fill="#3E91FF" font-size="12" font-weight="600" text-anchor="end">v0.2</text>
+
+  <!-- Legend -->
+  <g transform="translate(40, 96)">
+    <text x="0" y="14" font-size="11" font-weight="700" fill="#252525" letter-spacing="1">LEGEND</text>
+    <rect x="0" y="24" width="14" height="14" fill="#E8DEFB" stroke="#7A4FE6" stroke-width="1.5" rx="3"/>
+    <text x="22" y="35" font-size="11" fill="#252525">LLM step (Anthropic)</text>
+    <rect x="180" y="24" width="14" height="14" fill="#D4F3E8" stroke="#0E9F6E" stroke-width="1.5" rx="3"/>
+    <text x="202" y="35" font-size="11" fill="#252525">Deterministic (generator.js)</text>
+    <rect x="400" y="24" width="14" height="14" fill="#FFE4CC" stroke="#E67E22" stroke-width="1.5" rx="3"/>
+    <text x="422" y="35" font-size="11" fill="#252525">Validation</text>
+    <rect x="540" y="24" width="14" height="14" fill="#D6E8FF" stroke="#0381FE" stroke-width="1.5" rx="3"/>
+    <text x="562" y="35" font-size="11" fill="#252525">Data artifact</text>
+    <rect x="680" y="24" width="14" height="14" fill="#F1F1F3" stroke="#858585" stroke-width="1.5" rx="3"/>
+    <text x="702" y="35" font-size="11" fill="#252525">I/O surface</text>
+  </g>
+
+  <!-- ========================================
+       ROW 1 — INPUT
+  ======================================== -->
+  <g transform="translate(40, 180)">
+    <rect x="0" y="0" width="220" height="72" fill="#F1F1F3" stroke="#858585" stroke-width="1.5" rx="12"/>
+    <text x="110" y="26" text-anchor="middle" font-size="11" fill="#666" letter-spacing="1" font-weight="700">INPUT</text>
+    <text x="110" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="#252525">scenario_text</text>
+    <text x="110" y="64" text-anchor="middle" font-size="11" fill="#858585">"운전 중 음성으로 음악 재생"</text>
+  </g>
+
+  <!-- Arrow input → Step1 -->
+  <path d="M 260 216 L 330 216" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- ========================================
+       ROW 1 — LLM STEPS 1/2/3
+  ======================================== -->
+
+  <!-- Step 1 -->
+  <g transform="translate(330, 180)">
+    <rect x="0" y="0" width="200" height="96" fill="#E8DEFB" stroke="#7A4FE6" stroke-width="1.5" rx="12"/>
+    <text x="100" y="22" text-anchor="middle" font-size="10" fill="#7A4FE6" font-weight="700" letter-spacing="1">STEP 1 · LLM</text>
+    <text x="100" y="42" text-anchor="middle" font-size="14" font-weight="700" fill="#252525">Scenario Interpreter</text>
+    <line x1="16" y1="52" x2="184" y2="52" stroke="#7A4FE6" stroke-width="0.5" opacity="0.3"/>
+    <text x="100" y="70" text-anchor="middle" font-size="11" fill="#4A4A52">intent · context · tasks</text>
+    <text x="100" y="86" text-anchor="middle" font-size="11" fill="#4A4A52">constraints · ui_state</text>
+  </g>
+  <path d="M 530 228 L 580 228" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Step 2 -->
+  <g transform="translate(580, 180)">
+    <rect x="0" y="0" width="200" height="96" fill="#E8DEFB" stroke="#7A4FE6" stroke-width="1.5" rx="12"/>
+    <text x="100" y="22" text-anchor="middle" font-size="10" fill="#7A4FE6" font-weight="700" letter-spacing="1">STEP 2 · LLM</text>
+    <text x="100" y="42" text-anchor="middle" font-size="14" font-weight="700" fill="#252525">Handoff Normalizer</text>
+    <line x1="16" y1="52" x2="184" y2="52" stroke="#7A4FE6" stroke-width="0.5" opacity="0.3"/>
+    <text x="100" y="70" text-anchor="middle" font-size="11" fill="#4A4A52">planning_summary</text>
+    <text x="100" y="86" text-anchor="middle" font-size="11" fill="#4A4A52">task_groups · slots</text>
+  </g>
+  <path d="M 780 228 L 830 228" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Step 3 -->
+  <g transform="translate(830, 180)">
+    <rect x="0" y="0" width="200" height="96" fill="#E8DEFB" stroke="#7A4FE6" stroke-width="1.5" rx="12"/>
+    <text x="100" y="22" text-anchor="middle" font-size="10" fill="#7A4FE6" font-weight="700" letter-spacing="1">STEP 3 · LLM</text>
+    <text x="100" y="42" text-anchor="middle" font-size="14" font-weight="700" fill="#252525">Component Selector</text>
+    <line x1="16" y1="52" x2="184" y2="52" stroke="#7A4FE6" stroke-width="0.5" opacity="0.3"/>
+    <text x="100" y="70" text-anchor="middle" font-size="11" fill="#4A4A52">requiredComponents[]</text>
+    <text x="100" y="86" text-anchor="middle" font-size="11" fill="#4A4A52">planner_notes</text>
+  </g>
+  <path d="M 1030 228 L 1080 228" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Plan artifact -->
+  <g transform="translate(1080, 180)">
+    <rect x="0" y="0" width="180" height="96" fill="#D6E8FF" stroke="#0381FE" stroke-width="1.5" rx="12"/>
+    <text x="90" y="22" text-anchor="middle" font-size="10" fill="#0381FE" font-weight="700" letter-spacing="1">ARTIFACT</text>
+    <text x="90" y="44" text-anchor="middle" font-size="14" font-weight="700" fill="#252525">plan</text>
+    <line x1="16" y1="54" x2="164" y2="54" stroke="#0381FE" stroke-width="0.5" opacity="0.3"/>
+    <text x="90" y="72" text-anchor="middle" font-size="11" fill="#4A4A52">requiredComponents[]</text>
+    <text x="90" y="86" text-anchor="middle" font-size="11" fill="#4A4A52">uiState</text>
+  </g>
+
+  <!-- ========================================
+       ROW 2 — GENERATOR DETERMINISTIC
+  ======================================== -->
+
+  <!-- Arrow down from plan -->
+  <path d="M 1170 276 L 1170 330" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Pre-filter -->
+  <g transform="translate(1040, 330)">
+    <rect x="0" y="0" width="260" height="80" fill="#D4F3E8" stroke="#0E9F6E" stroke-width="1.5" rx="12"/>
+    <text x="130" y="22" text-anchor="middle" font-size="10" fill="#0E9F6E" font-weight="700" letter-spacing="1">GENERATOR · PRE-FILTER</text>
+    <text x="130" y="44" text-anchor="middle" font-size="14" font-weight="700" fill="#252525">filterAllowedComponents()</text>
+    <text x="130" y="64" text-anchor="middle" font-size="11" fill="#4A4A52">surfaceRules × allowedContexts × fuzzy lookup</text>
+  </g>
+
+  <!-- Arrow pre-filter → ordering -->
+  <path d="M 1040 370 L 910 370" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- resolveOrder -->
+  <g transform="translate(650, 330)">
+    <rect x="0" y="0" width="260" height="80" fill="#D4F3E8" stroke="#0E9F6E" stroke-width="1.5" rx="12"/>
+    <text x="130" y="22" text-anchor="middle" font-size="10" fill="#0E9F6E" font-weight="700" letter-spacing="1">GENERATOR · ORDER</text>
+    <text x="130" y="44" text-anchor="middle" font-size="14" font-weight="700" fill="#252525">resolveOrder()</text>
+    <text x="130" y="64" text-anchor="middle" font-size="11" fill="#4A4A52">weight: chrome 10 → nav 90 → gesture 95</text>
+  </g>
+
+  <!-- Arrow order → positions -->
+  <path d="M 650 370 L 520 370" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- resolvePositions -->
+  <g transform="translate(260, 330)">
+    <rect x="0" y="0" width="260" height="80" fill="#D4F3E8" stroke="#0E9F6E" stroke-width="1.5" rx="12"/>
+    <text x="130" y="22" text-anchor="middle" font-size="10" fill="#0E9F6E" font-weight="700" letter-spacing="1">GENERATOR · POSITION</text>
+    <text x="130" y="44" text-anchor="middle" font-size="14" font-weight="700" fill="#252525">resolvePositions()</text>
+    <text x="130" y="64" text-anchor="middle" font-size="11" fill="#4A4A52">y-stack · grid · anchors · horizontal</text>
+  </g>
+
+  <!-- Arrow positions → Reference Layout artifact -->
+  <path d="M 390 410 L 390 450" stroke="#0381FE" stroke-width="2" fill="none" marker-end="url(#arrow-accent)"/>
+
+  <!-- Reference Layout artifact -->
+  <g transform="translate(220, 450)">
+    <rect x="0" y="0" width="340" height="130" fill="#D6E8FF" stroke="#0381FE" stroke-width="2" rx="12"/>
+    <text x="170" y="24" text-anchor="middle" font-size="10" fill="#0381FE" font-weight="700" letter-spacing="1">ARTIFACT · REFERENCE LAYOUT</text>
+    <text x="170" y="46" text-anchor="middle" font-size="15" font-weight="700" fill="#252525">referenceLayout</text>
+    <line x1="20" y1="56" x2="320" y2="56" stroke="#0381FE" stroke-width="0.5" opacity="0.3"/>
+    <text x="20" y="76" font-size="11" fill="#4A4A52" font-family="ui-monospace, monospace">container · padding · gap</text>
+    <text x="20" y="92" font-size="11" fill="#4A4A52" font-family="ui-monospace, monospace">orderedComponents[] {</text>
+    <text x="40" y="108" font-size="11" fill="#4A4A52" font-family="ui-monospace, monospace">index, componentId, role,</text>
+    <text x="40" y="122" font-size="11" fill="#4A4A52" font-family="ui-monospace, monospace">placement, anchorFixed, position</text>
+  </g>
+
+  <!-- Design Memory source stack (left side) -->
+  <g transform="translate(40, 450)">
+    <rect x="0" y="0" width="160" height="180" fill="#FFFFFF" stroke="#D4D4D8" stroke-width="1" rx="8"/>
+    <text x="80" y="20" text-anchor="middle" font-size="10" fill="#858585" font-weight="700" letter-spacing="1">DESIGN MEMORY</text>
+    <line x1="16" y1="28" x2="144" y2="28" stroke="#E4E4E7" stroke-width="1"/>
+    <text x="16" y="48" font-size="11" fill="#252525" font-weight="600">92 components</text>
+    <text x="16" y="62" font-size="10" fill="#858585">component_registry.json</text>
+    <text x="16" y="86" font-size="11" fill="#252525" font-weight="600">6 screens</text>
+    <text x="16" y="100" font-size="10" fill="#858585">generator_memory.json</text>
+    <text x="16" y="124" font-size="11" fill="#252525" font-weight="600">6 refine rules</text>
+    <text x="16" y="138" font-size="10" fill="#858585">refinement_rules.json</text>
+    <text x="16" y="162" font-size="11" fill="#252525" font-weight="600">orchestration + global</text>
+    <text x="16" y="176" font-size="10" fill="#858585">pair-gaps, touch-targets</text>
+  </g>
+
+  <!-- Dashed line design memory → generator steps -->
+  <path d="M 200 540 L 260 380" stroke="#B5B5BB" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+  <path d="M 200 540 L 650 380" stroke="#B5B5BB" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+  <path d="M 200 540 L 1040 380" stroke="#B5B5BB" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+  <!-- ========================================
+       ROW 3 — STEP 4 LLM COMPOSER
+  ======================================== -->
+
+  <!-- Arrow Reference Layout → Step 4 -->
+  <path d="M 560 515 L 720 515" stroke="#0381FE" stroke-width="2" fill="none" marker-end="url(#arrow-accent)"/>
+
+  <!-- Arrow Plan → Step 4 (bypass line from right) -->
+  <path d="M 1170 276 L 1170 466 L 900 466 L 900 474" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Step 4 Composer -->
+  <g transform="translate(720, 470)">
+    <rect x="0" y="0" width="360" height="120" fill="#E8DEFB" stroke="#7A4FE6" stroke-width="2" rx="12"/>
+    <text x="180" y="24" text-anchor="middle" font-size="10" fill="#7A4FE6" font-weight="700" letter-spacing="1">STEP 4 · LLM</text>
+    <text x="180" y="48" text-anchor="middle" font-size="16" font-weight="700" fill="#252525">Layout Composer</text>
+    <line x1="20" y1="58" x2="340" y2="58" stroke="#7A4FE6" stroke-width="0.5" opacity="0.3"/>
+    <text x="180" y="80" text-anchor="middle" font-size="11" fill="#4A4A52">Receives plan + referenceLayout</text>
+    <text x="180" y="96" text-anchor="middle" font-size="11" fill="#4A4A52">MUST follow reference ordering</text>
+    <text x="180" y="112" text-anchor="middle" font-size="11" fill="#4A4A52">Emits groups[].children[] with placement</text>
+  </g>
+
+  <!-- Arrow Step 4 → layoutPlan artifact -->
+  <path d="M 1080 530 L 1160 530" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- layoutPlan artifact -->
+  <g transform="translate(1160, 485)">
+    <rect x="0" y="0" width="180" height="90" fill="#D6E8FF" stroke="#0381FE" stroke-width="1.5" rx="12"/>
+    <text x="90" y="22" text-anchor="middle" font-size="10" fill="#0381FE" font-weight="700" letter-spacing="1">ARTIFACT</text>
+    <text x="90" y="44" text-anchor="middle" font-size="14" font-weight="700" fill="#252525">layoutPlan</text>
+    <line x1="16" y1="54" x2="164" y2="54" stroke="#0381FE" stroke-width="0.5" opacity="0.3"/>
+    <text x="90" y="72" text-anchor="middle" font-size="11" fill="#4A4A52">container · groups</text>
+    <text x="90" y="86" text-anchor="middle" font-size="11" fill="#4A4A52">padding · gap</text>
+  </g>
+
+  <!-- ========================================
+       ROW 4 — VALIDATION
+  ======================================== -->
+
+  <!-- Arrow layoutPlan → Validation -->
+  <path d="M 1250 575 L 1250 630" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Validation cluster -->
+  <g transform="translate(520, 630)">
+    <rect x="0" y="0" width="1000" height="140" fill="#FFFFFF" stroke="#E67E22" stroke-width="2" stroke-dasharray="4 2" rx="12"/>
+    <text x="500" y="26" text-anchor="middle" font-size="11" fill="#E67E22" font-weight="700" letter-spacing="1">STEP 4 · VALIDATION</text>
+
+    <!-- validateLayout -->
+    <g transform="translate(20, 44)">
+      <rect x="0" y="0" width="220" height="80" fill="#FFE4CC" stroke="#E67E22" stroke-width="1.5" rx="8"/>
+      <text x="110" y="20" text-anchor="middle" font-size="12" font-weight="700" fill="#252525">validateLayout()</text>
+      <text x="110" y="38" text-anchor="middle" font-size="10" fill="#666">hard checks (9 rules)</text>
+      <text x="110" y="54" text-anchor="middle" font-size="10" fill="#666">reference_order_mismatch</text>
+      <text x="110" y="68" text-anchor="middle" font-size="10" fill="#E67E22" font-weight="600">nav_not_at_bottom</text>
+    </g>
+
+    <!-- validateContextComponentMatch -->
+    <g transform="translate(260, 44)">
+      <rect x="0" y="0" width="220" height="80" fill="#FFE4CC" stroke="#E67E22" stroke-width="1.5" rx="8"/>
+      <text x="110" y="20" text-anchor="middle" font-size="12" font-weight="700" fill="#252525">context match</text>
+      <text x="110" y="38" text-anchor="middle" font-size="10" fill="#666">selection coherence</text>
+      <text x="110" y="54" text-anchor="middle" font-size="10" fill="#666">allowed_contexts info</text>
+      <text x="110" y="68" text-anchor="middle" font-size="10" fill="#666">(layout_composer.js)</text>
+    </g>
+
+    <!-- validateLayoutOverflow -->
+    <g transform="translate(500, 44)">
+      <rect x="0" y="0" width="220" height="80" fill="#FFE4CC" stroke="#E67E22" stroke-width="1.5" rx="8"/>
+      <text x="110" y="20" text-anchor="middle" font-size="12" font-weight="700" fill="#252525">overflow check</text>
+      <text x="110" y="38" text-anchor="middle" font-size="10" fill="#666">height/width cap</text>
+      <text x="110" y="54" text-anchor="middle" font-size="10" fill="#666">density heuristics</text>
+      <text x="110" y="68" text-anchor="middle" font-size="10" fill="#666">(layout_composer.js)</text>
+    </g>
+
+    <!-- autoRefine -->
+    <g transform="translate(740, 44)">
+      <rect x="0" y="0" width="240" height="80" fill="#D4F3E8" stroke="#0E9F6E" stroke-width="1.5" rx="8"/>
+      <text x="120" y="20" text-anchor="middle" font-size="12" font-weight="700" fill="#252525">autoRefine()</text>
+      <text x="120" y="38" text-anchor="middle" font-size="10" fill="#666">5 analyzers · 6 patchers</text>
+      <text x="120" y="54" text-anchor="middle" font-size="10" fill="#666">density / context / a11y</text>
+      <text x="120" y="68" text-anchor="middle" font-size="10" fill="#0E9F6E" font-weight="600">patches positions inline</text>
+    </g>
+  </g>
+
+  <!-- ========================================
+       ROW 5 — OUTPUT
+  ======================================== -->
+
+  <!-- Arrow validation → render -->
+  <path d="M 1020 770 L 1020 820" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Render -->
+  <g transform="translate(820, 820)">
+    <rect x="0" y="0" width="400" height="100" fill="#D4F3E8" stroke="#0E9F6E" stroke-width="2" rx="12"/>
+    <text x="200" y="22" text-anchor="middle" font-size="10" fill="#0E9F6E" font-weight="700" letter-spacing="1">RENDER · genui.html</text>
+    <text x="200" y="46" text-anchor="middle" font-size="16" font-weight="700" fill="#252525">renderPipelineResponse()</text>
+    <line x1="20" y1="56" x2="380" y2="56" stroke="#0E9F6E" stroke-width="0.5" opacity="0.3"/>
+    <text x="200" y="76" text-anchor="middle" font-size="11" fill="#4A4A52">walks groups[].children[] → DOM</text>
+    <text x="200" y="92" text-anchor="middle" font-size="11" fill="#4A4A52">bottomnav auto-anchors (margin-top:auto)</text>
+  </g>
+
+  <!-- Arrow render → viewport -->
+  <path d="M 820 870 L 760 870" stroke="#3E3E46" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Viewport output -->
+  <g transform="translate(540, 800)">
+    <rect x="0" y="0" width="220" height="140" fill="#F1F1F3" stroke="#858585" stroke-width="1.5" rx="12"/>
+    <text x="110" y="20" text-anchor="middle" font-size="10" fill="#666" font-weight="700" letter-spacing="1">OUTPUT · VIEWPORT</text>
+    <!-- Mini mobile frame -->
+    <rect x="70" y="30" width="80" height="100" fill="#171717" stroke="#3E3E46" stroke-width="1.5" rx="10"/>
+    <rect x="76" y="36" width="68" height="8" fill="#2A2A2E" rx="2"/>
+    <rect x="76" y="50" width="68" height="14" fill="#2A2A2E" rx="2"/>
+    <rect x="76" y="68" width="68" height="22" fill="#2A2A2E" rx="3"/>
+    <rect x="76" y="94" width="68" height="12" fill="#2A2A2E" rx="2"/>
+    <!-- bottom nav highlight -->
+    <rect x="76" y="112" width="68" height="14" fill="#0381FE" rx="2"/>
+    <text x="110" y="121" text-anchor="middle" font-size="6" fill="#FFFFFF" font-weight="700">NAV</text>
+  </g>
+
+  <!-- Arrow validation → explain (to the right) -->
+  <path d="M 1520 700 L 1600 700 L 1600 870 L 1520 870" stroke="#B5B5BB" stroke-width="1" stroke-dasharray="3 3" fill="none" marker-end="url(#arrow-dim)"/>
+
+  <!-- Step 7 Explanation -->
+  <g transform="translate(1260, 820)">
+    <rect x="0" y="0" width="260" height="100" fill="#E8DEFB" stroke="#7A4FE6" stroke-width="1.5" rx="12"/>
+    <text x="130" y="22" text-anchor="middle" font-size="10" fill="#7A4FE6" font-weight="700" letter-spacing="1">STEP 7 · LLM</text>
+    <text x="130" y="44" text-anchor="middle" font-size="14" font-weight="700" fill="#252525">Explanation Layer</text>
+    <line x1="20" y1="54" x2="240" y2="54" stroke="#7A4FE6" stroke-width="0.5" opacity="0.3"/>
+    <text x="130" y="74" text-anchor="middle" font-size="11" fill="#4A4A52">why_this_ui · prioritized</text>
+    <text x="130" y="90" text-anchor="middle" font-size="11" fill="#4A4A52">collapsed · trade-offs</text>
+  </g>
+
+  <!-- ========================================
+       BOTTOM STRIP — KEY RULES
+  ======================================== -->
+  <g transform="translate(40, 980)">
+    <rect x="0" y="0" width="1680" height="72" fill="#0F0F12" rx="12"/>
+    <text x="20" y="24" font-size="10" fill="#3E91FF" font-weight="700" letter-spacing="1">KEY ORDERING RULES · One UI 8.5</text>
+
+    <text x="20" y="44" font-size="11" fill="#FFFFFF" font-weight="600">① status-bar</text>
+    <text x="100" y="44" font-size="11" fill="#8A8A92">weight 0</text>
+
+    <text x="170" y="44" font-size="11" fill="#FFFFFF" font-weight="600">② app-bar</text>
+    <text x="240" y="44" font-size="11" fill="#8A8A92">weight 5</text>
+
+    <text x="310" y="44" font-size="11" fill="#FFFFFF" font-weight="600">③ chrome</text>
+    <text x="375" y="44" font-size="11" fill="#8A8A92">weight 10</text>
+
+    <text x="450" y="44" font-size="11" fill="#FFFFFF" font-weight="600">④ widget</text>
+    <text x="510" y="44" font-size="11" fill="#8A8A92">weight 30</text>
+
+    <text x="580" y="44" font-size="11" fill="#FFFFFF" font-weight="600">⑤ container</text>
+    <text x="655" y="44" font-size="11" fill="#8A8A92">weight 40</text>
+
+    <text x="730" y="44" font-size="11" fill="#FFFFFF" font-weight="600">⑥ selection/input</text>
+    <text x="835" y="44" font-size="11" fill="#8A8A92">weight 45-46</text>
+
+    <text x="920" y="44" font-size="11" fill="#FFFFFF" font-weight="600">⑦ action</text>
+    <text x="980" y="44" font-size="11" fill="#8A8A92">weight 55</text>
+
+    <text x="1050" y="44" font-size="11" fill="#3E91FF" font-weight="700">⑧ navigation</text>
+    <text x="1130" y="44" font-size="11" fill="#8A8A92">weight 90</text>
+
+    <text x="1210" y="44" font-size="11" fill="#3E91FF" font-weight="700">⑨ gesture-bar</text>
+    <text x="1295" y="44" font-size="11" fill="#8A8A92">weight 95</text>
+
+    <text x="20" y="62" font-size="10" fill="#8A8A92">Reference source: developer.samsung.com/one-ui/comp/bottom-navigation · bottom-bar · basic-layout — "navigation bar remains in a consistent position at the bottom"</text>
+  </g>
+
+</svg>

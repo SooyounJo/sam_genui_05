@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lock Screen — Fidelity Diagnostic</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#0b0b0e; color:#eaeaea;
+    font-family:'Inter',-apple-system,system-ui,sans-serif; font-size:13px;
+    padding:24px; min-height:100vh;
+  }
+  h1 { font-size:16px; font-weight:700; margin-bottom:4px; }
+  .sub { color:#9a9aa2; font-size:12px; margin-bottom:20px; }
+  .panels {
+    display:grid; grid-template-columns:1fr 1fr; gap:32px; align-items:start;
+  }
+  .panel { display:flex; flex-direction:column; gap:10px; }
+  .panel h2 { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; color:#7a7a82; }
+  .meta { color:#666; font-size:10px; font-family:ui-monospace,monospace; }
+  /* Render stage — 1:1 scale, 451×978 native */
+  .stage {
+    position:relative;
+    width:451px; height:978px;
+    border-radius:40px; overflow:hidden;
+    border:1px solid #222;
+    background:#171717;
+    box-shadow:0 24px 60px rgba(0,0,0,0.5);
+  }
+  .stage-figma img { width:100%; height:100%; display:block; object-fit:cover; }
+
+  /* Debug overlay */
+  .overlay { position:absolute; pointer-events:none; z-index:9999; }
+  .overlay-zone {
+    border:1px dashed rgba(3,129,254,0.5);
+    background:rgba(3,129,254,0.03);
+  }
+  .overlay-zone::before {
+    content: attr(data-label);
+    position:absolute; top:2px; left:4px;
+    font-size:9px; color:#0381fe; font-family:ui-monospace,monospace;
+    background:rgba(0,0,0,0.5); padding:1px 5px; border-radius:3px;
+  }
+  .overlay-cluster {
+    border:1px dotted rgba(15,207,110,0.55);
+    background:rgba(15,207,110,0.02);
+  }
+  .overlay-cluster::before {
+    content: attr(data-label);
+    position:absolute; top:2px; right:4px;
+    font-size:9px; color:#0FCF6E; font-family:ui-monospace,monospace;
+    background:rgba(0,0,0,0.5); padding:1px 5px; border-radius:3px;
+  }
+
+  /* Controls */
+  .controls {
+    margin-bottom:16px; display:flex; gap:8px; flex-wrap:wrap;
+  }
+  .controls button {
+    padding:6px 12px; border-radius:6px; background:#17171a; border:1px solid #333;
+    color:#eaeaea; font-size:11px; cursor:pointer;
+  }
+  .controls button.active { background:#0381fe; border-color:#0381fe; }
+  .controls button:hover { border-color:#555; }
+
+  /* Render item base: positioned via rules; sits inside .stage */
+  .stage .rules-item { position:absolute; }
+</style>
+</head>
+<body>
+  <h1>Lock Screen — Fidelity Diagnostic</h1>
+  <p class="sub">Figma node <code>3010:2143</code> · reference 451×978 · 1:1 pixel scale · target &lt; 3% error</p>
+
+  <div class="controls">
+    <button id="btn-overlay-zone">Zones</button>
+    <button id="btn-overlay-cluster">Clusters</button>
+    <button id="btn-overlay-outlines">Bounding boxes</button>
+    <button id="btn-rerender">Re-render</button>
+    <button id="btn-log">Log plan to console</button>
+  </div>
+
+  <div class="panels">
+    <!-- Left: Figma reference wallpaper + Figma-composed elements (as reference) -->
+    <div class="panel">
+      <h2>Figma reference — assets/figma/lock-screen/background.png</h2>
+      <div class="stage stage-figma" id="stageFigma">
+        <img src="assets/figma/lock-screen/background.png" alt="Figma lock-screen background">
+        <div class="overlay" id="figmaOverlay"></div>
+      </div>
+      <div class="meta" id="figmaMeta">wallpaper only — composed Figma screenshot appears in Figma app</div>
+    </div>
+
+    <!-- Right: rules-driven render -->
+    <div class="panel">
+      <h2>Rules-rendered output — lockScreenRules + atomics</h2>
+      <div class="stage" id="stageRules">
+        <!-- children injected by renderFromRules -->
+      </div>
+      <div class="meta" id="rulesMeta">loading…</div>
+    </div>
+  </div>
+
+<!-- Load the same stack as genui.html but without the app chrome -->
+<script src="figma-refs/icon_library.js"></script>
+<script src="generator.js"></script>
+<script src="app/atomics.js"></script>
+<script src="app/rules-renderer.js"></script>
+
+<script>
+  // ========================================================================
+  // Render the lockScreenRules plan into the #stageRules div at 1:1 scale.
+  // This bypasses the genui.html canvas entirely for pure visual verification.
+  // ========================================================================
+
+  function paintLockScreen() {
+    var stage = document.getElementById('stageRules');
+    stage.innerHTML = '';
+
+    var viewport = { width: 451, height: 978 };
+    var plan = window.Generator.lockScreenRules({
+      contextTags: ['now-bar:delivery'],
+      attentionMode: 'focused',
+      interactionMode: 'touch'
+    }, { viewport: viewport });
+
+    // Track role counts for atomics that need an index (primaryToggle etc.)
+    var roleIndex = {};
+    plan.components.forEach(function (comp) {
+      var role = comp.role;
+      var idx = (roleIndex[role] = (roleIndex[role] || 0) + 1) - 1;
+
+      var wrapper = document.createElement('div');
+      wrapper.className = 'rules-item';
+      wrapper.dataset.role = role;
+      wrapper.dataset.componentId = comp.id;
+      if (comp.position && comp.position._cluster) {
+        wrapper.dataset.cluster = comp.position._cluster;
+      }
+
+      var p = comp.position || {};
+      wrapper.style.left   = (p.x || 0) + 'px';
+      wrapper.style.top    = (p.y || 0) + 'px';
+      wrapper.style.width  = (p.w || 0) + 'px';
+      wrapper.style.height = (p.h || 0) + 'px';
+
+      // Render via role → atomics
+      var renderer = ROLE_RENDERERS[role];
+      if (renderer) {
+        try { wrapper.innerHTML = renderer(comp, plan, idx); }
+        catch (e) { wrapper.innerHTML = fallbackHTML(role + ' (err: ' + e.message + ')'); }
+      } else {
+        wrapper.innerHTML = fallbackHTML(role);
+      }
+
+      stage.appendChild(wrapper);
+    });
+
+    window.__lastRulesPlan = plan;
+    document.getElementById('rulesMeta').textContent =
+      'components: ' + plan.components.length +
+      ' · unit: ' + plan.grammar.unit +
+      ' · zones: ' + JSON.stringify(plan.grammar.zones);
+  }
+
+  // Copy minimal bits from rules-renderer.js that we don't want to run (global renderFromRules expects #canvas)
+  var ROLE_RENDERERS = null;
+  function fallbackHTML(role) {
+    return '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;' +
+      'border:1px dashed rgba(255,255,255,0.25);color:rgba(255,255,255,0.6);font-size:10px;border-radius:6px;">' +
+      role + '</div>';
+  }
+
+  // Re-export the ROLE_RENDERERS used inside rules-renderer.js — we need to
+  // access the same map here. Expose it by rebuilding from GalaxyAtomics.
+  function buildRoleRenderers() {
+    var A = window.GalaxyAtomics || {};
+    return {
+      background:      function() { return (A.Background || function(){return '';})(); },
+      statusBar:       function() { return (A.StatusBar || function(){return '';})({ carrier:'TJG', battery:69 }); },
+      lockIndicator:   function() { return (A.LockIcon || function(){return '';})(); },
+      weatherDate:     function() { return (A.WeatherDate || function(){return '';})(); },
+      clock:           function() { return (A.Clock || function(){return '';})({ time:['09','41'], fontSize:112, lineHeight:82, gap:12 }); },
+      widgetsRow:      function() { return (A.WidgetRow || function(){return '';})(); },
+      unlockHint:      function() { return (A.UnlockHint || function(){return '';})(); },
+      shortcutLeft:    function() { return (A.ShortcutCircle || function(){return '';})({ icon:'phone' }); },
+      shortcutRight:   function() { return (A.ShortcutCircle || function(){return '';})({ icon:'camera' }); },
+      nowBar:          function() { return (A.NowBar || function(){return '';})(); },
+      gestureBar:      function() { return (A.GestureBar || function(){return '';})(); }
+    };
+  }
+
+  // Wait for everything to load, then paint
+  window.addEventListener('load', function () {
+    ROLE_RENDERERS = buildRoleRenderers();
+    paintLockScreen();
+    buildOverlays();
+  });
+
+  // Overlays — zones (blue dashed) + clusters (green dotted)
+  function buildOverlays() {
+    var plan = window.__lastRulesPlan; if (!plan) return;
+    var zonesLayer = document.createElement('div');
+    zonesLayer.id = 'zonesLayer';
+    zonesLayer.style.display = 'none';
+    zonesLayer.style.cssText = 'position:absolute;inset:0;z-index:9998;pointer-events:none;';
+
+    var zones = plan.grammar.zones || {};
+    Object.entries(zones).forEach(function (entry) {
+      var name = entry[0], z = entry[1];
+      var el = document.createElement('div');
+      el.className = 'overlay overlay-zone';
+      el.dataset.label = name;
+      el.style.cssText += 'left:0;top:' + z.y + 'px;width:100%;height:' + z.h + 'px;position:absolute;';
+      zonesLayer.appendChild(el);
+    });
+    document.getElementById('stageRules').appendChild(zonesLayer);
+
+    // Cluster overlays — per component show its cluster box
+    var clusterLayer = document.createElement('div');
+    clusterLayer.id = 'clusterLayer';
+    clusterLayer.style.display = 'none';
+    clusterLayer.style.cssText = 'position:absolute;inset:0;z-index:9998;pointer-events:none;';
+
+    plan.components.forEach(function (comp) {
+      if (!comp.position || !comp.position._cluster) return;
+      if (comp.role === 'background') return;
+      var el = document.createElement('div');
+      el.className = 'overlay overlay-cluster';
+      el.dataset.label = comp.position._cluster + ':' + comp.role;
+      el.style.cssText += 'position:absolute;left:' + comp.position.x + 'px;top:' + comp.position.y + 'px;width:' + comp.position.w + 'px;height:' + comp.position.h + 'px;';
+      clusterLayer.appendChild(el);
+    });
+    document.getElementById('stageRules').appendChild(clusterLayer);
+  }
+
+  // Controls
+  document.getElementById('btn-overlay-zone').addEventListener('click', function () {
+    var el = document.getElementById('zonesLayer');
+    if (!el) return;
+    var show = el.style.display === 'none';
+    el.style.display = show ? 'block' : 'none';
+    this.classList.toggle('active', show);
+  });
+  document.getElementById('btn-overlay-cluster').addEventListener('click', function () {
+    var el = document.getElementById('clusterLayer');
+    if (!el) return;
+    var show = el.style.display === 'none';
+    el.style.display = show ? 'block' : 'none';
+    this.classList.toggle('active', show);
+  });
+  document.getElementById('btn-overlay-outlines').addEventListener('click', function () {
+    var stage = document.getElementById('stageRules');
+    var on = !stage.dataset.outlines;
+    stage.dataset.outlines = on ? '1' : '';
+    stage.querySelectorAll('.rules-item').forEach(function (el) {
+      el.style.outline = on ? '1px solid rgba(255,255,255,0.18)' : '';
+    });
+    this.classList.toggle('active', on);
+  });
+  document.getElementById('btn-rerender').addEventListener('click', function () {
+    paintLockScreen();
+    buildOverlays();
+  });
+  document.getElementById('btn-log').addEventListener('click', function () {
+    console.log('== lockScreenRules plan ==', window.__lastRulesPlan);
+    window.__lastRulesPlan.components.forEach(function (c) {
+      console.log('  ' + c.role + ' @', c.position);
+    });
+  });
+</script>
+</body>
+</html>
