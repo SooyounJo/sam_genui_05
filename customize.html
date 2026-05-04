@@ -16,6 +16,7 @@
     --positive:  #34D399;
     --warning:   #F59E0B;
     --font:      -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    --preview-bg: #2f6264;
   }
   /* Theme variable defaults — overridden in real-time by the dropdown.
      Mirrors figma-refs/themes.json#default. */
@@ -29,6 +30,7 @@
     --surface-overlay-opacity: 0;
     --surface-bg-size: auto;
     --surface-animation: none;
+    --qs-tile-bg: rgba(23,23,26,0.80);
     --card-radius: 36px;
     --card-padding-v: 14px;
     --card-padding-h: 16px;
@@ -144,6 +146,33 @@
     outline: 2px solid var(--primary, #0381FE);
     outline-offset: 3px;
   }
+  .flat-scheme-toggle {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding-left: 4px;
+  }
+  .flat-scheme-toggle.visible { display: inline-flex; }
+  .flat-scheme-toggle .scheme-label {
+    font-size: 12.5px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .flat-scheme-btn {
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: var(--panel-2);
+    color: var(--text-2);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .flat-scheme-btn[aria-pressed="true"] {
+    background: var(--primary);
+    color: #fff;
+    border-color: transparent;
+  }
   select.theme-select {
     background: var(--panel-2); color: var(--text);
     border: 1px solid var(--border); border-radius: 8px;
@@ -180,8 +209,8 @@
      edits and their visual effect are visible at the same time. */
   .layout-row {
     display: grid;
-    grid-template-columns: minmax(380px, 460px) 1fr;
-    gap: 24px;
+    grid-template-columns: minmax(300px, 360px) 1fr;
+    gap: 18px;
     align-items: start;
   }
   .editor-col {
@@ -193,10 +222,10 @@
   }
   .preview-col {
     min-width: 0;          /* lets the grid shrink children */
-    background: var(--preview-bg, #539699);
+    background: var(--preview-bg, #2f6264);
     border: 1px solid rgba(255, 255, 255, 0.055);
     border-radius: 28px;
-    padding: 24px;
+    padding: 18px;
   }
   @media (max-width: 1080px) {
     /* Stack vertically on narrow screens — editor first, preview after. */
@@ -206,8 +235,8 @@
 
   .preview-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(415px, 1fr));
-    gap: 22px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
     position: relative;
     padding: 0;
   }
@@ -443,9 +472,14 @@
 <div class="toolbar">
   <label>Theme</label>
   <select id="theme-select" class="theme-select"></select>
+  <div class="flat-scheme-toggle" id="flat-scheme-toggle" aria-label="Flat theme color scheme">
+    <span class="scheme-label">Flat</span>
+    <button type="button" class="flat-scheme-btn" data-flat-scheme="dark" aria-pressed="true">블랙 배경</button>
+    <button type="button" class="flat-scheme-btn" data-flat-scheme="light" aria-pressed="false">화이트 배경</button>
+  </div>
   <div class="preview-bg-swatches" id="preview-bg-swatches" aria-label="Preview background colors">
     <span class="swatch-label">Preview BG</span>
-    <button type="button" class="preview-bg-swatch" data-preview-bg="#539699" style="--swatch:#539699" aria-label="민트 배경" aria-pressed="true"></button>
+    <button type="button" class="preview-bg-swatch" data-preview-bg="#2f6264" style="--swatch:#2f6264" aria-label="다크 민트 배경" aria-pressed="true"></button>
     <button type="button" class="preview-bg-swatch" data-preview-bg="#6f7478" style="--swatch:#6f7478" aria-label="그레이 배경" aria-pressed="false"></button>
     <button type="button" class="preview-bg-swatch" data-preview-bg="#0a0a0c" style="--swatch:#0a0a0c" aria-label="블랙 배경" aria-pressed="false"></button>
     <button type="button" class="preview-bg-swatch" data-preview-bg="#f4f5f6" style="--swatch:#f4f5f6" aria-label="화이트 배경" aria-pressed="false"></button>
@@ -592,19 +626,22 @@ const PREVIEW_CARDS = [
   }
 ];
 
+const TOOLKIT_PREVIEW_SCALE = 0.62;
+
 function previewRectForCard(card) {
   const role = card && card.role;
   const variant = (card && card.variant) || {};
-  if (role === 'now-bar' && variant.type === 'charging') return { w: 248, h: 64, scale: 1 };
-  if (role === 'now-bar' && variant.type === 'single-line') return { w: 381, h: 58, scale: 1 };
-  if (role === 'now-bar') return { w: 248, h: 64, scale: 1 };
-  if (role === 'notif-card' || role === 'notif-card-ai') return { w: 415, h: 86, scale: 1 };
-  if (role === 'toggle-chip') return { w: 408, h: 88, scale: 1 };
-  if (role === 'action-row') return { w: 415, h: 345, scale: 1 };
-  if (role === 'focus-block' && variant.kind === 'weather') return { w: 415, h: 218, scale: 1 };
-  if (role === 'focus-block' && variant.kind === 'input') return { w: 415, h: 150, scale: 1 };
-  if (role === 'focus-block') return { w: 415, h: 135, scale: 1 };
-  return { w: 415, h: 120, scale: 1 };
+  if (role === 'now-bar' && variant.type === 'charging') return { w: 248, h: 64, scale: TOOLKIT_PREVIEW_SCALE };
+  if (role === 'now-bar' && variant.type === 'single-line') return { w: 381, h: 58, scale: TOOLKIT_PREVIEW_SCALE };
+  if (role === 'now-bar') return { w: 248, h: 64, scale: TOOLKIT_PREVIEW_SCALE };
+  if (role === 'notif-card' || role === 'notif-card-ai') return { w: 415, h: 86, scale: TOOLKIT_PREVIEW_SCALE };
+  if (role === 'toggle-chip') return { w: 408, h: 88, scale: TOOLKIT_PREVIEW_SCALE };
+  if (role === 'action-row') return { w: 415, h: 345, scale: TOOLKIT_PREVIEW_SCALE };
+  if (role === 'focus-block' && variant.kind === 'weather') return { w: 415, h: 218, scale: TOOLKIT_PREVIEW_SCALE };
+  if (role === 'focus-block' && variant.kind === 'calendar') return { w: 300, h: 128, scale: TOOLKIT_PREVIEW_SCALE };
+  if (role === 'focus-block' && variant.kind === 'input') return { w: 300, h: 124, scale: TOOLKIT_PREVIEW_SCALE };
+  if (role === 'focus-block') return { w: 300, h: 112, scale: TOOLKIT_PREVIEW_SCALE };
+  return { w: 415, h: 120, scale: TOOLKIT_PREVIEW_SCALE };
 }
 
 // ---------------------------------------------------------------------------
@@ -728,8 +765,40 @@ var _SURFACE_THEME_KEYS = [
   '--surface-overlay-opacity',
   '--surface-bg-size',
   '--surface-animation',
+  '--qs-tile-bg',
   '--oneui-chroma'
 ];
+var FLAT_SCHEME = 'dark';
+var FLAT_ACCENT = '#0381FE';
+var FLAT_ACCENT_KEYS = [
+  '--accent-primary',
+  '--card-weather-accent',
+  '--card-calendar-accent',
+  '--card-reminder-accent',
+  '--card-message-avatar-grad',
+  '--card-eta-accent',
+  '--card-nav-accent'
+];
+var FLAT_SCHEME_VARS = {
+  dark: {
+    '--text-primary': '#f2f2f4',
+    '--text-secondary': 'rgba(242,242,244,0.68)',
+    '--text-tertiary': 'rgba(242,242,244,0.44)',
+    '--surface-bg': 'rgba(23,23,26,0.80)',
+    '--surface-border': '1px solid rgba(255,255,255,0.06)',
+    '--card-ai-grad': 'rgba(23,23,26,0.80)',
+    '--card-nav-arrow-bg': 'rgba(3,129,254,0.22)'
+  },
+  light: {
+    '--text-primary': '#0a0a0c',
+    '--text-secondary': 'rgba(10,10,12,0.68)',
+    '--text-tertiary': 'rgba(10,10,12,0.44)',
+    '--surface-bg': 'rgba(255,255,255,0.80)',
+    '--surface-border': '1px solid rgba(0,0,0,0.08)',
+    '--card-ai-grad': 'rgba(255,255,255,0.80)',
+    '--card-nav-arrow-bg': 'rgba(3,129,254,0.18)'
+  }
+};
 
 function _styleChainHas(el, root, sub) {
   if (!sub || !el || !root) return false;
@@ -950,6 +1019,57 @@ function showToast(msg) {
   t._t = setTimeout(() => t.classList.remove('show'), 1500);
 }
 
+function isFlatThemeActive() {
+  return (getComputedStyle(document.documentElement).getPropertyValue('--oneui-theme-style') || '').trim().toLowerCase() === 'flat';
+}
+
+function solidForGradientValue(value) {
+  var v = String(value || '').toLowerCase();
+  var styles = getComputedStyle(document.documentElement);
+  var accent = (styles.getPropertyValue('--accent-primary') || FLAT_ACCENT).trim();
+  var surface = (styles.getPropertyValue('--surface-bg') || 'rgba(23,23,26,0.80)').trim();
+  if (v.indexOf('98dfa9') >= 0 || v.indexOf('31ce8a') >= 0 || v.indexOf('3bd18b') >= 0) return accent;
+  return surface;
+}
+
+function stripGradientsForFlat(root) {
+  if (!root || !isFlatThemeActive()) return;
+  const nodes = [root].concat(Array.from(root.querySelectorAll('[style]')));
+  nodes.forEach(function (el) {
+    var css = el.getAttribute('style') || '';
+    if (!/gradient\(/i.test(css)) return;
+    var isGradientText = /background-clip\s*:\s*text|-webkit-background-clip\s*:\s*text/i.test(css);
+    if (isGradientText) {
+      el.style.background = 'transparent';
+      el.style.backgroundImage = 'none';
+      el.style.color = 'var(--accent-primary, ' + FLAT_ACCENT + ')';
+      el.style.webkitTextFillColor = 'var(--accent-primary, ' + FLAT_ACCENT + ')';
+      el.style.webkitBackgroundClip = 'initial';
+      el.style.backgroundClip = 'initial';
+      return;
+    }
+    var bg = el.style.background || el.style.backgroundImage || css;
+    if (/gradient\(/i.test(bg)) {
+      el.style.background = solidForGradientValue(bg);
+      el.style.backgroundImage = 'none';
+    }
+  });
+}
+
+function normalizeFlatTextForScheme(root) {
+  if (!root || !isFlatThemeActive()) return;
+  var textPrimary = (getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '').trim().toLowerCase();
+  if (!/^#?0a0a0c$|^#?000/.test(textPrimary)) return;
+  const nodes = [root].concat(Array.from(root.querySelectorAll('[style]')));
+  nodes.forEach(function (el) {
+    if (el.closest && el.closest('svg')) return;
+    var css = el.getAttribute('style') || '';
+    if (!/color\s*:\s*(#fff|#ffffff|rgba\(255\s*,\s*255\s*,\s*255)/i.test(css)) return;
+    el.style.color = 'var(--text-primary,#0a0a0c)';
+    if (/webkit-text-fill-color/i.test(css)) el.style.webkitTextFillColor = 'var(--text-primary,#0a0a0c)';
+  });
+}
+
 // Apply a theme's vars to :root in real-time — drives both the customize
 // page's preview cells AND the toolbar surfaces. We override declaratively
 // by setting each var on documentElement.style.
@@ -972,6 +1092,44 @@ function applyThemeVars(vars) {
   if (vars && vars['--page-bg']) root.style.setProperty('--pg-bg', vars['--page-bg']);
   if (vars && vars['--text-primary']) root.style.setProperty('--text', vars['--text-primary']);
   if (vars && vars['--accent-primary']) root.style.setProperty('--primary', vars['--accent-primary']);
+}
+
+function flatSchemeVars(scheme) {
+  var base = Object.assign({
+    '--oneui-theme-style': 'flat',
+    '--surface-shadow': 'none',
+    '--surface-filter': 'blur(24px)',
+    '--surface-overlay': 'transparent',
+    '--surface-overlay-opacity': '0',
+    '--surface-bg-size': 'auto',
+    '--surface-animation': 'none',
+    '--card-ai-shimmer-speed': '0s'
+  }, FLAT_SCHEME_VARS[scheme] || FLAT_SCHEME_VARS.dark);
+  FLAT_ACCENT_KEYS.forEach(function (key) { base[key] = FLAT_ACCENT; });
+  return base;
+}
+
+function setFlatScheme(scheme, markUnsaved) {
+  FLAT_SCHEME = scheme === 'light' ? 'light' : 'dark';
+  var vars = flatSchemeVars(FLAT_SCHEME);
+  Object.keys(vars).forEach(function (key) {
+    document.documentElement.style.setProperty(key, vars[key]);
+  });
+  document.documentElement.style.setProperty('--primary', vars['--accent-primary']);
+  updateFlatSchemeToggle();
+  renderPreviewGrid();
+  buildEditorBody();
+  if (markUnsaved) _markUnsaved(true);
+}
+
+function updateFlatSchemeToggle() {
+  var wrap = document.getElementById('flat-scheme-toggle');
+  if (!wrap) return;
+  var visible = isFlatThemeActive();
+  wrap.classList.toggle('visible', visible);
+  wrap.querySelectorAll('.flat-scheme-btn').forEach(function (btn) {
+    btn.setAttribute('aria-pressed', btn.getAttribute('data-flat-scheme') === FLAT_SCHEME ? 'true' : 'false');
+  });
 }
 
 // Render every preview card using window.renderAtomicForRole. Called once
@@ -1024,6 +1182,8 @@ function renderPreviewGrid() {
       cardRoot.style.maxWidth = 'none';
       cardRoot.style.flex = 'none';
     }
+    stripGradientsForFlat(stage);
+    normalizeFlatTextForScheme(stage);
     stage.title = 'Double-click inside the card to inspect a part (Figma-style)';
     cell.appendChild(name);
     cell.appendChild(stage);
@@ -1079,6 +1239,9 @@ function _readVar(key) {
 }
 
 function _writeVar(key, value) {
+  if (isFlatThemeActive() && _isCssGradient(value)) {
+    value = solidForGradientValue(value);
+  }
   var idx = SELECTED_PREVIEW_INDEX;
   if (idx != null && idx >= 0) {
     if (!PREVIEW_CELL_VAR_OVERRIDES[idx]) PREVIEW_CELL_VAR_OVERRIDES[idx] = {};
@@ -1440,6 +1603,8 @@ function discardChanges() {
     section.vars.forEach(v => document.documentElement.style.removeProperty(v.key));
   });
   applyThemeVars(theme.vars);
+  if (isFlatThemeActive()) setFlatScheme(FLAT_SCHEME, false);
+  else updateFlatSchemeToggle();
   buildEditorBody();   // refresh inputs to reflect current values
   renderPreviewGrid();
   _markUnsaved(false);
@@ -1490,6 +1655,8 @@ function updateOnSelect(id, applyServer) {
     section.vars.forEach(v => document.documentElement.style.removeProperty(v.key));
   });
   applyThemeVars(theme.vars);
+  if (isFlatThemeActive()) setFlatScheme(FLAT_SCHEME, false);
+  else updateFlatSchemeToggle();
   $('active-pill').textContent = (theme.id === ACTIVE_ID ? 'Active · ' : 'Preview · ') + theme.name;
   // Re-render preview so any cards that compute color from vars at render
   // time pick up the new values.
@@ -1514,6 +1681,12 @@ $('theme-select').addEventListener('change', (e) => {
     showToast('\ubbf8\ub9ac\ubcf4\uae30 \ud14c\ub9c8: ' + picked.name);
   }
   _markUnsaved(false);
+});
+
+document.getElementById('flat-scheme-toggle')?.addEventListener('click', function (e) {
+  var btn = e.target.closest && e.target.closest('.flat-scheme-btn');
+  if (!btn || !this.contains(btn) || !isFlatThemeActive()) return;
+  setFlatScheme(btn.getAttribute('data-flat-scheme'), true);
 });
 
 document.getElementById('preview-bg-swatches')?.addEventListener('click', function (e) {

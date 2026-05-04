@@ -922,6 +922,19 @@ function _G(tier) {
       'border:1px solid rgba(255,255,255,0.12);' +
       'box-shadow:none;';
   }
+  if (_themeSurfaceStyleRoot() === 'flat') {
+    return 'background:var(--surface-bg, rgba(23,23,26,0.80));' +
+      '-webkit-backdrop-filter:var(--surface-filter, blur(24px));backdrop-filter:var(--surface-filter, blur(24px));' +
+      'border:var(--surface-border, 1px solid rgba(255,255,255,0.06));' +
+      'box-shadow:var(--surface-shadow, none);';
+  }
+  if (_themeSurfaceStyleRoot() === 'glass') {
+    return 'background:var(--surface-overlay, transparent), var(--surface-bg, rgba(255,255,255,0.10));' +
+      'background-size:var(--surface-bg-size, 160% 160%);' +
+      '-webkit-backdrop-filter:var(--surface-filter, blur(42px) saturate(1.55));backdrop-filter:var(--surface-filter, blur(42px) saturate(1.55));' +
+      'border:var(--surface-border, 1px solid rgba(255,255,255,0.34));' +
+      'box-shadow:var(--surface-shadow, inset 0 1px 0 rgba(255,255,255,0.46), 0 22px 60px rgba(0,0,0,0.30));';
+  }
   var fallback = tier === 'widgetPill'
     ? 'rgba(23,23,26,0.6)'
     : 'color-mix(in srgb, var(--page-bg,#171717) 68%, transparent)';
@@ -1338,6 +1351,9 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
 
       var STYLES = ['dark', 'light', 'ai-dark', 'ai-light'];
       var sbStyle = sbv.style || STYLES[Math.floor(Math.random() * STYLES.length)];
+      if (_themeSurfaceStyleRoot() === 'flat' && (sbStyle === 'ai-dark' || sbStyle === 'ai-light')) {
+        sbStyle = 'dark';
+      }
 
       // Common shell: 30px rounded pill, px-20 py-17, flex justify-between
       // with 24px mic icon on the right. Background + text color vary.
@@ -1460,7 +1476,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         // Build time + cal-icon row
         var timeRow = '<div style="display:flex;align-items:center;gap:' + _S('md') + ';">' +
           '<div style="width:18px;height:18px;flex-shrink:0;opacity:0.9;">' + calIcon + '</div>' +
-          (cTime ? '<div style="font-family:var(--font);font-size:var(--card-calendar-time-size,22px);font-weight:var(--card-calendar-time-weight,600);line-height:1;color:var(--text-primary,#fff);letter-spacing:-0.3px;">' + cTime + '</div>' : '') +
+          (cTime ? '<div style="font-family:var(--font);font-size:min(var(--card-calendar-time-size,22px),20px);font-weight:var(--card-calendar-time-weight,600);line-height:1;color:var(--text-primary,#fff);letter-spacing:-0.25px;">' + cTime + '</div>' : '') +
         '</div>';
         // Location row with pin
         var locRow = cLocation
@@ -1469,14 +1485,14 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
               '<div style="' + _T('caption', { color: 'translucentLabel' }) + '">' + cLocation + '</div>' +
             '</div>'
           : '';
-        return '<div style="width:100%;min-height:86px;height:100%;border-radius:var(--card-radius,' + _R('widget') + ');' +
+        return '<div style="width:100%;min-height:120px;height:100%;border-radius:18px;' +
           _G('panel') +
-          'padding:15px 20px 15px 16px;box-sizing:border-box;' +
-          'display:flex;flex-direction:column;justify-content:center;gap:var(--card-gap,6px);overflow:hidden;position:relative;">' +
-          '<div style="position:relative;z-index:1;display:flex;flex-direction:column;gap:var(--card-gap,8px);height:100%;">' +
+          'padding:16px 20px;box-sizing:border-box;' +
+          'display:flex;flex-direction:column;justify-content:center;gap:7px;overflow:hidden;position:relative;">' +
+          '<div style="position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:7px;min-height:0;">' +
             headerRow +
             timeRow +
-            '<div style="' + _T('title', { weight: 'semibold' }) + 'line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + cTitle + '</div>' +
+            '<div style="' + _T('body', { weight: 'semibold' }) + 'line-height:1.22;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;">' + cTitle + '</div>' +
             locRow +
           '</div>' +
         '</div>';
@@ -1511,7 +1527,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         // chip can compress before overflowing.
         var facetHtml = !useChipRow ? '' :
           iFacets.slice(0, 4).map(function (f) {
-            return '<span style="padding:4px 10px;background:rgba(255,255,255,0.1);border-radius:14px;' +
+            return '<span style="padding:4px 9px;background:rgba(255,255,255,0.1);border-radius:14px;' +
               _T('caption', { weight: 'medium' }) +
               'max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1;">' + f + '</span>';
           }).join('');
@@ -1519,10 +1535,10 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         // as a 2-line clamped paragraph. Keeps the info accessible even
         // if it can't fit as chips.
         var detailLine = iDetail || (hasLongFacet ? iFacets.join(' · ') : '');
-        return '<div style="width:100%;min-height:150px;height:100%;border-radius:var(--card-radius,' + _R('widget') + ');' +
+        return '<div style="width:100%;min-height:116px;height:100%;border-radius:18px;' +
           _G('panel') +
-          'padding:15px 20px 15px 16px;box-sizing:border-box;' +
-          'display:flex;flex-direction:column;justify-content:center;gap:6px;overflow:hidden;">' +
+          'padding:16px 20px;box-sizing:border-box;' +
+          'display:flex;flex-direction:column;justify-content:center;gap:7px;overflow:hidden;">' +
           // Header: form-icon + section
           '<div style="display:flex;align-items:center;gap:' + _S('md') + ';">' +
             '<div style="width:18px;height:18px;flex-shrink:0;opacity:0.85;">' + formIcon + '</div>' +
@@ -1530,12 +1546,12 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           '</div>' +
           // Body: topic (large) — what the user input was about
           (iTopic
-            ? '<div style="font-size:var(--card-input-topic-size,20px);font-weight:600;line-height:1.2;color:var(--text-primary,#fff);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px;">' + iTopic + '</div>'
+            ? '<div style="font-size:min(var(--card-input-topic-size,20px),18px);font-weight:600;line-height:1.2;color:var(--text-primary,#fff);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px;">' + iTopic + '</div>'
             : '') +
           // Footer: chip row when all facets are short, otherwise a
           // 2-line clamped detail paragraph.
           (useChipRow
-            ? '<div style="display:flex;gap:' + _S('xs') + ';flex-wrap:wrap;overflow:hidden;max-width:100%;margin-top:2px;">' + facetHtml + '</div>'
+            ? '<div style="display:flex;gap:' + _S('xs') + ';flex-wrap:wrap;overflow:hidden;max-width:100%;margin-top:0;">' + facetHtml + '</div>'
             : (detailLine
               ? '<div style="' + _T('label', { color: 'translucentLabel' }) + 'line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + detailLine + '</div>'
               : '')) +
@@ -1557,17 +1573,17 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           '<circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>' +
           '<path d="M12 7v5l3 2" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"/>' +
         '</svg>';
-        return '<div style="width:100%;min-height:86px;height:100%;border-radius:var(--card-radius,' + _R('widget') + ');' +
+        return '<div style="width:100%;min-height:104px;height:100%;border-radius:18px;' +
           _G('panel') +
-          'padding:15px 20px 15px 16px;box-sizing:border-box;' +
-          'display:flex;flex-direction:column;justify-content:center;gap:var(--card-gap,6px);overflow:hidden;">' +
+          'padding:16px 20px;box-sizing:border-box;' +
+          'display:flex;flex-direction:column;justify-content:center;gap:7px;overflow:hidden;">' +
           // Header: checkbox + section
           '<div style="display:flex;align-items:center;gap:' + _S('md') + ';">' +
             '<div style="width:18px;height:18px;flex-shrink:0;">' + checkBox + '</div>' +
             '<div style="' + _T('micro', { color: 'translucentLabel' }) + 'letter-spacing:0.4px;text-transform:uppercase;">' + rSection + '</div>' +
           '</div>' +
           // Task title
-          '<div style="font-size:var(--card-reminder-task-size,16px);font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--text-primary,#fff);">' + rTask + '</div>' +
+          '<div style="font-size:min(var(--card-reminder-task-size,16px),15px);font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--text-primary,#fff);">' + rTask + '</div>' +
           // Due time row
           (rDue
             ? '<div style="display:flex;align-items:center;gap:' + _S('xs') + ';">' +
@@ -1588,18 +1604,18 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         // bubble glyph when no sender)
         var avatarLetter = mSender ? mSender.charAt(0).toUpperCase() : '';
         var avatar = avatarLetter
-          ? '<div style="width:var(--card-message-avatar-size,32px);height:var(--card-message-avatar-size,32px);border-radius:50%;background:var(--card-message-avatar-grad,linear-gradient(135deg,#34D399,#10B981));display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);font-weight:600;font-size:14px;flex-shrink:0;">' + avatarLetter + '</div>'
-          : '<div style="width:var(--card-message-avatar-size,32px);height:var(--card-message-avatar-size,32px);border-radius:50%;background:var(--card-message-avatar-grad,linear-gradient(135deg,#34D399,#10B981));display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+          ? '<div style="width:min(var(--card-message-avatar-size,32px),28px);height:min(var(--card-message-avatar-size,32px),28px);border-radius:50%;background:var(--card-message-avatar-grad,linear-gradient(135deg,#34D399,#10B981));display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);font-weight:600;font-size:12px;flex-shrink:0;">' + avatarLetter + '</div>'
+          : '<div style="width:min(var(--card-message-avatar-size,32px),28px);height:min(var(--card-message-avatar-size,32px),28px);border-radius:50%;background:var(--card-message-avatar-grad,linear-gradient(135deg,#34D399,#10B981));display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
               '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12a8 8 0 1 1-3.5-6.6L21 4l-1.4 3.5A8 8 0 0 1 21 12z" fill="#fff"/></svg>' +
             '</div>';
-        return '<div style="width:100%;min-height:86px;height:100%;border-radius:var(--card-radius,' + _R('widget') + ');' +
+        return '<div style="width:100%;min-height:104px;height:100%;border-radius:18px;' +
           _G('panel') +
-          'padding:15px 20px 15px 16px;box-sizing:border-box;' +
-          'display:flex;flex-direction:column;justify-content:center;gap:var(--card-gap,6px);overflow:hidden;">' +
+          'padding:16px 20px;box-sizing:border-box;' +
+          'display:flex;flex-direction:column;justify-content:center;gap:7px;overflow:hidden;">' +
           // Header
           '<div style="' + _T('micro', { color: 'translucentLabel' }) + 'letter-spacing:0.4px;text-transform:uppercase;">' + mSection + '</div>' +
           // Body: avatar + (sender + preview)
-          '<div style="display:flex;align-items:flex-start;gap:' + _S('lg') + ';">' +
+          '<div style="display:flex;align-items:flex-start;gap:10px;">' +
             avatar +
             '<div style="flex:1;min-width:0;">' +
               (mSender
@@ -1631,14 +1647,14 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           '<path d="M12 22s7-7.58 7-13a7 7 0 0 0-14 0c0 5.42 7 13 7 13z" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" fill="none"/>' +
           '<circle cx="12" cy="9" r="2.2" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>' +
         '</svg>';
-        return '<div style="width:100%;min-height:86px;height:100%;border-radius:var(--card-radius,' + _R('widget') + ');' +
+        return '<div style="width:100%;min-height:104px;height:100%;border-radius:18px;' +
           _G('panel') +
-          'padding:15px 20px 15px 16px;box-sizing:border-box;' +
-          'display:flex;flex-direction:column;justify-content:center;gap:var(--card-gap,6px);overflow:hidden;">' +
+          'padding:16px 20px;box-sizing:border-box;' +
+          'display:flex;flex-direction:column;justify-content:center;gap:7px;overflow:hidden;">' +
           // Top: car icon + huge ETA
           '<div style="display:flex;align-items:center;gap:' + _S('lg') + ';">' +
-            '<div style="width:var(--card-eta-icon-size,32px);height:var(--card-eta-icon-size,32px);flex-shrink:0;">' + carIcon + '</div>' +
-            '<div style="font-family:var(--font);font-size:var(--card-eta-size,40px);font-weight:600;line-height:1;color:var(--text-primary,#fff);letter-spacing:-1px;">' + eEta + '</div>' +
+            '<div style="width:min(var(--card-eta-icon-size,32px),24px);height:min(var(--card-eta-icon-size,32px),24px);flex-shrink:0;">' + carIcon + '</div>' +
+            '<div style="font-family:var(--font);font-size:min(var(--card-eta-size,40px),30px);font-weight:600;line-height:1;color:var(--text-primary,#fff);letter-spacing:-0.7px;">' + eEta + '</div>' +
           '</div>' +
           // Mid: destination
           (eDestination
@@ -1763,7 +1779,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           wBgStyle = 'background:linear-gradient(180deg,rgba(111,111,117,0.86) 0%,rgba(155,155,160,0.78) 100%), color-mix(in srgb, var(--page-bg,#171717) 26%, transparent);-webkit-backdrop-filter:blur(18px) saturate(1.12);backdrop-filter:blur(18px) saturate(1.12);border:1px solid rgba(255,255,255,0.18);box-shadow:inset 0 1px 0 rgba(255,255,255,0.22), var(--surface-shadow, none);';
         } else if (themeSurface === 'base' || themeSurface === 'flat') {
           wBgStyle = themeSurface === 'flat'
-            ? 'background:rgba(79,149,220,0.82);-webkit-backdrop-filter:blur(18px) saturate(1.12);backdrop-filter:blur(18px) saturate(1.12);border:1px solid rgba(255,255,255,0.18);box-shadow:inset 0 1px 0 rgba(255,255,255,0.20), 0 14px 34px rgba(30,93,160,0.22);'
+            ? 'background:var(--surface-bg, rgba(23,23,26,0.80));-webkit-backdrop-filter:var(--surface-filter, blur(24px));backdrop-filter:var(--surface-filter, blur(24px));border:var(--surface-border, 1px solid rgba(255,255,255,0.06));box-shadow:var(--surface-shadow, none);'
             : 'background:linear-gradient(180deg,rgba(63,136,221,0.86) 0%,rgba(112,177,230,0.78) 100%), color-mix(in srgb, var(--page-bg,#171717) 28%, transparent);-webkit-backdrop-filter:blur(18px) saturate(1.16);backdrop-filter:blur(18px) saturate(1.16);border:1px solid rgba(255,255,255,0.20);box-shadow:inset 0 1px 0 rgba(255,255,255,0.24), 0 18px 42px rgba(30,93,160,0.28);';
         } else {
           wBgStyle = _G('panel');
@@ -1772,7 +1788,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           wBgStyle +
           'padding:20px 24px 18px;box-sizing:border-box;color:#fff;' +
           'display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;overflow:hidden;position:relative;font-family:var(--font);">' +
-          '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.18),transparent 42%,rgba(0,0,0,0.08));pointer-events:none;"></div>' +
+          (themeSurface === 'flat' ? '' : '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.18),transparent 42%,rgba(0,0,0,0.08));pointer-events:none;"></div>') +
           '<div style="position:absolute;inset:1px;border-radius:calc(var(--card-radius,' + _R('widget') + ') - 1px);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08);pointer-events:none;"></div>' +
           '<div style="position:relative;z-index:1;grid-column:1;grid-row:1;display:flex;flex-direction:column;align-items:flex-start;">' +
             '<div style="font-size:32px;font-weight:700;line-height:0.95;letter-spacing:-1px;text-shadow:0 1px 3px rgba(0,0,0,0.16);">' + wTemp + '</div>' +
@@ -1992,13 +2008,13 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         '</div>';
       }
       function panelPill(icon, label, dot) {
-        return '<div style="height:44px;border-radius:28px;background:rgba(10,10,12,0.86);display:flex;align-items:center;justify-content:center;gap:12px;color:rgba(239,238,242,0.58);font-size:15px;font-weight:500;position:relative;">' +
-          PANEL_ICONS[icon] +
-          '<span>' + label + '</span>' +
-          (dot ? '<span style="position:absolute;right:36px;top:12px;width:6px;height:6px;border-radius:50%;background:#E65B17;"></span>' : '') +
+        return '<div style="height:44px;border-radius:28px;background:rgba(10,10,12,0.86);display:flex;align-items:center;justify-content:center;gap:12px;color:rgba(239,238,242,0.58);font-size:15px;font-weight:500;line-height:1;position:relative;">' +
+          '<span style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;flex:none;">' + PANEL_ICONS[icon] + '</span>' +
+          '<span style="display:inline-flex;align-items:center;justify-content:center;line-height:1;white-space:nowrap;">' + label + '</span>' +
+          (dot ? '<span style="position:absolute;right:36px;top:50%;transform:translateY(-11px);width:6px;height:6px;border-radius:50%;background:#E65B17;"></span>' : '') +
         '</div>';
       }
-      return '<div style="width:415px;height:345px;display:flex;flex-direction:column;align-items:center;padding:24px;gap:20px;box-sizing:border-box;background:rgba(23,23,26,0.60);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border-radius:28px;color:#fff;font-family:var(--font);overflow:hidden;">' +
+      return '<div style="width:415px;height:345px;display:flex;flex-direction:column;align-items:center;padding:24px;gap:20px;box-sizing:border-box;background:var(--surface-bg, rgba(23,23,26,0.80));-webkit-backdrop-filter:var(--surface-filter, blur(24px));backdrop-filter:var(--surface-filter, blur(24px));border-radius:28px;color:var(--text-primary,#fff);font-family:var(--font);overflow:hidden;flex:none;flex-grow:0;">' +
         '<div style="width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;">' +
           shortcut('video', 'Videos') + shortcut('heart', 'Favorites') + shortcut('clock', 'Recent') + shortcut('pin', 'Locations') +
         '</div>' +
@@ -2535,7 +2551,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           '</svg>';
         return '<div style="margin:0 auto;width:248px;height:64px;flex:none;flex-grow:0;' +
           'box-sizing:border-box;display:flex;flex-direction:row;align-items:center;padding:12px 18px 12px 12px;gap:14px;' +
-          'background:rgba(23,23,26,0.60);border:1px solid rgba(255,255,255,0.12);' +
+          'background:var(--surface-bg, rgba(23,23,26,0.80));border:var(--surface-border, 1px solid rgba(255,255,255,0.12));' +
           '-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:53px;' +
           'color:#fff;font-family:var(--font);overflow:hidden;">' +
           '<div style="width:40px;height:40px;border-radius:20px;background:' + dlIconBg + ';flex:none;display:flex;align-items:center;justify-content:center;color:#000;overflow:hidden;">' +
@@ -2552,9 +2568,24 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       // Voice input — One UI voice/search pill.
       if (nbType === 'single-line') {
         var voicePrompt = nbv.prompt || nbv.placeholder || 'What are you looking for?';
-        return '<div style="margin:0 auto;width:381px;height:58px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;padding:17px 20px;gap:12px;box-sizing:border-box;background:linear-gradient(90deg,#364B6F 0%,#384247 64.81%,#2D2D30 87.17%);box-shadow:-1px 0px 4px 1px rgba(78,102,139,0.58);border-radius:30px;color:#fff;font-family:var(--font);overflow:hidden;flex:none;flex-grow:0;">' +
-          '<div style="font-size:20px;font-weight:700;line-height:1;letter-spacing:-0.85px;white-space:nowrap;overflow:visible;text-overflow:clip;background:linear-gradient(90deg,#78AFFF 0%,#31D8B3 100%);-webkit-background-clip:text;background-clip:text;color:transparent;">' + voicePrompt + '</div>' +
-          '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex:none;color:#31D8B3;">' +
+        var voiceSurface = _themeSurfaceStyleRoot();
+        var voiceIsFlat = voiceSurface === 'flat';
+        var voiceIsGlass = voiceSurface === 'glass';
+        var voiceBg = voiceIsFlat
+          ? 'var(--surface-bg, rgba(23,23,26,0.80))'
+          : (voiceIsGlass
+            ? 'radial-gradient(circle at 14% 0%,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.045) 30%,transparent 58%), linear-gradient(90deg,rgba(102,161,243,0.28) 0%,rgba(34,201,166,0.18) 58%,rgba(255,255,255,0.04) 100%), rgba(23,23,26,0.18)'
+            : 'linear-gradient(90deg,#364B6F 0%,#384247 64.81%,#2D2D30 87.17%)');
+        var voiceTextStyle = voiceIsFlat
+          ? 'color:var(--accent-primary,#0381FE);'
+          : 'background:linear-gradient(90deg,#78AFFF 0%,#31D8B3 100%);-webkit-background-clip:text;background-clip:text;color:transparent;';
+        var voiceIconColor = voiceIsFlat ? 'var(--accent-primary,#0381FE)' : '#31D8B3';
+        var voiceChrome = voiceIsGlass
+          ? 'border:1px solid rgba(255,255,255,0.16);-webkit-backdrop-filter:blur(42px) saturate(1.45) brightness(1.02);backdrop-filter:blur(42px) saturate(1.45) brightness(1.02);box-shadow:inset 0 1px 0 rgba(255,255,255,0.20), inset 0 -1px 0 rgba(255,255,255,0.035), 0 18px 42px rgba(0,0,0,0.24);'
+          : 'box-shadow:-1px 0px 4px 1px rgba(78,102,139,0.58);';
+        return '<div style="margin:0 auto;width:381px;height:58px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;padding:17px 20px;gap:12px;box-sizing:border-box;background:' + voiceBg + ';' + voiceChrome + 'border-radius:30px;color:#fff;font-family:var(--font);overflow:hidden;flex:none;flex-grow:0;">' +
+          '<div style="font-size:17px;font-weight:700;line-height:1.05;letter-spacing:-0.55px;white-space:nowrap;overflow:visible;text-overflow:clip;' + voiceTextStyle + '">' + voicePrompt + '</div>' +
+          '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex:none;color:' + voiceIconColor + ';">' +
             '<rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="2" fill="none"/>' +
             '<path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>' +
           '</svg>' +
@@ -2563,20 +2594,32 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
 
       if (nbType === 'charging') {
         var percent = nbv.percent != null ? nbv.percent : 69;
-        var chargeFill = _isMonoChromaRoot()
-          ? 'linear-gradient(90deg,#d5d5d5 0%,#aaaaae 35.93%,#78787d 100%)'
-          : 'linear-gradient(90deg,#98DFA9 0%,#3BD18B 35.93%,#2E979F 100%)';
-        var chargeSubtract = _isMonoChromaRoot()
-          ? 'linear-gradient(90deg,#d8d8dc 0%,#a8a8ad 28.87%,#77777c 100%)'
-          : 'linear-gradient(90deg,#9BDCA9 0%,#31CE8A 28.87%,#2F989F 100%)';
+        var chargeSurface = _themeSurfaceStyleRoot();
+        var chargeIsFlat = chargeSurface === 'flat';
+        var chargeIsGlass = chargeSurface === 'glass';
+        var chargeFill = chargeIsFlat
+          ? 'var(--accent-primary,#0381FE)'
+          : (_isMonoChromaRoot()
+            ? 'linear-gradient(90deg,#d5d5d5 0%,#aaaaae 35.93%,#78787d 100%)'
+            : 'linear-gradient(90deg,#98DFA9 0%,#3BD18B 35.93%,#2E979F 100%)');
+        var chargeSubtract = chargeIsFlat
+          ? 'var(--accent-primary,#0381FE)'
+          : (_isMonoChromaRoot()
+            ? 'linear-gradient(90deg,#d8d8dc 0%,#a8a8ad 28.87%,#77777c 100%)'
+            : 'linear-gradient(90deg,#9BDCA9 0%,#31CE8A 28.87%,#2F989F 100%)');
+        var chargeMotionStyle = chargeIsFlat ? '' : 'background-size:180% 100%;animation:oneuiSurfaceShift 3.8s ease-in-out infinite alternate;';
+        var chargeShimmer = chargeIsFlat ? '' : '<div style="position:absolute;width:157px;height:76px;left:-0.5px;bottom:0;background:linear-gradient(110deg,transparent 0%,transparent 34%,rgba(255,255,255,0.28) 50%,transparent 66%,transparent 100%);background-size:260% 100%;animation:aiShimmer 2.8s linear infinite;mix-blend-mode:screen;opacity:0.7;z-index:1;pointer-events:none;"></div>';
+        var chargeShell = chargeIsGlass
+          ? _G('panel')
+          : 'background:var(--surface-bg, rgba(23,23,26,0.80));-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);';
         return '<div style="margin:0 auto;width:248px;height:64px;max-width:100%;' +
           'display:flex;flex-direction:row;align-items:center;padding:12px 18px 12px 12px;gap:14px;' +
           'isolation:isolate;position:relative;overflow:hidden;box-sizing:border-box;' +
-          'background:rgba(23,23,26,0.60);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);' +
+          chargeShell +
           'border-radius:53px;color:#fff;font-family:var(--font);">' +
-          '<div style="position:absolute;width:157px;height:76px;left:-0.5px;bottom:0;background:' + chargeFill + ';background-size:180% 100%;animation:oneuiSurfaceShift 3.8s ease-in-out infinite alternate;z-index:0;"></div>' +
-          '<div style="position:absolute;width:154px;height:64px;left:-0.5px;top:0;background:' + chargeSubtract + ';background-size:180% 100%;animation:oneuiSurfaceShift 3.8s ease-in-out infinite alternate;z-index:0;"></div>' +
-          '<div style="position:absolute;width:157px;height:76px;left:-0.5px;bottom:0;background:linear-gradient(110deg,transparent 0%,transparent 34%,rgba(255,255,255,0.28) 50%,transparent 66%,transparent 100%);background-size:260% 100%;animation:aiShimmer 2.8s linear infinite;mix-blend-mode:screen;opacity:0.7;z-index:1;pointer-events:none;"></div>' +
+          '<div style="position:absolute;width:157px;height:76px;left:-0.5px;bottom:0;background:' + chargeFill + ';' + chargeMotionStyle + 'z-index:0;"></div>' +
+          '<div style="position:absolute;width:154px;height:64px;left:-0.5px;top:0;background:' + chargeSubtract + ';' + chargeMotionStyle + 'z-index:0;"></div>' +
+          chargeShimmer +
           '<div style="width:40px;height:40px;position:relative;z-index:1;flex:none;">' +
             '<div style="position:absolute;width:40px;height:40px;left:0;top:0;background:#5B53C8;opacity:0;border-radius:20px;"></div>' +
             '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="position:absolute;left:8px;top:8px;">' +
@@ -2748,8 +2791,12 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
             ';display:flex;align-items:center;justify-content:center;flex-shrink:0;' +
             'color:#fff;font-size:22px;font-weight:600;line-height:1;">' + ncGlyph + '</div>';
 
+      var ncSurfaceStyle = _themeSurfaceStyleRoot();
+      var ncSurface = (ncSurfaceStyle === 'glass' || ncSurfaceStyle === 'base')
+        ? _G('panel')
+        : (ncTheme === 'light' ? 'background:' + ncBg + ';' + ncBlur : 'background:var(--surface-bg, rgba(23,23,26,0.80));-webkit-backdrop-filter:var(--surface-filter, blur(48px));backdrop-filter:var(--surface-filter, blur(48px));');
       return '<div style="width:415px;height:86px;max-width:100%;' +
-        (ncTheme === 'light' ? 'background:' + ncBg + ';' + ncBlur : 'background:rgba(23,23,26,0.60);-webkit-backdrop-filter:blur(48px);backdrop-filter:blur(48px);') +
+        ncSurface +
         'border-radius:50px;padding:15px 20px 15px 16px;box-sizing:border-box;' +
         'display:flex;align-items:center;gap:10px;overflow:hidden;font-family:var(--font);">' +
         ncIconHTML +
@@ -2786,13 +2833,17 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       // Richer gradient: blue → purple → teal — three-stop AI signature.
       // Theme-driven via --card-ai-grad. Light mode keeps a stronger
       // gradient (no backdrop blur); dark mode uses a translucent one.
-      var aiGrad = aiTheme === 'light'
-        ? 'linear-gradient(120deg, rgba(102,161,243,1) 0%, rgba(167,139,250,1) 50%, rgba(34,201,166,1) 100%)'
-        : 'var(--card-ai-grad, linear-gradient(120deg, rgba(102,161,243,0.45) 0%, rgba(167,139,250,0.45) 50%, rgba(34,201,166,0.45) 100%))';
+      var aiSurface = _themeSurfaceStyleRoot();
+      var aiGrad = aiSurface === 'flat'
+        ? 'var(--card-ai-grad, var(--surface-bg, rgba(23,23,26,0.80)))'
+        : (aiTheme === 'light'
+          ? 'linear-gradient(120deg, rgba(102,161,243,1) 0%, rgba(167,139,250,1) 50%, rgba(34,201,166,1) 100%)'
+          : 'var(--card-ai-grad, linear-gradient(120deg, rgba(102,161,243,0.45) 0%, rgba(167,139,250,0.45) 50%, rgba(34,201,166,0.45) 100%))');
+      var aiSurfaceStyle = aiSurface === 'glass' ? _G('panel') : 'background:' + aiGrad + ';';
       // Shimmer overlay — animated white sweep, very subtle. Speed
       // tunable via --card-ai-shimmer-speed for theme variations.
-      var shimmer = '<div style="position:absolute;inset:0;background:linear-gradient(110deg,transparent 0%,transparent 35%,rgba(255,255,255,0.10) 50%,transparent 65%,transparent 100%);background-size:300% 100%;animation:aiShimmer var(--card-ai-shimmer-speed,3.6s) linear infinite;pointer-events:none;border-radius:inherit;"></div>';
-      return '<div style="position:relative;width:415px;height:86px;max-width:100%;background:' + aiGrad + ';border-radius:50px;padding:15px 20px 15px 16px;display:flex;align-items:center;gap:10px;box-sizing:border-box;overflow:hidden;">' +
+      var shimmer = _themeSurfaceStyleRoot() === 'flat' ? '' : '<div style="position:absolute;inset:0;background:linear-gradient(110deg,transparent 0%,transparent 35%,rgba(255,255,255,0.10) 50%,transparent 65%,transparent 100%);background-size:300% 100%;animation:aiShimmer var(--card-ai-shimmer-speed,3.6s) linear infinite;pointer-events:none;border-radius:inherit;"></div>';
+      return '<div style="position:relative;width:415px;height:86px;max-width:100%;' + aiSurfaceStyle + 'border-radius:50px;padding:15px 20px 15px 16px;display:flex;align-items:center;gap:10px;box-sizing:border-box;overflow:hidden;">' +
         shimmer +
         '<div style="position:relative;z-index:1;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.22);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.3);">' +
           '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 4.5L18 9l-4.2 1.5L12 15l-1.8-4.5L6 9l4.2-1.5L12 3zM18 15l.9 2.2L21 18l-2.1.8L18 21l-.9-2.2L15 18l2.1-.8L18 15z" fill="#fff"/></svg>' +

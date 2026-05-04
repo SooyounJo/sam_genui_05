@@ -383,7 +383,7 @@
            '</div>';
   }
 
-  var QS_TILE_BG = 'background:rgba(23,23,26,0.60);border:1px solid rgba(255,255,255,0.12);-webkit-backdrop-filter:blur(48px);backdrop-filter:blur(48px);';
+  var QS_TILE_BG = 'background:var(--qs-tile-bg, var(--surface-overlay, transparent), var(--surface-bg, rgba(23,23,26,0.60)));background-size:var(--surface-bg-size, auto);border:var(--surface-border, 1px solid rgba(255,255,255,0.12));box-shadow:var(--surface-shadow, none);-webkit-backdrop-filter:var(--surface-filter, blur(48px));backdrop-filter:var(--surface-filter, blur(48px));';
   var QS_TILE_RADIUS = 'border-radius:53px;';
 
   // 88×88 circular quick toggle tile (plus-icon by default)
