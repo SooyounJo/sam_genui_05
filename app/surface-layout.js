@@ -40,6 +40,67 @@ function _themeSurfaceStyleRoot() {
   }
 }
 
+/** Device-frame Light + ink luminance → list/search/menu chrome stays readable vs presets. */
+function _parsePrimaryRgb(primaryVal) {
+  var raw = (primaryVal || '').trim();
+  if (!raw) return null;
+  if (raw.charAt(0) === '#') {
+    var h = raw.slice(1);
+    if (h.length === 3) {
+      h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    }
+    if (h.length !== 6) return null;
+    return {
+      r: parseInt(h.slice(0, 2), 16),
+      g: parseInt(h.slice(2, 4), 16),
+      b: parseInt(h.slice(4, 6), 16)
+    };
+  }
+  var m = raw.match(/^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/i);
+  if (m) return { r: +m[1], g: +m[2], b: +m[3] };
+  return null;
+}
+
+function _relativeLuminance(rgb) {
+  if (!rgb || rgb.r !== rgb.r) return 0.5;
+  function f(c) {
+    c /= 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  }
+  return 0.2126 * f(rgb.r) + 0.7152 * f(rgb.g) + 0.0722 * f(rgb.b);
+}
+
+/** List search + selection menu shell: driven by preset + ink on `#canvasFrame`.
+ *  • glass / grain / gradient (textured surfaces): use `light` chrome so --surface-* paints the row (not a black scrim).
+ *  • Dark ink (neon, …) on wallpaper: `light` frosted shell + token text.
+ *  • Pale ink on default base: `dark` frosted shell + bright row text. */
+function _listChromeThemeFromPresetInk() {
+  try {
+    if (typeof document === 'undefined') return 'dark';
+    var fr = document.getElementById('canvasFrame');
+    if (!fr) return 'dark';
+    var surf = _themeSurfaceStyleRoot();
+    if (surf === 'glass' || surf === 'grain') return 'light';
+    var tp = getComputedStyle(fr).getPropertyValue('--text-primary');
+    var rgb = _parsePrimaryRgb(tp);
+    if (!rgb || !String(tp).trim()) {
+      if (surf === 'gradient' || surf === 'neon') return 'light';
+      return 'dark';
+    }
+    var L = _relativeLuminance(rgb);
+    if (L < 0.42) return 'light';
+    return 'dark';
+  } catch (e) {
+    return 'dark';
+  }
+}
+
+/** When false, list template may override AI `style` / `theme` with preset-ink chrome at paint time. */
+function _listChromeInkLocked(comp) {
+  var v = (comp && comp.variant) || {};
+  return v.listChromeLocked === true;
+}
+
 window.setSurfaceType = function setSurfaceType(type, el) {
   window.currentSurfaceType = type;
 
@@ -161,10 +222,9 @@ window.composeSurfacePlan = function composeSurfacePlan(surfaceType, layout) {
       };
 
     case T.FIRST_DEPTH_LIST: {
-      // Pick the search-bar theme ONCE per scene compose and share it with
-      // the selection-dialog below so both alternate in sync (Figma
-      // 629:1603 = light, 629:1602 = dark — pure black/white, no AI).
-      var listTheme = Math.random() < 0.5 ? 'light' : 'dark';
+      // Search-bar + selection-dialog chrome matches the canvas Light/Dark
+      // toggle (not random) so presets + typography tokens agree with the UI.
+      var listTheme = _listChromeThemeFromPresetInk();
 
       // Natural-sounding menu scenarios — rotated per scene so the user
       // sees realistic planning / recommendation / schedule content
@@ -252,10 +312,11 @@ window.composeSurfacePlan = function composeSurfacePlan(surfaceType, layout) {
           { id: 'list-top-bar', role: 'list-top-bar', zone: 'viewing',
             variant: { title: pickedScenario.title } },
           { id: 'search-bar', role: 'search-bar', zone: 'viewing',
-            variant: { style: listTheme } },
+            variant: { style: listTheme, _themeInkAtPaint: true } },
           { id: 'selection-dialog', role: 'selection-dialog', zone: 'interaction',
             variant: {
               theme: listTheme,
+              _themeInkAtPaint: true,
               showTitle: false,
               options: pickedScenario.options
             } },
@@ -915,6 +976,13 @@ function _T(size, opts) {
   else if (o.color === 'sectionLabel') color = 'var(--text-tertiary, rgba(255,255,255,0.45))';
   return 'font-size:' + (pxMap[size] || 15) + 'px;font-weight:' + (weightMap[o.weight || 'regular']) + ';color:' + color + ';';
 }
+/** Same surface stack as the Home dock pill (`app-dock` → `_G('widgetPill')`).
+ *  Search-bar / list menu must not use a separate “hand-built” glass string or they
+ *  drift darker than the dock. */
+function _GChromeMatchDock(tier) {
+  return _G(tier || 'widgetPill');
+}
+
 function _G(tier) {
   var __surfTier = _themeSurfaceStyleRoot();
   // Neon matches flat: single matte surface token — avoid the glass gradient stack.
@@ -1181,13 +1249,13 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       var mon  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       var dateStr = days[now.getDay()] + ' ' + now.getDate() + ' ' + mon[now.getMonth()];
-      return '<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:0 10px;box-sizing:border-box;color:#fff;font-family:var(--font);">' +
+      return '<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:0 10px;box-sizing:border-box;color:var(--text-primary,#ffffff);font-family:var(--font);">' +
         (ltTitle
-          ? '<div style="font-size:22px;font-weight:700;letter-spacing:-0.1px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + ltTitle + '</div>'
+          ? '<div style="font-size:22px;font-weight:700;letter-spacing:-0.1px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:inherit;">' + ltTitle + '</div>'
           : '') +
         '<div style="display:flex;align-items:center;gap:20px;">' +
-          '<span style="font-size:22px;font-weight:700;letter-spacing:0.22px;line-height:1;">' + timeStr + '</span>' +
-          '<span style="font-size:15px;font-weight:500;letter-spacing:0.15px;line-height:1;opacity:0.9;">' + dateStr + '</span>' +
+          '<span style="font-size:22px;font-weight:700;letter-spacing:0.22px;line-height:1;color:inherit;">' + timeStr + '</span>' +
+          '<span style="font-size:15px;font-weight:500;letter-spacing:0.15px;line-height:1;color:var(--text-secondary,rgba(255,255,255,0.85));">' + dateStr + '</span>' +
         '</div>' +
       '</div>';
     }
@@ -1220,8 +1288,13 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       //              backdrop-blur 24, rounded 28, padding 24, gap 24
       //   title: 20/600 (bold), theme-colored
       //   options: 6 rows, 20/400, theme-colored, 30h each
+      // Themed presets (gradient · glass · grain): paint with --surface-* so
+      // the sheet matches the design-system fill — not a flat color-mix veil.
       var sdv = (comp && comp.variant) || {};
       var sdTheme = sdv.theme === 'dark' ? 'dark' : 'light';
+      if (sdv._themeInkAtPaint === true && !_listChromeInkLocked(comp)) {
+        sdTheme = _listChromeThemeFromPresetInk();
+      }
       var sdTitle = sdv.title || 'This is a menu title';
       var DEFAULT_OPTIONS = [
         'This is a menu option',
@@ -1233,13 +1306,45 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       ];
       var sdOptions = Array.isArray(sdv.options) ? sdv.options : DEFAULT_OPTIONS;
       var sdShowTitle = sdv.showTitle !== false;
-      var sdBg, sdText;
+      var sdSurf = _themeSurfaceStyleRoot();
+      if (sdSurf === 'glass' || sdSurf === 'grain') {
+        sdTheme = 'light';
+      }
+      var sdSheet, sdText;
       if (sdTheme === 'dark') {
-        sdBg   = 'rgba(0,0,0,0.5)';
-        sdText = '#ffffff';
+        sdText = 'rgba(248,249,252,0.96)';
+        if (sdSurf === 'gradient' || sdSurf === 'glass' || sdSurf === 'grain') {
+          sdSheet =
+            'background:linear-gradient(180deg,rgba(10,14,28,0.58) 0%,rgba(6,10,22,0.52) 55%,rgba(10,14,28,0.55) 100%),' +
+            'var(--surface-overlay,transparent), var(--surface-bg);' +
+            'background-size:var(--surface-bg-size,auto);animation:var(--surface-animation,none);' +
+            '-webkit-backdrop-filter:var(--surface-filter);backdrop-filter:var(--surface-filter);' +
+            'border:var(--surface-border);box-shadow:var(--surface-shadow);';
+        } else {
+          sdSheet =
+            'background:color-mix(in srgb, var(--page-bg, #070708) 18%, rgba(8,10,14,0.62));' +
+            '-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);';
+        }
       } else {
-        sdBg   = 'rgba(255,255,255,0.5)';
-        sdText = '#000000';
+        sdText = 'var(--text-primary, #050505)';
+        if (sdSurf === 'glass' || sdSurf === 'grain') {
+          sdSheet = _GChromeMatchDock('widgetPill');
+        } else if (sdSurf === 'gradient') {
+          sdSheet =
+            'background:var(--surface-overlay,transparent), var(--surface-bg);' +
+            'background-size:var(--surface-bg-size,auto);animation:var(--surface-animation,none);' +
+            '-webkit-backdrop-filter:var(--surface-filter);backdrop-filter:var(--surface-filter);' +
+            'border:var(--surface-border);box-shadow:var(--surface-shadow);';
+        } else if (sdSurf === 'neon') {
+          sdSheet =
+            'background:var(--surface-bg);' +
+            'border:var(--surface-border);box-shadow:var(--surface-shadow);' +
+            '-webkit-backdrop-filter:var(--surface-filter);backdrop-filter:var(--surface-filter);';
+        } else {
+          sdSheet =
+            'background:color-mix(in srgb, var(--page-bg, #fefefe) 24%, rgba(255,255,255,0.58));' +
+            '-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);';
+        }
       }
       var titleHTML = sdShowTitle
         ? '<div data-shortcut="1" style="width:100%;padding:8px 0;display:flex;align-items:center;cursor:pointer;">' +
@@ -1252,8 +1357,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         '</div>';
       }).join('');
       return '<div style="width:100%;height:100%;box-sizing:border-box;' +
-        'background:' + sdBg + ';' +
-        '-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);' +
+        sdSheet +
         'border-radius:28px;padding:24px;' +
         'display:flex;flex-direction:column;gap:24px;align-items:flex-start;overflow:hidden;">' +
         titleHTML +
@@ -1472,21 +1576,55 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         SEARCH_PROMPTS[Math.floor(Math.random() * SEARCH_PROMPTS.length)];
 
       var STYLES = ['dark', 'light', 'ai-dark', 'ai-light'];
+      var inkChrome = sbv._themeInkAtPaint === true && !_listChromeInkLocked(comp)
+        ? _listChromeThemeFromPresetInk()
+        : null;
       var sbStyle = sbv.style || STYLES[Math.floor(Math.random() * STYLES.length)];
+      if (inkChrome) {
+        sbStyle = inkChrome;
+      }
       var __surfStyle = _themeSurfaceStyleRoot();
       if ((__surfStyle === 'flat' || __surfStyle === 'neon') && (sbStyle === 'ai-dark' || sbStyle === 'ai-light')) {
         sbStyle = 'dark';
+      }
+      if (inkChrome && (sbStyle === 'ai-dark' || sbStyle === 'ai-light')) {
+        sbStyle = inkChrome;
+      }
+      if ((__surfStyle === 'glass' || __surfStyle === 'grain') &&
+        sbStyle !== 'ai-dark' && sbStyle !== 'ai-light') {
+        sbStyle = 'light';
       }
 
       // Common shell: 30px rounded pill, px-20 py-17, flex justify-between
       // with 24px mic icon on the right. Background + text color vary.
       var wrapBg, inputColor, inputBgClip, shadow, phColor;
+      var sbThemedShell = __surfStyle === 'gradient' || __surfStyle === 'glass' || __surfStyle === 'grain';
       if (sbStyle === 'light') {
-        wrapBg     = 'background:#fcfcff;';
-        inputColor = 'color:#000000;';
+        if (sbThemedShell) {
+          if (__surfStyle === 'glass' || __surfStyle === 'grain') {
+            wrapBg = _GChromeMatchDock('widgetPill');
+          } else {
+            wrapBg =
+              'background:var(--surface-overlay,transparent), var(--surface-bg);' +
+              'background-size:var(--surface-bg-size,auto);animation:var(--surface-animation,none);' +
+              '-webkit-backdrop-filter:var(--surface-filter);backdrop-filter:var(--surface-filter);' +
+              'border:var(--surface-border);box-shadow:var(--surface-shadow);';
+          }
+          shadow = '';
+        } else if (__surfStyle === 'neon') {
+          wrapBg =
+            'background:var(--surface-bg);border:var(--surface-border);box-shadow:var(--surface-shadow);' +
+            '-webkit-backdrop-filter:var(--surface-filter);backdrop-filter:var(--surface-filter);';
+          shadow = '';
+        } else {
+          wrapBg     = 'background:#fcfcff;';
+          shadow = '';
+        }
+        inputColor = 'color:var(--text-primary,#000000);';
         inputBgClip = '';
-        shadow = '';
-        phColor = '#000000';
+        phColor = (__surfStyle === 'gradient' || __surfStyle === 'glass' || __surfStyle === 'grain' || __surfStyle === 'neon')
+          ? 'rgba(23,27,36,0.55)'
+          : '#000000';
       } else if (sbStyle === 'ai-dark') {
         wrapBg     = 'background:linear-gradient(to right,#364b6f 0%,#384247 64.807%,#2d2d30 87.168%);';
         inputColor = 'color:transparent;background:linear-gradient(to right,#66a1f3,#22c9a6);-webkit-background-clip:text;background-clip:text;';
@@ -1513,8 +1651,8 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var isAI = sbStyle === 'ai-dark' || sbStyle === 'ai-light';
 
       // Mic icon — 24×24, inherits wrap text color (stroke currentColor)
-      var micColor = (sbStyle === 'light') ? '#000000' : '#ffffff';
-      var micSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:' + micColor + ';"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>';
+      var micColor = (sbStyle === 'light') ? 'inherit' : '#ffffff';
+      var micSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:' + micColor + ';opacity:0.92;"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>';
 
       // For AI variants, use a separate span that renders the gradient text
       // AND a transparent real input on top for typing. The span shows the
@@ -1542,9 +1680,10 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         '</div>';
       }
 
-      // Solid variants (dark / light)
+      // Solid variants (dark / light). Themed shells pick up --surface-* for Gradient/Glass/Grain/Neon list rows.
+      var sbShellColor = (sbStyle === 'light') ? 'color:var(--text-primary,#111);' : '';
       return '<div style="width:100%;height:100%;' + wrapBg +
-        'border-radius:30px;padding:17px 20px;box-sizing:border-box;' +
+        'border-radius:30px;padding:17px 20px;box-sizing:border-box;' + sbShellColor +
         'display:flex;align-items:center;justify-content:space-between;gap:8px;overflow:hidden;">' +
         '<input id="' + inputId + '" type="text" placeholder="' + sbPh + '" ' +
           'style="flex:1;min-width:0;height:22px;background:transparent;border:none;outline:none;' +
@@ -1997,11 +2136,11 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
 
       var liBg, liTitleColor, liTimeColor, liSubColor, liChevColor;
       if (liTheme === 'dark') {
-        liBg         = 'rgba(23,23,26,0.6)';
-        liTitleColor = '#efeef2';
-        liTimeColor  = '#d5d5d5';
-        liSubColor   = '#cfcccf';
-        liChevColor  = '#ffffff';
+        liBg         = 'color-mix(in srgb, var(--qs-tile-bg, rgba(23,23,26,0.85)) 88%, transparent)';
+        liTitleColor = 'var(--text-primary,#efeef2)';
+        liTimeColor  = 'var(--text-secondary,rgba(239,238,242,0.72))';
+        liSubColor   = 'var(--text-secondary,rgba(239,238,242,0.72))';
+        liChevColor  = 'var(--text-primary,#ffffff)';
       } else if (liSurfRoot === 'neon') {
         liBg         = 'var(--surface-bg, #b8ff42)';
         liTitleColor = 'var(--text-primary,#050805)';
@@ -3701,7 +3840,10 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
 
 window.renderSurfacePlan = function renderSurfacePlan(canvas, plan, layout) {
   canvas.innerHTML = '';
-  canvas.dataset.rulesMode = '1';
+  // Do NOT set `dataset.rulesMode` here — that flag is owned by rules-renderer.js
+  // (`renderFromRules` / Lock·QS·Notif). Surface grammar used to set it too, which
+  // blocked `refreshCanvasForTheme()` from regenerating List/Home after theme tweaks.
+  delete canvas.dataset.rulesMode;
   canvas.style.position = 'relative';
   canvas.style.display = 'block';
   canvas.style.width = layout.viewport.width + 'px';
@@ -3836,6 +3978,24 @@ window.generateSurfaceScenario = function generateSurfaceScenario(surfaceType) {
   if (window.DesignDoc && typeof window.DesignDoc.hydrateFromPlan === 'function') {
     window.DesignDoc.hydrateFromPlan(plan, surfaceType);
   }
+};
+
+/** Re-layout current surface after theme / frame token changes (GenUI theme picker, etc.). */
+window.refreshCanvasForTheme = function refreshCanvasForTheme() {
+  try {
+    var canvas = document.getElementById('canvas');
+    if (!canvas) return;
+    // Pixel Figma-rules surfaces (dataset set only in rules-renderer) — vars on
+    // #canvasFrame still update live; skip rebuild to preserve rules layout glue.
+    if (canvas.dataset.rulesMode === '1') return;
+    var st =
+      window.currentSurfaceType ||
+      window.SURFACE_TYPES?.FIRST_DEPTH_LIST ||
+      'first-depth-list';
+    if (typeof window.generateSurfaceScenario === 'function') {
+      window.generateSurfaceScenario(st);
+    }
+  } catch (e) { /* ignore */ }
 };
 
 // ============================================================================

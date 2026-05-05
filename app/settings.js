@@ -51,6 +51,11 @@ function toggleTheme() {
   const frame = document.getElementById('canvasFrame');
   frame.classList.toggle('light');
   _syncThemeToggleLabel();
+  try {
+    if (typeof window.refreshCanvasForTheme === 'function') {
+      window.refreshCanvasForTheme();
+    }
+  } catch (e) { /* ignore */ }
 }
 function _syncThemeToggleLabel() {
   const frame = document.getElementById('canvasFrame');

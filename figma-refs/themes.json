@@ -1,7 +1,7 @@
 {
   "_version": 1,
   "_doc": "Theme presets — each entry is a bundle of CSS variable values that get applied to :root via the customize page. Themes affect both the page chrome and the rendered cards. Custom themes can be added through /customize → Save as Custom.",
-  "_active": "default",
+  "_active": "neon",
   "themes": [
     {
       "id": "default",
@@ -103,7 +103,7 @@
     {
       "id": "gradient",
       "name": "그라디언트",
-      "description": "One UI 메인 컬러 기반의 부드러운 파스텔 그라디언트 프리셋.",
+      "description": "파스텔·고휘도 표면(system surface) 위에서 가독성을 위해 본문 잉크를 진한 남색(#171b24) 계열로 둠. 밝은 벽지·글래스 카드와도 조화됨. 크롬/벽지만 밝게 두고 글자는 밝게 쓰고 싶다면 「유리」 등 다른 프리셋을 선택.",
       "vars": {
         "--oneui-theme-style": "gradient",
         "--page-bg": "#080a12",
