@@ -90,7 +90,7 @@
              'display:flex;align-items:center;justify-content:flex-end;gap:6px;' +
              'padding:6px 10px;box-sizing:border-box;">' +
              '<span style="font-family:' + FONT_BOLD + ';font-weight:700;font-size:15px;line-height:12px;' +
-               'letter-spacing:0.15px;color:rgba(255,255,255,0.8);white-space:nowrap;flex-shrink:0;">' + carrier + '</span>' +
+               'letter-spacing:0.15px;color:var(--text-secondary,rgba(255,255,255,0.8));white-space:nowrap;flex-shrink:0;">' + carrier + '</span>' +
              '<div style="flex:1 0 0;align-self:stretch;"></div>' +
              '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">' +
                wifi + cellular + battery +
@@ -383,7 +383,7 @@
            '</div>';
   }
 
-  var QS_TILE_BG = 'background:var(--qs-tile-bg, var(--surface-overlay, transparent), var(--surface-bg, rgba(23,23,26,0.60)));background-size:var(--surface-bg-size, auto);border:var(--surface-border, 1px solid rgba(255,255,255,0.12));box-shadow:var(--surface-shadow, none);-webkit-backdrop-filter:var(--surface-filter, blur(48px));backdrop-filter:var(--surface-filter, blur(48px));';
+  var QS_TILE_BG = 'background:var(--qs-tile-bg, var(--surface-bg, rgba(23,23,26,0.60)));background-size:var(--surface-bg-size, auto);border:var(--surface-border, 1px solid rgba(255,255,255,0.12));box-shadow:var(--surface-shadow, none);-webkit-backdrop-filter:var(--surface-filter, blur(48px));backdrop-filter:var(--surface-filter, blur(48px));';
   var QS_TILE_RADIUS = 'border-radius:53px;';
 
   // 88×88 circular quick toggle tile (plus-icon by default)

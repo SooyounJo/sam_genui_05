@@ -55,16 +55,10 @@
   --canvas-bg-dark: #171717;
 
   /* ── Theme variables (used by /customize dropdown) ─────────────────
-     These defaults match the "Default · One UI 8.5" theme in
-     figma-refs/themes.json. The customize page applies overrides via
-     :root { --xxx: …; } in a runtime <style> block. Renderer cards in
-     app/surface-layout.js read these via var(--name, fallback) so any
-     theme switch is purely cosmetic and doesn't require restart. */
-  --page-bg:                          #0a0a0c;
-  --text-primary:                     #efeef2;
-  --text-secondary:                   rgba(239,238,242,0.7);
-  --text-tertiary:                    rgba(239,238,242,0.45);
-  --accent-primary:                   #0381FE;
+     Page / canvas palette tokens (`--text-*`, `--page-bg`, `--surface-*`,
+     etc.) are applied on #canvasFrame by genui.html#theme-vars — NOT on
+     :root — so sidebar/topbar keep readable defaults. Only document-level
+     keys like `--oneui-theme-style` live on :root from the same block. */
 
   --card-radius:                      20px;
   /* Spacing tokens — kept consistent across all themes per user
@@ -447,6 +441,11 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); font-si
   flex-direction:column;
 }
 .canvas-frame {
+  /* Overlays (QS / dialog / lock-notif) resolve --page-bg on this subtree
+     so themed values from #canvasFrame in theme-vars participate. */
+  --overlay-shade-fill: color-mix(in srgb, var(--page-bg, #0a0a0c) 30%, rgba(23, 23, 26, 0.44));
+  --overlay-shade-blur: var(--surface-filter, blur(14px));
+  --overlay-dialog-fill: color-mix(in srgb, var(--page-bg, #000000) 18%, rgba(0, 0, 0, 0.58));
   height:min(780px, calc(100vh - 84px)); aspect-ratio:1080/2340; /* Galaxy S26 19.5:9 */
   width:auto;
   background-image:url('../wallpapers/1.webp');
@@ -574,17 +573,17 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); font-si
 .overlay-inner[data-overlay-key="notification"][data-base="lock"],
 .overlay-inner[data-overlay-key="notif"][data-base="lockscreen"],
 .overlay-inner[data-overlay-key="notif"][data-base="lock"] {
-  background: rgba(23,23,26,0.40);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
+  background: var(--overlay-shade-fill, rgba(23,23,26,0.40));
+  -webkit-backdrop-filter: var(--overlay-shade-blur, blur(14px));
+  backdrop-filter: var(--overlay-shade-blur, blur(14px));
 }
 /* Dialog uses a darker tint — the old dim-overlay scrim component is
    no longer rendered (see renderDimOverlay), so the modal's "weight"
    now comes entirely from the overlay-inner backdrop. */
 .overlay-inner[data-overlay-key="dialog"] {
-  background: rgba(0,0,0,0.55);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
+  background: var(--overlay-dialog-fill, rgba(0,0,0,0.55));
+  -webkit-backdrop-filter: var(--overlay-shade-blur, blur(14px));
+  backdrop-filter: var(--overlay-shade-blur, blur(14px));
 }
 /* Notif over day bases (Home/List/Detail) — NO blur, NO tint: cards
    float on live app UI. Override the base rule above. */
@@ -664,6 +663,20 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); font-si
 .rules-item[data-role="bottom-bar"],
 .surface-item[data-role="bottom-bar"] {
   z-index: 550;
+}
+
+/* Quick Settings overlay includes its own home-indicator; base screens
+   also promote gestureBar to z-index:550 above the QS blur — two pills
+   stack. Hide only the BASE copy (#canvas children, not overlay-inner). */
+.canvas-frame[data-overlay-kind="quicksettings"] #canvas > .rules-item[data-role="gestureBar"],
+.canvas-frame[data-overlay-kind="quicksettings"] #canvas > .rules-item[data-role="gesture-bar"],
+.canvas-frame[data-overlay-kind="quicksettings"] #canvas > .surface-item[data-role="gestureBar"],
+.canvas-frame[data-overlay-kind="quicksettings"] #canvas > .surface-item[data-role="gesture-bar"],
+.canvas-frame[data-overlay-kind="quicksettings"] #canvas > .canvas-item[data-role="gestureBar"],
+.canvas-frame[data-overlay-kind="quicksettings"] #canvas > .canvas-item[data-role="gesture-bar"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* === CANVAS ITEMS === */
@@ -1238,6 +1251,17 @@ body.cmd-interact-mode [data-node-id]:hover {
     0 0 0 1px rgba(255,255,255,0.03);
 }
 
+/* Dialog-shaped body atomics — clip horizontal overrun inside primary-task */
+.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-atomic-role="dialog-shell"],
+.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-atomic-role="dialog-icon-grid"],
+.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-atomic-role="dialog-site-header"],
+.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-atomic-role="dialog-browser-bar"] {
+  max-width: min(100%, 360px);
+  width: 100%;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
 /* Tier 1.1 — HERO variant for priority=1 children inside primary-task.
    Real Samsung One UI hero cards are 1.5-1.8× the size of supporting
    ones with visibly more presence — bigger numbers, taller surface,
@@ -1442,10 +1466,10 @@ body.cmd-interact-mode [data-node-id]:hover {
 }
 
 /* === ONE UI COMPONENT STYLES (for canvas rendering) === */
-.oui-btn-contained { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 24px; border-radius:18px; background:#0072DE; color:#FAFAFA; font-size:15px; font-weight:500; border:none; font-family:var(--font); }
+.oui-btn-contained { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 24px; border-radius:18px; background:var(--accent-primary, #0072DE); color:var(--accent-on-primary, #FAFAFA); font-size:15px; font-weight:500; border:none; font-family:var(--font); }
 .oui-btn-outlined { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 24px; border-radius:18px; background:transparent; color:#FAFAFA; font-size:15px; font-weight:500; border:1.5px solid #FAFAFA; font-family:var(--font); }
 .oui-btn-flat { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 24px; border-radius:18px; background:transparent; color:var(--primary); font-size:15px; font-weight:500; border:none; font-family:var(--font); }
-.oui-fab { width:56px; height:56px; border-radius:50%; background:var(--primary); color:#fff; border:none; font-size:24px; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 16px rgba(3,129,254,0.3); }
+.oui-fab { width:56px; height:56px; border-radius:50%; background:var(--primary); color:var(--accent-on-primary, #fff); border:none; font-size:24px; display:flex; align-items:center; justify-content:center; box-shadow:var(--fab-shadow, 0 6px 16px rgba(3,129,254,0.3)); }
 /* Switch — on = blue + knob right, off = grey + knob left. Transition handled
    on both the background and ::after so flipping in Cmd-interact mode feels
    native. Default (no .on / .off modifier) renders in the "on" state. */

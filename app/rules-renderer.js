@@ -187,7 +187,11 @@
       return root.Generator.typography(size, opts || {});
     }
     var pxMap = { micro:10, caption:12, label:14, body:15, title:16, heading:18, large:20, date:24, headline:26 };
-    return 'font-size:' + (pxMap[size] || 15) + 'px;font-weight:' + (((opts && opts.weight) === 'bold' || (opts && opts.weight) === 'semibold') ? 600 : 400) + ';color:#fff;';
+    var o = opts || {};
+    var color = 'var(--text-primary,#fff)';
+    if (o.color === 'translucentLabel') color = 'var(--text-secondary, rgba(255,255,255,0.7))';
+    else if (o.color === 'sectionLabel') color = 'var(--text-tertiary, rgba(255,255,255,0.45))';
+    return 'font-size:' + (pxMap[size] || 15) + 'px;font-weight:' + (((o.weight) === 'bold' || (o.weight) === 'semibold') ? 600 : 400) + ';color:' + color + ';';
   }
   function _g(tier) {
     if (root.Generator && typeof root.Generator.glass === 'function') return root.Generator.glass(tier);
@@ -247,7 +251,7 @@
       'settings': '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
     };
     var svg = SVGS[icon] || SVGS['settings'];
-    return '<div data-shortcut="1" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.85);transition:transform 120ms ease,background 160ms ease;border-radius:50%;">' + svg + '</div>';
+    return '<div data-shortcut="1" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-primary,rgba(255,255,255,0.9));transition:transform 120ms ease,background 160ms ease;border-radius:50%;">' + svg + '</div>';
   }
   function renderPrimaryToggle(comp, plan, idx) {
     // Wider Bluetooth-style pill when idx===2 (matches Figma QS top row).
@@ -352,9 +356,9 @@
   }
   function renderDialogPageDots(comp) {
     return (
-      '<div style="display:flex;justify-content:center;align-items:center;gap:5px;height:100%;">' +
-        '<div style="width:5px;height:5px;border-radius:50%;background:#fff;"></div>' +
-        '<div style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.3);"></div>' +
+      '<div style="display:flex;justify-content:center;align-items:center;gap:5px;height:100%;color:var(--text-primary,#fff);">' +
+        '<div style="width:5px;height:5px;border-radius:50%;background:currentColor;"></div>' +
+        '<div style="width:5px;height:5px;border-radius:50%;background:currentColor;opacity:0.35;"></div>' +
       '</div>'
     );
   }

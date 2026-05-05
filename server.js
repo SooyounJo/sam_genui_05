@@ -1059,10 +1059,14 @@ Dialogs:
   bottom-dialog        REQ content.title. OPT content.body + content.actions.
   center-dialog        REQ content.title + content.body. OPT content.actions.
   dialog-shell         No required content (pure glass container).
-  dialog-site-header   REQ variant.siteName + variant.url.
-  dialog-browser-bar   Renders a fixed 5-action row (History, Downloads,
-                       Galaxy AI, Add page, Settings). No content needed.
-  dialog-icon-grid     Renders a fixed 2×4 app grid. No content needed.
+  dialog-site-header   REQ content.siteName or content.label + content.url or content.value (share sheet title row).
+  dialog-browser-bar   OPT content.shortcuts = [{"label":"History","icon":"history"}, …] — icons optional keywords (history, downloads, ai, add, settings, search). Falls back to History/Downloads/Galaxy AI demo row when empty.
+  dialog-icon-grid     OPT content.apps or content.items = [{"name":"Videos"}, …] (up to 8). Renderer fills missing slots from design presets when sparse.
+
+Registry IDs mapped to the same renderers:
+  dialog.website-share-header → dialog-site-header (same content.siteName / url fields).
+  dialog.browser-top-bar      → dialog-browser-bar (same content.shortcuts).
+  dialog.icon-grid-box        → dialog-icon-grid (same content.apps / items).
 
 CONTENT AUTHORING DISCIPLINE:
 - If the prompt says "transfer $200 to my sister": emit recipient name,

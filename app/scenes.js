@@ -367,6 +367,7 @@ function _fullResetForGeneration() {
   if (frame) {
     delete frame.dataset.overlayActive;
     delete frame.dataset.overlayBase;
+    delete frame.dataset.overlayKind;
   }
 
   // 2. Clear Screens / Overlays active highlights so the sidebar
@@ -729,7 +730,11 @@ const PIPELINE_BODY_ATOMIC_ROLE = {
   // lock-screen widgets that have direct atomics
   'lock-screen.clock':         'clock',
   'lock-screen.weather-date':  'weather-date',
-  'lock-screen.shortcut-circle':'shortcutLeft'
+  'lock-screen.shortcut-circle':'shortcutLeft',
+  // Dialog overlay primitives (registry IDs → palette atomics)
+  'dialog.icon-grid-box':       'dialog-icon-grid',
+  'dialog.browser-top-bar':     'dialog-browser-bar',
+  'dialog.website-share-header':'dialog-site-header'
 };
 
 // Pick a now-bar variant.type from the child's componentId / slot / scenario
@@ -1195,8 +1200,6 @@ function _adaptForBodyAtomic(atomicRole, child, content, uiState) {
       // Per-action icon is inferred from the label keyword: "save" → save
       // glyph, "share" → share glyph, etc. — the renderer reads action.icon
       // and renders the SVG inline.
-      const labelSrc = c.label || c.value || '';
-      const labels = labelSrc.split(/\s*[,/|·•]\s*/).map(s => s.trim()).filter(Boolean);
       const ICON_KEYWORDS = [
         [/save|bookmark/i,         'bookmark'],
         [/share|send/i,            'share'],
@@ -1214,12 +1217,31 @@ function _adaptForBodyAtomic(atomicRole, child, content, uiState) {
         [/cancel|close|dismiss/i,  'x'],
         [/ok|confirm|done|accept/i,'check'],
         [/settings|options/i,      'settings'],
-        [/search|find/i,           'search']
+        [/search|find/i,           'search'],
+        [/timer|countdown/i,       'clock'],
+        [/substitute|swap|replace/i, 'swap'],
+        [/scale|measure|weight|grams?\b/i, 'scale']
       ];
       function _inferIcon(label) {
         for (const [re, ic] of ICON_KEYWORDS) if (re.test(label)) return ic;
         return null;
       }
+      if (Array.isArray(c.actions) && c.actions.length) {
+        comp.variant = {
+          actions: c.actions.map((a, i) => {
+            const lbl = String(a.label || a.name || '').trim();
+            return {
+              label: lbl,
+              icon: a.icon || _inferIcon(lbl),
+              kind: a.kind != null ? a.kind
+                : (i === 0 && !/cancel|dismiss|delete|remove/i.test(lbl) ? 'primary' : null)
+            };
+          }).filter(a => a.label)
+        };
+        break;
+      }
+      const labelSrc = c.label || c.value || '';
+      const labels = labelSrc.split(/\s*[,/|·•]\s*/).map(s => s.trim()).filter(Boolean);
       comp.variant = {
         actions: labels.map((l, i) => ({
           label: l,
@@ -1318,6 +1340,34 @@ function _adaptForBodyAtomic(atomicRole, child, content, uiState) {
     }
     case 'weather-date': {
       comp.variant = { temp: c.value || '', condition: c.label || '' };
+      break;
+    }
+    case 'dialog-site-header': {
+      comp.variant = {
+        siteName: c.siteName || c.title || c.label || '',
+        url: c.url || c.siteDesc || c.value || '',
+        title: c.title,
+        siteDesc: c.siteDesc
+      };
+      break;
+    }
+    case 'dialog-browser-bar': {
+      let shortcuts = Array.isArray(c.shortcuts) ? c.shortcuts : null;
+      if (!shortcuts && (c.label || c.value)) {
+        const merge = [c.label, c.value].filter(Boolean).join(' ');
+        const parts = merge.split(/\s*[,/|·•]\s*/).map(s => s.trim()).filter(Boolean);
+        if (parts.length) shortcuts = parts.map(label => ({ label }));
+      }
+      comp.variant = shortcuts && shortcuts.length ? { shortcuts } : {};
+      break;
+    }
+    case 'dialog-icon-grid': {
+      let apps = Array.isArray(c.apps) ? c.apps : Array.isArray(c.items) ? c.items : null;
+      if (!apps && (c.label || c.value)) {
+        const src = c.value || c.label || '';
+        apps = src.split(/\s*[,/|·•]\s*/).map(s => s.trim()).filter(Boolean).map(name => ({ name }));
+      }
+      comp.variant = apps && apps.length ? { apps } : {};
       break;
     }
     case 'shortcutLeft':
@@ -3998,6 +4048,7 @@ function _removeOverlayLayer() {
     frameEl.querySelectorAll(':scope > .overlay-inner').forEach(function (n) { n.remove(); });
     delete frameEl.dataset.overlayActive;
     delete frameEl.dataset.overlayBase;
+    delete frameEl.dataset.overlayKind;
   }
 
   var rulesInner = canvas._rulesInner;
@@ -4017,6 +4068,20 @@ function _removeOverlayLayer() {
     if (kept.length !== window.DesignDoc.state.nodes.length) {
       window.DesignDoc.state.nodes = kept;
     }
+  }
+}
+
+// Solid white stacked notifs over Home/List/Detail are a legacy baseline
+// (Default / base preset only). Gradient · Glass · Flat · Neon · Grain all
+// use the same tokenized atomics as the rest of GenUI — otherwise theme
+// changes never reached the overlay layer (always `theme: light`).
+function _overlayLegacyLightNotifications() {
+  try {
+    if (typeof document === 'undefined' || !document.documentElement) return true;
+    var v = (getComputedStyle(document.documentElement).getPropertyValue('--oneui-theme-style') || '').trim().toLowerCase();
+    return v === '' || v === 'base';
+  } catch (e) {
+    return true;
   }
 }
 
@@ -4091,7 +4156,6 @@ function _renderOverlay(overlayKey) {
   var frameEl = document.getElementById('canvasFrame');
   var hostEl = frameEl || canvas;
   hostEl.appendChild(overlayInner);
-  if (frameEl) frameEl.dataset.overlayActive = '1';
 
   // An inner wrapper re-applies 0.78 zoom so plan children (at Figma
   // 451×978 coords) render at the same scale as the base screen inside
@@ -4118,17 +4182,24 @@ function _renderOverlay(overlayKey) {
   var isNotif = overlayKey === 'notifications' || overlayKey === 'notification' ||
                 overlayKey === 'notif';
   var isDialog = overlayKey === 'dialog';
+
+  // Frame-level flags for CSS (e.g. hide duplicate base gestureBar when QS
+  // renders its own). Must run after isQS / isNotif / isDialog are known.
+  if (frameEl) {
+    frameEl.dataset.overlayActive = '1';
+    frameEl.dataset.overlayKind = isQS ? 'quicksettings'
+      : isNotif ? 'notifications'
+      : isDialog ? 'dialog'
+      : 'other';
+  }
+
   if (isQS)          maskHost.classList.add('overlay-hides-all');
   else if (isDialog) maskHost.classList.add('overlay-hides-statusbar');
   // Notif: no mask — just cards floating on the untouched base.
 
-  // Determine the theme for notif cards based on the CURRENT base screen:
-  //   Lock → dark (glass dark bg + blurred wallpaper behind; cards stay
-  //                translucent dark to match the shade treatment)
-  //   Home / List / Detail → light (no blur; cards become solid white with
-  //                black text so they pop against app content)
-  // QS keeps its dark shade regardless of base (Samsung always shows QS
-  // with the wallpaper blur + dark translucent tint).
+  // Notif-card theme: Lock → dark. Day bases → solid white ONLY when the
+  // global preset is Default (`--oneui-theme-style: base`). Themed presets
+  // keep dark + `_G(panel)` so glass/gradient/grain propagate from tokens.
   var baseKey = window.__currentBaseScenario || 'lockscreen';
   var baseIsLock = (baseKey === 'lockscreen' || baseKey === 'lock');
   // When ANY overlay opens over Lock, fade out the Lock-screen decorative
@@ -4138,7 +4209,7 @@ function _renderOverlay(overlayKey) {
   if (baseIsLock && (isQS || isNotif || isDialog)) {
     maskHost.classList.add('overlay-hides-lock-content');
   }
-  var notifTheme = (isNotif && !baseIsLock) ? 'light' : 'dark';
+  var notifTheme = (isNotif && !baseIsLock && _overlayLegacyLightNotifications()) ? 'light' : 'dark';
   overlayInner.dataset.theme = notifTheme;
   overlayInner.dataset.base = baseKey;
   // Mirror the base onto canvas-frame so CSS can scope behavior (e.g.

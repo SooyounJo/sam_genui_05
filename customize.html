@@ -633,6 +633,12 @@ const PREVIEW_CARDS = [
     variant: { actions: [{ label: 'Save', icon: 'bookmark', kind: 'primary' }, { label: 'Share', icon: 'share' }, { label: 'Edit', icon: 'edit' }] }
   },
   {
+    name: 'Action chips (gallery demo)',
+    editSections: ['Page', 'Card globals'],
+    role: 'action-row',
+    variant: { previewGallery: true }
+  },
+  {
     name: 'Quick toggles',
     editSections: ['Page', 'Card globals'],
     role: 'toggle-chip',
@@ -655,7 +661,8 @@ function previewRectForCard(card) {
   if (role === 'now-bar') return { w: 248, h: 64, scale: TOOLKIT_PREVIEW_SCALE };
   if (role === 'notif-card' || role === 'notif-card-ai') return { w: 415, h: 86, scale: TOOLKIT_PREVIEW_SCALE };
   if (role === 'toggle-chip') return { w: 408, h: 88, scale: TOOLKIT_PREVIEW_SCALE };
-  if (role === 'action-row') return { w: 415, h: 345, scale: TOOLKIT_PREVIEW_SCALE };
+  if (role === 'action-row' && variant.previewGallery) return { w: 415, h: 345, scale: TOOLKIT_PREVIEW_SCALE };
+  if (role === 'action-row') return { w: 408, h: 96, scale: TOOLKIT_PREVIEW_SCALE };
   if (role === 'focus-block' && variant.kind === 'weather') return { w: 415, h: 218, scale: TOOLKIT_PREVIEW_SCALE };
   if (role === 'focus-block' && variant.kind === 'calendar') return { w: 300, h: 128, scale: TOOLKIT_PREVIEW_SCALE };
   if (role === 'focus-block' && variant.kind === 'input') return { w: 300, h: 124, scale: TOOLKIT_PREVIEW_SCALE };
@@ -682,7 +689,8 @@ const THEME_EDIT_SCHEMA = [
       { key: '--text-primary',     label: 'Text · primary', type: 'color' },
       { key: '--text-secondary',   label: 'Text · secondary (rgba)', type: 'color-rgba' },
       { key: '--text-tertiary',    label: 'Text · tertiary (rgba)',  type: 'color-rgba' },
-      { key: '--accent-primary',   label: 'Accent · primary', type: 'color' }
+      { key: '--accent-primary',   label: 'Accent · primary (filled)', type: 'color' },
+      { key: '--accent-on-primary',label: 'Text on filled accent', type: 'color' }
     ]
   },
   {
@@ -772,7 +780,7 @@ let INSPECTOR_DOM_PATH = null;
 /** Per preview-cell index: CSS var overrides applied only on that cell (not :root), so edits while a card is selected do not recolor the whole page. */
 let PREVIEW_CELL_VAR_OVERRIDES = {};
 
-var _PAGE_EDIT_KEYS = ['--page-bg', '--text-primary', '--text-secondary', '--text-tertiary', '--accent-primary'];
+var _PAGE_EDIT_KEYS = ['--page-bg', '--text-primary', '--text-secondary', '--text-tertiary', '--accent-primary', '--accent-on-primary'];
 var _CARD_GLOBAL_KEYS = ['--card-radius', '--card-padding-v', '--card-padding-h', '--card-gap'];
 var _SURFACE_THEME_KEYS = [
   '--oneui-theme-style',
@@ -794,6 +802,15 @@ var _SURFACE_THEME_KEYS = [
   '--qs-chip-off-bg',
   '--qs-chip-icon-on',
   '--qs-chip-icon-off',
+  '--flat-toggle-grid-shell-bg',
+  '--flat-toggle-grid-border',
+  '--flat-toggle-grid-chip-on-bg',
+  '--flat-toggle-grid-chip-off-bg',
+  '--flat-toggle-grid-chip-icon-on',
+  '--flat-toggle-grid-chip-icon-off',
+  '--flat-toggle-grid-text',
+  '--flat-toggle-grid-text-secondary',
+  '--accent-on-primary',
   '--qs-fallback-toggle-on-bg',
   '--qs-fallback-toggle-off-bg',
   '--nowbar-charging-track-bg',
@@ -803,9 +820,8 @@ var _SURFACE_THEME_KEYS = [
   '--oneui-chroma'
 ];
 var FLAT_SCHEME = 'dark';
-var FLAT_ACCENT = '#0381FE';
+var FLAT_ACCENT = '#a3a3a8';
 var FLAT_ACCENT_KEYS = [
-  '--accent-primary',
   '--card-weather-accent',
   '--card-calendar-accent',
   '--card-reminder-accent',
@@ -815,22 +831,52 @@ var FLAT_ACCENT_KEYS = [
 ];
 var FLAT_SCHEME_VARS = {
   dark: {
-    '--text-primary': '#f2f2f4',
+    '--page-bg': '#000000',
+    '--text-primary': '#efeef2',
     '--text-secondary': 'rgba(242,242,244,0.68)',
     '--text-tertiary': 'rgba(242,242,244,0.44)',
-    '--surface-bg': 'rgba(23,23,26,0.80)',
-    '--surface-border': '1px solid rgba(255,255,255,0.06)',
-    '--card-ai-grad': 'rgba(23,23,26,0.80)',
-    '--card-nav-arrow-bg': 'rgba(3,129,254,0.22)'
+    '--accent-primary': '#ffffff',
+    '--accent-on-primary': '#0d0d0f',
+    '--surface-bg': '#1e1e22',
+    '--surface-border': 'none',
+    '--surface-filter': 'none',
+    '--card-ai-grad': '#1e1e22',
+    '--card-nav-arrow-bg': 'rgba(255,255,255,0.14)',
+    '--qs-tile-bg': '#26262b',
+    '--qs-chip-on-bg': '#ffffff',
+    '--qs-chip-off-bg': 'rgba(255,255,255,0.14)',
+    '--qs-chip-icon-on': '#0d0d0f',
+    '--qs-chip-icon-off': '#f2f2f5',
+    '--flat-toggle-grid-shell-bg': '#e8e8ec',
+    '--flat-toggle-grid-chip-on-bg': '#0d0d0f',
+    '--flat-toggle-grid-chip-off-bg': 'rgba(13,13,15,0.08)',
+    '--flat-toggle-grid-chip-icon-on': '#f5f5f7',
+    '--flat-toggle-grid-chip-icon-off': 'rgba(13,13,15,0.55)'
   },
   light: {
+    '--page-bg': '#f7f7f9',
     '--text-primary': '#0a0a0c',
     '--text-secondary': 'rgba(10,10,12,0.68)',
     '--text-tertiary': 'rgba(10,10,12,0.44)',
-    '--surface-bg': 'rgba(255,255,255,0.80)',
-    '--surface-border': '1px solid rgba(0,0,0,0.08)',
-    '--card-ai-grad': 'rgba(255,255,255,0.80)',
-    '--card-nav-arrow-bg': 'rgba(3,129,254,0.18)'
+    '--accent-primary': '#0d0d0f',
+    '--accent-on-primary': '#ffffff',
+    '--surface-bg': '#f5f5f7',
+    '--surface-border': 'none',
+    '--surface-filter': 'none',
+    '--card-ai-grad': '#f0f0f3',
+    '--card-nav-arrow-bg': 'rgba(0,0,0,0.08)',
+    '--qs-tile-bg': '#eaeaf0',
+    '--qs-chip-on-bg': '#0d0d0f',
+    '--qs-chip-off-bg': 'rgba(13,13,15,0.08)',
+    '--qs-chip-icon-on': '#fafafa',
+    '--qs-chip-icon-off': 'rgba(13,13,15,0.55)',
+    '--flat-toggle-grid-shell-bg': '#1e1e22',
+    '--flat-toggle-grid-chip-on-bg': '#ffffff',
+    '--flat-toggle-grid-chip-off-bg': 'rgba(255,255,255,0.14)',
+    '--flat-toggle-grid-chip-icon-on': '#0d0d0f',
+    '--flat-toggle-grid-chip-icon-off': '#efeef2',
+    '--flat-toggle-grid-text': '#efeef2',
+    '--flat-toggle-grid-text-secondary': 'rgba(239,238,242,0.65)'
   }
 };
 
@@ -1180,7 +1226,7 @@ function flatSchemeVars(scheme) {
   var base = Object.assign({
     '--oneui-theme-style': 'flat',
     '--surface-shadow': 'none',
-    '--surface-filter': 'blur(24px)',
+    '--surface-filter': 'none',
     '--surface-overlay': 'transparent',
     '--surface-overlay-opacity': '0',
     '--surface-bg-size': 'auto',

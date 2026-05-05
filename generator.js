@@ -3025,6 +3025,42 @@ var FALLBACK_RULES = {
 
 function _rules() { return _loadDesignRules() || FALLBACK_RULES; }
 
+/** Resolve typography color — theme presets set --text-* on #canvasFrame; Generator must emit var() so dialogs/cards inherit. */
+function _typographyColor(oColor, palette) {
+  var c = palette || {};
+  if (!oColor) {
+    return 'var(--text-primary,' + (c.primary || '#FFFFFF') + ')';
+  }
+  if (typeof oColor === 'string') {
+    if (oColor.charAt(0) === '#') return oColor;
+    if (/^(?:rgb|hsl)a?\(/i.test(oColor)) return oColor;
+    if (oColor.indexOf('linear-gradient') === 0) return oColor;
+    if (oColor.indexOf('var(') === 0) return oColor;
+  }
+  if (typeof oColor !== 'string') return String(oColor);
+
+  switch (oColor) {
+    case 'translucentLabel':
+      return 'var(--text-secondary,' + (c.translucentLabel || 'rgba(255,255,255,0.75)') + ')';
+    case 'sectionLabel':
+      return 'var(--text-tertiary,' + (c.sectionLabel || 'rgba(255,255,255,0.5)') + ')';
+    case 'secondary':
+      return 'var(--text-secondary,' + (c.secondary || '#CFCCCF') + ')';
+    case 'tertiary':
+      return 'var(--text-tertiary,' + (c.tertiary || '#D5D5D5') + ')';
+    case 'heading':
+      return 'var(--text-primary,' + (c.heading || c.primary || '#EFEEF2') + ')';
+    case 'primary':
+      return 'var(--text-primary,' + (c.primary || '#FFFFFF') + ')';
+    case 'widgetLabel':
+      return 'var(--text-secondary,' + (c.widgetLabel || 'rgba(255,255,255,0.86)') + ')';
+    case 'statusBar':
+      return 'var(--text-primary,' + (c.statusBar || 'rgba(255,255,255,0.8)') + ')';
+    default:
+      return c[oColor] != null ? c[oColor] : oColor;
+  }
+}
+
 // ----- Single-property helpers --------------------------------------------
 function typography(size, options) {
   var r = _rules().typography;
@@ -3038,7 +3074,7 @@ function typography(size, options) {
   var ls = o.letterSpacing != null
     ? (typeof o.letterSpacing === 'number' ? o.letterSpacing + 'px' : o.letterSpacing)
     : '0';
-  var color = o.color ? (r.color[o.color] || o.color) : r.color.primary;
+  var color = _typographyColor(o.color, r.color);
   return 'font-family:' + family + ';font-weight:' + weight + ';font-size:' + px +
          'px;line-height:' + lh + ';letter-spacing:' + ls + ';color:' + color + ';';
 }

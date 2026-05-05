@@ -1573,7 +1573,8 @@
       ],
       "dont_use_when": [
         "any action should dominate — promote it to a button",
-        "actions need persistent screen-level placement — use bottom nav or app bar"
+        "actions need persistent screen-level placement — use bottom nav or app bar",
+        "cooking or recipe flows where chips look like a generic photo gallery (Videos/Favorites/Albums) — use step-specific actions instead"
       ],
       "typical_content": {
         "examples": [

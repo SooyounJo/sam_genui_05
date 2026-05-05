@@ -949,6 +949,32 @@ function _G(tier) {
     'border:var(--surface-border, 1px solid rgba(255,255,255,0.08));' +
     'box-shadow:var(--surface-shadow, none);';
 }
+
+// Inset tray / chrome fills inside dialog-shell. Quick Settings nests icon
+// chips on a tinted surface — it does NOT stack a second full `_G('panel')`
+// (duplicate backdrop-filter + gradients read as muddy / grey-blue vs QS).
+function _GDialogInsetTray() {
+  var s = _themeSurfaceStyleRoot();
+  if (s === 'glass' || s === 'base') {
+    return 'background:rgba(255,255,255,0.055);' +
+      'border:var(--surface-border, 1px solid rgba(255,255,255,0.16));' +
+      'box-shadow:inset 0 1px 0 rgba(255,255,255,0.14);';
+  }
+  if (s === 'flat' || s === 'neon') {
+    return 'background:color-mix(in srgb,var(--surface-bg,#1a1a1c) 52%,transparent);' +
+      'border:var(--surface-border, 1px solid rgba(255,255,255,0.06));';
+  }
+  return 'background:rgba(255,255,255,0.06);' +
+    'border:var(--surface-border, 1px solid rgba(255,255,255,0.1));';
+}
+
+// Circular dialog chrome — aligned with QS `toggle-chip` off state (avoid
+// color-mix on `--surface-bg` when the preset uses multi-stop gradients).
+function _GDialogChromeCircle() {
+  return 'background:var(--qs-chip-off-bg, rgba(180,180,180,0.2));' +
+    'border:var(--surface-border, 1px solid rgba(255,255,255,0.12));' +
+    'box-shadow:0 4px 12px rgba(0,0,0,0.14);';
+}
 function _R(tier) {
   if (window.Generator && typeof window.Generator.radius === 'function') {
     return window.Generator.radius(tier);
@@ -962,6 +988,10 @@ function _S(tier) {
   }
   const sMap = { xs:4, sm:6, md:8, base:10, lg:12, xl:14, xxl:16, '3xl':18, '4xl':20 };
   return (sMap[tier] != null ? sMap[tier] : 8) + 'px';
+}
+function _escHtmlText(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 }
 
 // ── Weather icon — monochrome (Mono · Grayscale theme) ──────────────────
@@ -1246,79 +1276,166 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
     // the same atomic library that backs the Design-tab palette.
     // ========================================================================
     case 'dialog-shell': {
-      return '<div style="width:100%;height:100%;' +
-        'background:rgba(23,23,26,0.6);' +
-        '-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);' +
-        'border-radius:32px;box-sizing:border-box;' +
-        'box-shadow:0 16px 48px rgba(0,0,0,0.35);"></div>';
+      return '<div style="width:100%;height:100%;box-sizing:border-box;' + _G('panel') +
+        'border-radius:' + _R('dialog') + ';"></div>';
     }
 
     case 'dialog-site-header': {
       var dshv = (comp && comp.variant) || {};
-      var dshTitle = dshv.siteName || dshv.title || 'One UI Design Kit';
-      var dshUrl   = dshv.siteDesc || dshv.url   || 'https://www.figma.com/community/file/oneui';
+      var dshc = (comp && comp.content) || {};
+      var dshTitle = _escHtmlText(dshv.siteName || dshv.title || dshc.label || 'One UI Design Kit');
+      var dshUrl   = _escHtmlText(dshv.siteDesc || dshv.url || dshc.value || 'https://www.figma.com/community/file/oneui');
+      var thumbBg = 'linear-gradient(135deg,color-mix(in srgb,var(--accent-primary,#4A5568) 45%,var(--surface-bg,#2D3748)),color-mix(in srgb,var(--text-secondary,#2D3748) 40%,transparent))';
+      var shareBg = _GDialogChromeCircle();
+      var divider = 'color-mix(in srgb,var(--text-primary,#fff) 14%,transparent)';
       return (
-        '<div style="width:100%;height:100%;display:flex;flex-direction:column;gap:12px;padding:8px 8px 0;box-sizing:border-box;">' +
+        '<div style="width:100%;height:100%;display:flex;flex-direction:column;gap:12px;padding:8px 8px 0;box-sizing:border-box;color:var(--text-primary,#fff);">' +
           '<div style="display:flex;align-items:center;gap:15px;">' +
-            '<div style="width:50px;height:50px;border-radius:10px;background:linear-gradient(135deg,#4A5568,#2D3748);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;">\u25A3</div>' +
+            '<div style="width:50px;height:50px;border-radius:10px;background:' + thumbBg + ';flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);font-size:18px;font-weight:700;border:var(--surface-border, 1px solid rgba(255,255,255,0.08));">\u25A3</div>' +
             '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;">' +
-              '<div style="font-family:var(--font);font-size:18px;font-weight:600;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1;">' + dshTitle + '</div>' +
-              '<div style="font-family:var(--font);font-size:14px;font-weight:400;color:#848487;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1;">' + dshUrl + '</div>' +
+              '<div style="' + _T('title', { weight: 'semibold' }) + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1;">' + dshTitle + '</div>' +
+              '<div style="' + _T('caption', { weight: 'regular', color: 'translucentLabel' }) + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1;">' + dshUrl + '</div>' +
             '</div>' +
-            '<div style="width:42px;height:42px;border-radius:14px;background:#17171a;flex-shrink:0;display:flex;align-items:center;justify-content:center;">' +
-              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4l-4 4M12 4l4 4M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+            '<div style="width:42px;height:42px;border-radius:14px;' + shareBg + 'flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);">' +
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4l-4 4M12 4l4 4M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
             '</div>' +
           '</div>' +
-          '<div style="height:1px;background:#5f5f61;width:100%;"></div>' +
+          '<div style="height:1px;background:' + divider + ';width:100%;"></div>' +
         '</div>'
       );
     }
 
     case 'dialog-browser-bar': {
-      var dbbActions = [
-        { label: 'History',   svg: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7L3 7M3 3v4h4M12 7v5l3.5 2" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-        { label: 'Downloads', svg: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4v12M6 12l6 6 6-6M4 20h16" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-        { label: 'Galaxy AI', svg: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 4.5L18 9l-4.2 1.5L12 15l-1.8-4.5L6 9l4.2-1.5L12 3zM18 15l.9 2.2L21 18l-2.1.8L18 21l-.9-2.2L15 18l2.1-.8L18 15z" fill="#fff"/></svg>' },
-        { label: 'Add page',  svg: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>' },
-        { label: 'Settings',  svg: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#fff" stroke-width="1.6"/><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>' }
+      var dbbv = (comp && comp.variant) || {};
+      var dbbc = (comp && comp.content) || {};
+      var DBB_ICON_INNER = {
+        history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 7M3 3v4h4M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+        downloads: '<path d="M12 4v12M6 12l6 6 6-6M4 20h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+        ai: '<path d="M12 3l1.8 4.5L18 9l-4.2 1.5L12 15l-1.8-4.5L6 9l4.2-1.5L12 3zM18 15l.9 2.2L21 18l-2.1.8L18 21l-.9-2.2L15 18l2.1-.8L18 15z" fill="currentColor"/>',
+        add: '<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+        settings: '<circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+        search: '<circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'
+      };
+      function _dbbInferInner(label, iconKey) {
+        if (iconKey && DBB_ICON_INNER[iconKey]) return DBB_ICON_INNER[iconKey];
+        var L = String(label || '');
+        if (/history|recent/i.test(L)) return DBB_ICON_INNER.history;
+        if (/download/i.test(L)) return DBB_ICON_INNER.downloads;
+        if (/ai|galaxy|smart/i.test(L)) return DBB_ICON_INNER.ai;
+        if (/add|new|\+/i.test(L)) return DBB_ICON_INNER.add;
+        if (/setting|option/i.test(L)) return DBB_ICON_INNER.settings;
+        if (/find|search/i.test(L)) return DBB_ICON_INNER.search;
+        return DBB_ICON_INNER.history;
+      }
+      var DEFAULT_BROWSER_ACTIONS = [
+        { label: 'History', icon: 'history' },
+        { label: 'Downloads', icon: 'downloads' },
+        { label: 'Galaxy AI', icon: 'ai' },
+        { label: 'Add page', icon: 'add' },
+        { label: 'Settings', icon: 'settings' }
       ];
+      var rawShortcuts = Array.isArray(dbbv.shortcuts) ? dbbv.shortcuts
+        : Array.isArray(dbbc.shortcuts) ? dbbc.shortcuts : null;
+      if (!rawShortcuts || !rawShortcuts.length) {
+        var mergeLbl = [dbbc.label, dbbc.value].filter(Boolean).join(' ');
+        if (mergeLbl.trim()) {
+          rawShortcuts = mergeLbl.split(/\s*[,/|·•]\s*/).map(function (s) { return { label: s.trim() }; }).filter(function (x) { return x.label; });
+        }
+      }
+      var dbbActions = (rawShortcuts && rawShortcuts.length)
+        ? rawShortcuts.slice(0, 8).map(function (s) {
+          var lbl = String(s.label || s.name || '').trim();
+          return {
+            label: lbl,
+            inner: _dbbInferInner(lbl, s.icon)
+          };
+        }).filter(function (a) { return a.label; })
+        : DEFAULT_BROWSER_ACTIONS.map(function (a) {
+          return { label: a.label, inner: DBB_ICON_INNER[a.icon] };
+        });
+      if (!dbbActions.length) {
+        dbbActions = DEFAULT_BROWSER_ACTIONS.map(function (a) {
+          return { label: a.label, inner: DBB_ICON_INNER[a.icon] };
+        });
+      }
+      var circleShell = 'width:54px;height:54px;border-radius:48px;display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);' +
+        _GDialogChromeCircle();
       var dbbCells = dbbActions.map(function (a) {
-        return '<div data-shortcut="1" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;">' +
-          '<div style="width:54px;height:54px;border-radius:48px;background:#17171a;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 4.7px rgba(0,0,0,0.25);">' + a.svg + '</div>' +
-          '<div style="font-family:var(--font);font-size:12px;font-weight:400;color:#fff;text-align:center;line-height:1.2;white-space:nowrap;">' + a.label + '</div>' +
+        var lab = _escHtmlText(a.label);
+        return '<div data-shortcut="1" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;color:var(--text-primary,#fff);">' +
+          '<div style="' + circleShell + '"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">' + a.inner + '</svg></div>' +
+          '<div style="' + _T('caption', { weight: 'regular' }) + 'text-align:center;line-height:1.2;white-space:nowrap;">' + lab + '</div>' +
         '</div>';
       }).join('');
-      return '<div style="width:100%;height:100%;display:flex;align-items:flex-start;justify-content:space-between;padding:0 8px;box-sizing:border-box;">' +
+      return '<div style="width:100%;height:100%;display:flex;align-items:flex-start;justify-content:space-between;padding:0 8px;box-sizing:border-box;gap:' + _S('sm') + ';">' +
         dbbCells +
       '</div>';
     }
 
     case 'dialog-icon-grid': {
-      var digApps = [
-        { name: 'Videos',     svg: '<rect x="3" y="5" width="18" height="12" rx="1.5" stroke="#fff" stroke-width="1.6" fill="none"/><path d="M10 9l5 3-5 3V9z" fill="#fff"/>' },
-        { name: 'Extensions', svg: '<path d="M8 3v3h8V3M3 8h3v8H3M21 8h-3v8h3M8 21v-3h8v3M6 9v6h12V9H6z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" fill="none"/>' },
-        { name: 'Block ads',  svg: '<circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.6" fill="none"/><path d="M5 5l14 14" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>' },
-        { name: 'Privacy',    svg: '<path d="M12 3l7 3v5a9 9 0 0 1-7 9 9 9 0 0 1-7-9V6l7-3z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" fill="none"/>' },
-        { name: 'Brightness', svg: '<circle cx="12" cy="12" r="4" stroke="#fff" stroke-width="1.6" fill="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>' },
-        { name: 'Find',       svg: '<circle cx="11" cy="11" r="7" stroke="#fff" stroke-width="1.6" fill="none"/><path d="M16 16l4 4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>' },
-        { name: 'Text',       svg: '<path d="M5 6h14M12 6v14M9 20h6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>' },
-        { name: 'Save PDF',   svg: '<rect x="5" y="3" width="14" height="18" rx="1.5" stroke="#fff" stroke-width="1.6" fill="none"/><path d="M15 3v4h4M12 11v6M9 14l3 3 3-3" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>' }
+      var digv = (comp && comp.variant) || {};
+      var digc = (comp && comp.content) || {};
+      var DIG_GENERIC = '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/>';
+      var DIG_PRESET = [
+        { name: 'Videos',     svg: '<rect x="3" y="5" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9l5 3-5 3V9z" fill="currentColor"/>' },
+        { name: 'Extensions', svg: '<path d="M8 3v3h8V3M3 8h3v8H3M21 8h-3v8h3M8 21v-3h8v3M6 9v6h12V9H6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>' },
+        { name: 'Block ads',  svg: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M5 5l14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' },
+        { name: 'Privacy',    svg: '<path d="M12 3l7 3v5a9 9 0 0 1-7 9 9 9 0 0 1-7-9V6l7-3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>' },
+        { name: 'Brightness', svg: '<circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' },
+        { name: 'Find',       svg: '<circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M16 16l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' },
+        { name: 'Text',       svg: '<path d="M5 6h14M12 6v14M9 20h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' },
+        { name: 'Save PDF',   svg: '<rect x="5" y="3" width="14" height="18" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M15 3v4h4M12 11v6M9 14l3 3 3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>' }
       ];
+      function _digPickSvg(name) {
+        var L = String(name || '').toLowerCase();
+        if (/video|play/i.test(L)) return DIG_PRESET[0].svg;
+        if (/extension|plugin/i.test(L)) return DIG_PRESET[1].svg;
+        if (/ad|block/i.test(L)) return DIG_PRESET[2].svg;
+        if (/privacy|shield/i.test(L)) return DIG_PRESET[3].svg;
+        if (/bright/i.test(L)) return DIG_PRESET[4].svg;
+        if (/find|search/i.test(L)) return DIG_PRESET[5].svg;
+        if (/text|ocr/i.test(L)) return DIG_PRESET[6].svg;
+        if (/pdf|save/i.test(L)) return DIG_PRESET[7].svg;
+        return DIG_GENERIC;
+      }
+      var rawApps = Array.isArray(digv.apps) ? digv.apps
+        : Array.isArray(digv.items) ? digv.items
+        : Array.isArray(digc.apps) ? digc.apps
+        : Array.isArray(digc.items) ? digc.items : null;
+      var digApps;
+      if (rawApps && rawApps.length) {
+        digApps = rawApps.slice(0, 8).map(function (a) {
+          var nm = String(a.name || a.label || '').trim();
+          return {
+            name: nm,
+            svg: typeof a.svg === 'string' ? a.svg : _digPickSvg(nm)
+          };
+        }).filter(function (a) { return a.name; });
+        for (var pi = digApps.length; pi < 8; pi++) {
+          digApps.push(DIG_PRESET[pi]);
+        }
+      } else {
+        digApps = DIG_PRESET.slice();
+      }
+      var dotActive = 'var(--accent-primary, #ffffff)';
+      var dotIdle = 'color-mix(in srgb, var(--text-primary,#fff) 38%, transparent)';
       var digRow = function (slice) {
         return slice.map(function (a) {
-          return '<div data-shortcut="1" style="width:54px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;">' +
+          var nm = _escHtmlText(a.name);
+          return '<div data-shortcut="1" style="width:54px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:var(--text-primary,#fff);">' +
             '<div style="width:40px;height:28px;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">' + a.svg + '</svg></div>' +
-            '<div style="font-family:var(--font);font-size:12px;font-weight:400;color:#fff;text-align:center;line-height:1.2;white-space:nowrap;">' + a.name + '</div>' +
+            '<div style="' + _T('caption', { weight: 'regular' }) + 'text-align:center;line-height:1.2;white-space:nowrap;">' + nm + '</div>' +
           '</div>';
         }).join('');
       };
       return (
-        '<div style="width:100%;height:100%;background:rgba(23,23,26,0.6);border-radius:24px;padding:18px 20px 16px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;">' +
+        '<div style="width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;' + _GDialogInsetTray() +
+          'border-radius:' + _R('medium') + ';padding:' + _S('xl') + ' ' + _S('xxl') + ' ' + _S('xl') + ';color:var(--text-primary,#fff);">' +
           '<div style="display:flex;justify-content:space-between;width:100%;">' + digRow(digApps.slice(0, 4)) + '</div>' +
           '<div style="display:flex;justify-content:space-between;width:100%;">' + digRow(digApps.slice(4, 8)) + '</div>' +
           '<div style="display:flex;justify-content:center;align-items:center;gap:6px;">' +
-            '<div style="width:6px;height:6px;border-radius:5px;background:#ffffff;"></div>' +
-            '<div style="width:6px;height:6px;border-radius:5px;background:rgba(255,255,255,0.6);"></div>' +
+            '<div style="width:6px;height:6px;border-radius:5px;background:' + dotActive + ';"></div>' +
+            '<div style="width:6px;height:6px;border-radius:5px;background:' + dotIdle + ';"></div>' +
           '</div>' +
         '</div>'
       );
@@ -1868,6 +1985,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       // Shared layout: rounded 50 pill, 56 icon, title+time row, subtitle
       // below, trailing chevron or badge pill.
       var lv = (comp && comp.variant) || {};
+      var liSurfRoot = _themeSurfaceStyleRoot();
       var liTheme  = lv.theme === 'dark' ? 'dark' : 'light';
       var title    = lv.title    || 'Item';
       var subtitle = lv.subtitle || '';
@@ -1884,6 +2002,12 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         liTimeColor  = '#d5d5d5';
         liSubColor   = '#cfcccf';
         liChevColor  = '#ffffff';
+      } else if (liSurfRoot === 'neon') {
+        liBg         = 'var(--surface-bg, #b8ff42)';
+        liTitleColor = 'var(--text-primary,#050805)';
+        liTimeColor  = 'var(--text-secondary,rgba(5,8,5,0.72))';
+        liSubColor   = 'var(--text-secondary,rgba(5,8,5,0.72))';
+        liChevColor  = 'var(--text-primary,#050805)';
       } else {
         liBg         = '#ffffff';
         liTitleColor = '#000000';
@@ -1904,7 +2028,12 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
             'font-size:10px;font-weight:700;font-family:Inter,system-ui,sans-serif;">' + badge + '</div>'
         : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;opacity:0.8;"><path d="M6 9l6 6 6-6" stroke="' + liChevColor + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-      return '<div style="width:100%;height:100%;background:' + liBg + ';border-radius:var(--card-radius,' + _R('widget') + ');' +
+      var liNeonChrome = liSurfRoot === 'neon' && liTheme !== 'dark'
+        ? 'border:var(--surface-border);box-shadow:var(--surface-shadow);'
+        : '';
+
+      return '<div style="width:100%;height:100%;background:' + liBg +
+        ';border-radius:var(--card-radius,' + _R('widget') + ');' + liNeonChrome +
         'padding:15px 20px 15px 16px;box-sizing:border-box;' +
         'display:flex;align-items:center;gap:10px;overflow:hidden;font-family:var(--font);">' +
         iconHTML +
@@ -1967,13 +2096,11 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       if (!actions || !actions.length) {
         return '<div style="width:100%;height:100%;"></div>';
       }
-      // Render each action as a pill button. The FIRST action gets the
-      // filled (primary-accent) style; subsequent ones use glass. If an
-      // explicit variant.kind="override" arrives, that one uses the
-      // subtle "outline / muted" style regardless of position.
-      // Inline glyph set for action chips. Compact 16x16 icons that pair
-      // with the label without crowding. Render as currentColor so the
-      // button's text color drives the icon color too.
+      function _escActionLbl(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      }
+      // Inline glyph set for action chips. Compact 16×16 icons — currentColor.
       var ACTION_ICONS = {
         bookmark:    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 4v17l6-4 6 4V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
         share:       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="6" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="6" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="18" r="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M8.2 11l7.6-4M8.2 13l7.6 4" stroke="currentColor" stroke-width="1.8"/></svg>',
@@ -1991,7 +2118,10 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         x:           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
         check:       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
         settings:    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-        search:      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+        search:      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+        clock:       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+        swap:        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 16V4M7 4l-3 3M7 4l3 3M17 8v12M17 20l3-3M17 20l-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        scale:       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M8 7h8M8 17h8M6 21h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
       };
       function _renderActionIcon(name) {
         return name && ACTION_ICONS[name]
@@ -2000,6 +2130,54 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       }
       var actionRowSkin = _themeSurfaceStyleRoot();
       var actionRowNeon = actionRowSkin === 'neon';
+
+      // Data-driven chip row — real `actions[]` from the pipeline. The old
+      // Figma gallery mock is opt-in via `variant.previewGallery` (theme
+      // customize / design demos only).
+      if (!av.previewGallery) {
+        var chipGap = _S('md');
+        var chipPadH = _S('xl');
+        var chipRad = 'var(--card-radius,' + _R('pill') + ')';
+        var rowPad = _S('base');
+        var chips = [];
+        for (var ai = 0; ai < actions.length; ai++) {
+          var act = actions[ai] || {};
+          var albl = _escActionLbl(act.label || act.name || '');
+          if (!albl) continue;
+          var isPrimary = act.kind === 'primary' || (ai === 0 && act.kind !== 'secondary');
+          var iconPart = _renderActionIcon(act.icon);
+          var chipBase = 'display:inline-flex;align-items:center;justify-content:center;gap:' + _S('sm') + ';' +
+            'min-height:44px;padding:0 ' + chipPadH + ';border-radius:' + chipRad + ';box-sizing:border-box;' +
+            'font-family:var(--font);border:none;cursor:default;' +
+            _T('label', { weight: 'medium' });
+          var chipStyle = chipBase;
+          if (isPrimary) {
+            chipStyle = chipBase.replace(/color:[^;]+;/, '') +
+              (actionRowSkin === 'gradient'
+                ? 'background:#1A1A1B;color:#ffffff;border:none;'
+                : 'background:var(--accent-primary,#0381FE);color:var(--accent-on-primary,#ffffff);border:none;');
+          } else {
+            chipStyle = chipBase.replace(/color:[^;]+;/, '') +
+              'background:color-mix(in srgb, var(--surface-bg, rgba(23,23,26,0.5)) 55%, transparent);' +
+              'color:var(--text-primary,#fff);border:var(--surface-border, 1px solid rgba(255,255,255,0.12));';
+          }
+          chips.push(
+            '<span role="presentation" style="' + chipStyle + '">' +
+              iconPart +
+              '<span style="white-space:nowrap;line-height:1;">' + albl + '</span>' +
+            '</span>'
+          );
+        }
+        if (!chips.length) {
+          return '<div style="width:100%;height:100%;"></div>';
+        }
+        return '<div style="width:100%;max-width:100%;box-sizing:border-box;display:flex;flex-wrap:wrap;' +
+          'align-items:center;gap:' + chipGap + ';padding:' + rowPad + ';' + _G('panel') +
+          'border-radius:var(--card-radius,' + _R('widget') + ');overflow:hidden;">' +
+          chips.join('') +
+        '</div>';
+      }
+
       var PANEL_ICONS = {
         video: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M10 8l5 4-5 4V8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
         heart: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
@@ -2036,7 +2214,8 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var studioBarChev = actionRowNeon ? 'var(--text-primary,#050805)' : 'rgba(239,238,242,0.72)';
       var studioBarBorder = actionRowNeon ? '1px solid rgba(5,8,5,0.12)' : 'none';
       var studioTileBg = actionRowNeon ? 'rgba(5,8,5,0.10)' : '#e6e6e6';
-      return '<div style="width:415px;height:345px;display:flex;flex-direction:column;align-items:center;padding:24px;gap:20px;box-sizing:border-box;background:var(--surface-bg, rgba(23,23,26,0.80));-webkit-backdrop-filter:var(--surface-filter, blur(24px));backdrop-filter:var(--surface-filter, blur(24px));border-radius:28px;color:var(--text-primary,#fff);font-family:var(--font);overflow:hidden;flex:none;flex-grow:0;">' +
+      return '<div style="width:100%;max-width:100%;min-height:0;display:flex;flex-direction:column;align-items:center;padding:24px;gap:20px;box-sizing:border-box;' + _G('panel') +
+        'border-radius:var(--card-radius,28px);color:var(--text-primary,#fff);font-family:var(--font);overflow:hidden;">' +
         '<div style="width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;">' +
           shortcut('video', 'Videos') + shortcut('heart', 'Favorites') + shortcut('clock', 'Recent') + shortcut('pin', 'Locations') +
         '</div>' +
@@ -2206,7 +2385,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
 
       return '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">' +
         iconHTML +
-        '<div style="font-size:10px;font-weight:500;color:#fff;line-height:1.35;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px 1px;text-shadow:0 1px 2px rgba(0,0,0,0.45);">' + app + '</div>' +
+        '<div style="font-size:10px;font-weight:500;color:var(--text-primary,#fff);line-height:1.35;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px 1px;">' + app + '</div>' +
       '</div>';
     }
 
@@ -2745,31 +2924,31 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var mhTitle = mhv.title || 'No Media Playing';
       var mhOutput = mhv.output || 'Media Output';
       return '<div style="width:100%;height:100%;min-width:199px;' +
-        'background:rgba(23,23,26,0.6);border:1px solid rgba(255,255,255,0.2);' +
+        _G('panel') +
         'border-radius:36px;padding:14px 29px;box-sizing:border-box;' +
         'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
-        'color:#fff;font-family:var(--font);overflow:hidden;">' +
+        'color:var(--text-primary,#fff);font-family:var(--font);overflow:hidden;">' +
         '<div style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:10px;flex:1;">' +
           // 1) Output chip
           '<div data-shortcut="1" style="display:flex;align-items:center;gap:6px;padding:6px 9px;background:rgba(0,0,0,0.2);border-radius:43px;cursor:pointer;">' +
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="color:#fff;">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="color:inherit;">' +
               '<path d="M4 10v4h3l4 3.5V6.5L7 10H4z" fill="currentColor"/>' +
               '<path d="M14 9.5a3.5 3.5 0 0 1 0 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/>' +
             '</svg>' +
-            '<span style="font-size:12px;font-weight:400;color:#fff;white-space:nowrap;">' + mhOutput + '</span>' +
+            '<span style="font-size:12px;font-weight:400;color:var(--text-primary,#fff);white-space:nowrap;">' + mhOutput + '</span>' +
           '</div>' +
           // 2) Song title row (play-triangle + "No Media Playing")
           '<div style="display:flex;align-items:center;gap:6px;justify-content:center;">' +
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>' +
-            '<span style="font-size:13px;font-weight:500;letter-spacing:0.3px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mhTitle + '</span>' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><path d="M8 5l10 7-10 7V5z" fill="currentColor"/></svg>' +
+            '<span style="font-size:13px;font-weight:500;letter-spacing:0.3px;color:var(--text-primary,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mhTitle + '</span>' +
           '</div>' +
           // 3) Progress line (empty/inactive)
           '<div style="width:100%;height:2px;background:rgba(255,255,255,0.25);border-radius:1px;"></div>' +
           // 4) Controls row — prev / play / next
           '<div style="display:flex;align-items:center;gap:21px;">' +
-            '<svg data-shortcut="1" width="22" height="22" viewBox="0 0 24 24" fill="none" style="cursor:pointer;"><path d="M6 5v14M18 5L8 12l10 7V5z" fill="#fff" stroke="#fff" stroke-width="1" stroke-linejoin="round"/></svg>' +
-            '<svg data-shortcut="1" width="22" height="22" viewBox="0 0 24 24" fill="none" style="cursor:pointer;"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>' +
-            '<svg data-shortcut="1" width="22" height="22" viewBox="0 0 24 24" fill="none" style="cursor:pointer;"><path d="M18 5v14M6 5l10 7-10 7V5z" fill="#fff" stroke="#fff" stroke-width="1" stroke-linejoin="round"/></svg>' +
+            '<svg data-shortcut="1" width="22" height="22" viewBox="0 0 24 24" fill="none" style="cursor:pointer;color:var(--text-primary,#fff);"><path d="M6 5v14M18 5L8 12l10 7V5z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg>' +
+            '<svg data-shortcut="1" width="22" height="22" viewBox="0 0 24 24" fill="none" style="cursor:pointer;color:var(--text-primary,#fff);"><path d="M8 5l10 7-10 7V5z" fill="currentColor"/></svg>' +
+            '<svg data-shortcut="1" width="22" height="22" viewBox="0 0 24 24" fill="none" style="cursor:pointer;color:var(--text-primary,#fff);"><path d="M18 5v14M6 5l10 7-10 7V5z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -2823,12 +3002,14 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       //   container  → 415×86, rounded 50, padding 15 / 16 / 20, gap 10
       //   icon       → 56×56 circle, app accent bg or png icon inside
       //
-      //   theme='dark'  (default, over Lock shade)
-      //     bg rgba(23,23,26,0.6) + backdrop-blur; title #efeef2 / sub #cfcccf
-      //   theme='light' (over Home / List / Detail day UI)
-      //     bg #ffffff; title #000 / sub #333 — pops against light app content
+      //   theme='light' ONLY when preset is Default (`surface style === base`) —
+      //   avoids white pills on Neon / Gradient / Glass when upstream still sends
+      //   theme: light for Home-adjacent mock data.
+      //   theme='dark' everywhere else → tokenized surface + ink
       var ncv = (comp && comp.variant) || {};
-      var ncTheme = ncv.theme === 'light' ? 'light' : 'dark';
+      var ncSurfRoot = _themeSurfaceStyleRoot();
+      var ncThemeFlag = ncv.theme === 'light' ? 'light' : 'dark';
+      var ncBaselineLight = ncThemeFlag === 'light' && ncSurfRoot === 'base';
       var ncTitle = ncv.title || ncv.app || 'Title';
       var ncBody  = ncv.body  || ncv.subtitle || '';
       var ncTime  = ncv.time  || '';
@@ -2837,9 +3018,8 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var ncGlyph = ncv.glyph || '';
       var ncShowSub = !!ncBody;
 
-      var ncSurfRoot = _themeSurfaceStyleRoot();
       var ncBg, ncBlur, ncTitleColor, ncTimeColor, ncSubColor, ncChevronColor;
-      if (ncTheme === 'light') {
+      if (ncBaselineLight) {
         ncBg = '#ffffff';
         ncBlur = '';
         ncTitleColor = '#000000';
@@ -2847,7 +3027,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         ncSubColor = '#333333';
         ncChevronColor = '#222222';
       } else if (ncSurfRoot === 'neon') {
-        ncBg = '#ffffff';
+        ncBg = 'var(--surface-bg, #b8ff42)';
         ncBlur = '';
         ncTitleColor = 'var(--text-primary,#050805)';
         ncTimeColor = 'var(--text-secondary,rgba(5,8,5,0.72))';
@@ -2870,7 +3050,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
             ';display:flex;align-items:center;justify-content:center;flex-shrink:0;' +
             'color:#fff;font-size:22px;font-weight:600;line-height:1;">' + ncGlyph + '</div>';
 
-      var ncSurface = ncTheme === 'light'
+      var ncSurface = ncBaselineLight
         ? 'background:' + ncBg + ';' + ncBlur
         : (ncSurfRoot === 'neon'
           ? 'background:' + ncBg + ';border:var(--surface-border);box-shadow:var(--surface-shadow);-webkit-backdrop-filter:none;backdrop-filter:none;'
@@ -2907,19 +3087,27 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var aiSub   = (naiv.subtitle && naiv.subtitle !== 'Subtitle') ? naiv.subtitle : (naiv.body || '');
       var aiTime  = naiv.time || '';
       var aiSurface = _themeSurfaceStyleRoot();
-      var aiTitleColor = aiTheme === 'light' ? '#111111' : 'var(--text-primary,#efeef2)';
-      var aiTimeColor  = aiTheme === 'light' ? '#444444' : 'var(--text-secondary,rgba(239,238,242,0.7))';
-      var aiSubColor   = aiTheme === 'light' ? '#222222' : 'var(--text-secondary,rgba(239,238,242,0.85))';
-      var aiChevColor  = aiTheme === 'light' ? '#111111' : 'var(--text-primary,#ffffff)';
+      var aiBaselineLight = aiTheme === 'light' && aiSurface === 'base';
+      // Tinted / gradient fills: keep light ink — global `--text-primary` may
+      // be dark (pastel presets) while the AI pill stays chromatic translucent.
+      var aiTinted = !aiBaselineLight && aiSurface !== 'flat' && aiSurface !== 'neon';
+      var aiTitleColor = aiBaselineLight ? '#111111' :
+        aiTinted ? '#ffffff' : 'var(--text-primary,#efeef2)';
+      var aiTimeColor  = aiBaselineLight ? '#444444' :
+        aiTinted ? 'rgba(255,255,255,0.78)' : 'var(--text-secondary,rgba(239,238,242,0.7))';
+      var aiSubColor   = aiBaselineLight ? '#222222' :
+        aiTinted ? 'rgba(255,255,255,0.82)' : 'var(--text-secondary,rgba(239,238,242,0.85))';
+      var aiChevColor  = aiBaselineLight ? '#111111' :
+        aiTinted ? '#ffffff' : 'var(--text-primary,#ffffff)';
       var aiSparkFill = aiSurface === 'neon'
-        ? '#ffffff'
-        : (aiTheme === 'light' ? '#111111' : 'var(--text-primary,#ffffff)');
+        ? 'var(--text-primary,#050805)'
+        : (aiBaselineLight ? '#111111' : 'var(--text-primary,#ffffff)');
       // Richer gradient: blue → purple → teal — three-stop AI signature.
       // Theme-driven via --card-ai-grad. Light mode keeps a stronger
       // gradient (no backdrop blur); dark mode uses a translucent one.
       var aiGrad = (aiSurface === 'flat' || aiSurface === 'neon')
         ? 'var(--card-ai-grad, var(--surface-bg, rgba(23,23,26,0.80)))'
-        : (aiTheme === 'light'
+        : (aiBaselineLight
           ? 'linear-gradient(120deg, rgba(102,161,243,1) 0%, rgba(167,139,250,1) 50%, rgba(34,201,166,1) 100%)'
           : 'var(--card-ai-grad, linear-gradient(120deg, rgba(102,161,243,0.45) 0%, rgba(167,139,250,0.45) 50%, rgba(34,201,166,0.45) 100%))');
       var aiSurfaceStyle = aiSurface === 'glass' ? _G('panel') : 'background:' + aiGrad + ';';
@@ -3162,8 +3350,8 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         { w: 56, h: 56 }
       );
       return '<div style="width:100%;height:100%;' +
-        'background:rgba(23,23,26,0.6);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);' +
-        'border:1px solid rgba(255,255,255,0.2);border-radius:var(--card-radius,' + _R('widget') + ');' +
+        _G('panel') +
+        'border-radius:var(--card-radius,' + _R('widget') + ');' +
         'padding:18px;box-sizing:border-box;' +
         'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;' +
         'overflow:hidden;">' +
@@ -3189,7 +3377,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var stShowSub = stv.showSubtitle !== false;
       var stIcon  = stv.icon || 'add';
       var stOn    = stv.on === true;
-      var glass   = 'background:rgba(23,23,26,0.6);border:1px solid rgba(255,255,255,0.2);border-radius:var(--card-radius,' + _R('widget') + ');box-sizing:border-box;';
+      var glass   = _G('panel') + 'border-radius:var(--card-radius,' + _R('widget') + ');box-sizing:border-box;';
 
       // Reusable 56-circle. Delegates to the `toggle-chip` atomic so the
       // full icon library (Wi-Fi / Mobile Data / Bluetooth / …) is picked
@@ -3221,8 +3409,8 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         // the SVG rendered at 26px for clear visibility. Figma's raw
         // 32.5×35 + p-13 holder math would clip the glyph to ~7×9, which
         // is what caused the "icons are too small" bug in the reference.
-        return '<div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-          '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" style="color:#fff;">' + path + '</svg>' +
+        return '<div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-primary,#fff);">' +
+          '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" style="color:inherit;">' + path + '</svg>' +
         '</div>';
       }
       // Shortcut variants get `data-shortcut` so the delegated interact-mode
@@ -3244,12 +3432,12 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var leftHalf = stKind === 'shortcut' ? _stShortcutIcon(stIcon) : _stChip(stOn, stIcon);
       var padX = stKind === 'shortcut' ? 'padding:24px 25px 24px 20px;' : 'padding:24px 17px;';
       return '<div' + shortcutAttr + ' style="width:199px;height:88px;max-height:88px;' + glass + padX +
-        'display:flex;flex-direction:column;align-items:flex-start;justify-content:center;overflow:hidden;color:#fff;font-family:var(--font);transition:transform 120ms ease,background 160ms ease;">' +
+        'display:flex;flex-direction:column;align-items:flex-start;justify-content:center;overflow:hidden;color:var(--text-primary,#fff);font-family:var(--font);transition:transform 120ms ease,background 160ms ease;">' +
         '<div style="display:flex;align-items:center;gap:10px;width:100%;">' +
           leftHalf +
           '<div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;">' +
-            '<div style="font-size:16px;font-weight:600;color:#efeef2;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + stTitle + '</div>' +
-            (stShowSub ? '<div style="font-size:14px;font-weight:400;color:#cfcccf;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + stSub + '</div>' : '') +
+            '<div style="font-size:16px;font-weight:600;color:var(--text-primary,#efeef2);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + stTitle + '</div>' +
+            (stShowSub ? '<div style="font-size:14px;font-weight:400;color:var(--text-secondary,rgba(239,238,242,0.72));line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + stSub + '</div>' : '') +
           '</div>' +
         '</div>' +
       '</div>';
@@ -3282,7 +3470,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       // Rendered at 30×30 SVG inside a 44×44 holder so the glyph reads
       // clearly alongside the title text (matches Figma visual weight even
       // though we abandoned Figma's clipped 32.5×35 p-13 container math).
-      var deviceGlyph = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" style="color:#efeef2;">' +
+      var deviceGlyph = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" style="color:var(--text-primary,#efeef2);">' +
         '<rect x="3" y="4" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8" fill="none"/>' +
         '<path d="M8 20h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
         '<path d="M12 16v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
@@ -3308,15 +3496,15 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       }).join('');
 
       return '<div style="width:415px;height:88px;max-height:88px;' +
-        'background:rgba(23,23,26,0.6);border:1px solid rgba(255,255,255,0.2);' +
+        _G('panel') +
         'border-radius:var(--card-radius,' + _R('widget') + ');padding:24px 17px 24px 20px;gap:20px;box-sizing:border-box;' +
-        'display:flex;align-items:center;overflow:hidden;color:#fff;font-family:var(--font);">' +
+        'display:flex;align-items:center;overflow:hidden;color:var(--text-primary,#fff);font-family:var(--font);">' +
         // Left: icon + title/sub
         '<div style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;">' +
           '<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + deviceGlyph + '</div>' +
           '<div style="display:flex;flex-direction:column;min-width:0;">' +
-            '<div style="font-size:16px;font-weight:600;color:#efeef2;line-height:1.2;width:138px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + stmTitle + '</div>' +
-            (stmShowSub ? '<div style="font-size:14px;font-weight:400;color:#cfcccf;line-height:1.3;width:138px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + stmSub + '</div>' : '') +
+            '<div style="font-size:16px;font-weight:600;color:var(--text-primary,#efeef2);line-height:1.2;width:138px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + stmTitle + '</div>' +
+            (stmShowSub ? '<div style="font-size:14px;font-weight:400;color:var(--text-secondary,rgba(239,238,242,0.72));line-height:1.3;width:138px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + stmSub + '</div>' : '') +
           '</div>' +
         '</div>' +
         // Right: action circles
@@ -3342,15 +3530,15 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         'wifi':       '<path d="M5 10a12 12 0 0 1 14 0M7 13.5a8 8 0 0 1 10 0M9 17a4 4 0 0 1 6 0" stroke="#222" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="20" r="1.4" fill="#222"/>'
       };
       var RIGHT_SVGS = {
-        'refresh':  '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 0 1 14-5l2-2M20 7v4h-4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-        'chevron':  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        'refresh':  '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color:var(--text-primary,#fff);"><path d="M4 12a8 8 0 0 1 14-5l2-2M20 7v4h-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        'chevron':  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:var(--text-primary,#fff);"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
       };
       var leftSvg = LEFT_SVGS[cpIcon] || LEFT_SVGS['smartthings'];
       var rightBlock = '';
       if (cpRight && RIGHT_SVGS[cpRight]) {
         rightBlock = '<div style="width:44px;height:44px;border-radius:50%;background:rgba(180,180,180,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:8px;">' + RIGHT_SVGS[cpRight] + '</div>';
       }
-      return '<div style="width:100%;height:100%;min-height:64px;background:rgba(120,120,125,0.28);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:36px;padding:10px 14px 10px 10px;box-sizing:border-box;display:flex;align-items:center;gap:12px;color:#fff;font-family:var(--font);">' +
+      return '<div style="width:100%;height:100%;min-height:64px;' + _G('panel') + 'border-radius:36px;padding:10px 14px 10px 10px;box-sizing:border-box;display:flex;align-items:center;gap:12px;color:var(--text-primary,#fff);font-family:var(--font);">' +
         '<div style="width:44px;height:44px;border-radius:50%;background:#d5d5d5;flex-shrink:0;display:flex;align-items:center;justify-content:center;">' +
           '<svg width="24" height="24" viewBox="0 0 24 24" fill="none">' + leftSvg + '</svg>' +
         '</div>' +
@@ -3368,7 +3556,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var mor = (comp && comp.variant) || {};
       var morL = mor.left  || 'Play music';
       var morR = mor.right || 'Media output';
-      return '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 16px;box-sizing:border-box;color:#fff;font-family:var(--font);font-size:13px;">' +
+      return '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 16px;box-sizing:border-box;color:var(--text-primary,#fff);font-family:var(--font);font-size:13px;">' +
         '<div style="display:flex;align-items:center;gap:8px;"><span style="opacity:0.85;">\u266B</span><span>' + morL + '</span></div>' +
         '<div style="opacity:0.85;">' + morR + '</div>' +
       '</div>';
@@ -3386,7 +3574,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         'song-search':'<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 17V6l10-2v11" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="17" r="2.4" stroke="#222" stroke-width="1.6"/><circle cx="17" cy="15" r="2.4" stroke="#222" stroke-width="1.6"/></svg>'
       };
       var qatSvg = ICON_SVGS[qatIcon] || ICON_SVGS['smart-view'];
-      return '<div style="width:100%;height:100%;min-height:56px;background:rgba(120,120,125,0.28);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:32px;padding:8px 14px 8px 8px;box-sizing:border-box;display:flex;align-items:center;gap:10px;color:#fff;font-family:var(--font);">' +
+      return '<div style="width:100%;height:100%;min-height:56px;' + _G('panel') + 'border-radius:32px;padding:8px 14px 8px 8px;box-sizing:border-box;display:flex;align-items:center;gap:10px;color:var(--text-primary,#fff);font-family:var(--font);">' +
         '<div style="width:40px;height:40px;border-radius:50%;background:#d5d5d5;flex-shrink:0;display:flex;align-items:center;justify-content:center;">' + qatSvg + '</div>' +
         '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;overflow:hidden;">' +
           '<div style="font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + qatTitle + '</div>' +

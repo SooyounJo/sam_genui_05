@@ -5,11 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GenUI - Samsung One UI 8.5 Design Builder</title>
 
-<!-- Theme bootstrap — applies the active theme's CSS variables to :root
-     before the rest of the page paints, so cards render with the theme
-     from the very first frame instead of flashing the default first.
-     Themes are managed at /customize. The active id is read from
-     figma-refs/themes.json via /api/themes. -->
+<!-- Theme tokens: css/genui.css defines :root fallbacks first; this
+     empty <style id="theme-vars"> is filled by /api/themes and MUST sit
+     AFTER genui.css so preset values (Neon black text, Glass borders,
+     etc.) win the cascade. -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Lock-screen clock font — Space Grotesk (Google, display-geometric sans).
+     Paired with Inter for UI / body text. Preconnect so the clock renders
+     with the correct metrics on first paint (no FOUT when lock screen
+     generates). Space Mono is kept loaded for backward compatibility with
+     older generated scenes that reference it, but new renders default to
+     Space Grotesk. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/genui.css">
 <style id="theme-vars"></style>
 <script>
   // Theme system — boot apply + Generate-panel picker + cross-window
@@ -25,9 +36,27 @@
     let CACHED_THEMES = null;
 
     function applyVarsToRoot(vars) {
-      const css = ':root {\n' +
-        Object.entries(vars).map(([k, v]) => '  ' + k + ': ' + v + ';').join('\n') +
-      '\n}';
+      var raw = vars || {};
+      // Document globals: surface renderer reads `--oneui-theme-style` /
+      // chroma from :root (`getComputedStyle(document.documentElement)`).
+      // Palette tokens (`--text-primary`, surfaces, QS chips, …) live on the
+      // device frames only so Neon black ink does not recolor sidebar/topbar.
+      var DOC_KEYS = new Set(['--oneui-theme-style', '--oneui-chroma']);
+      var rootLines = [];
+      var frameLines = [];
+      Object.keys(raw).forEach(function (key) {
+        var v = raw[key];
+        var line = '  ' + key + ': ' + v + ';';
+        if (DOC_KEYS.has(key)) rootLines.push(line);
+        else frameLines.push(line);
+      });
+      var css = '';
+      if (rootLines.length) {
+        css += ':root {\n' + rootLines.join('\n') + '\n}\n';
+      }
+      if (frameLines.length) {
+        css += '#canvasFrame, #canvasFrameB {\n' + frameLines.join('\n') + '\n}\n';
+      }
       const style = document.getElementById(STYLE_EL_ID);
       if (style) style.textContent = css;
     }
@@ -56,7 +85,12 @@
           window.__activeTheme = active && active.id;
           // Wait one tick — the picker element may not exist yet at
           // boot time (it's later in the DOM than this <head> script).
-          setTimeout(() => populatePicker(data.themes, active && active.id), 0);
+          setTimeout(function () {
+            populatePicker(data.themes, active && active.id);
+            if (typeof window.refreshCanvasForTheme === 'function') {
+              window.refreshCanvasForTheme();
+            }
+          }, 0);
         })
         .catch(() => {});
     }
@@ -74,6 +108,11 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       }).catch(() => {});
+      requestAnimationFrame(function () {
+        if (typeof window.refreshCanvasForTheme === 'function') {
+          window.refreshCanvasForTheme();
+        }
+      });
     };
 
     // Cross-window sync — listens for 'theme-saved' broadcasts from
@@ -95,18 +134,6 @@
     loadAndApply();
   })();
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- Lock-screen clock font — Space Grotesk (Google, display-geometric sans).
-     Paired with Inter for UI / body text. Preconnect so the clock renders
-     with the correct metrics on first paint (no FOUT when lock screen
-     generates). Space Mono is kept loaded for backward compatibility with
-     older generated scenes that reference it, but new renders default to
-     Space Grotesk. -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/genui.css">
 <!-- html-to-image — used by the auto-iterate loop to capture canvas
      snapshots. Uses the SVG <foreignObject> + native rasterization
      approach, which produced pixel-accurate captures in our test

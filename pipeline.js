@@ -248,6 +248,9 @@ const RENDERABLE_COMPONENT_IDS = new Set([
   'lock-screen.clock',
   'lock-screen.weather-date',
   'lock-screen.shortcut-circle',
+  'dialog.icon-grid-box',
+  'dialog.browser-top-bar',
+  'dialog.website-share-header',
   // ─── editor primitives with full templates (templates.js) ───
   'btn-contained', 'btn-outlined', 'btn-flat', 'fab',
   'switch', 'checkbox', 'radio', 'chip', 'input', 'search',
@@ -1279,7 +1282,8 @@ DIVERSITY RULES (anti-repetition — STRICTLY enforced):
 - Prefer VARIETY: a screen with weather_card + calendar_event_card + reminder_list_item + message_preview_card is BETTER than 4× input_summary_card. Mix subject + state + context + action types.
 - input_summary_card is for FORM SUMMARIES ONLY (search recap, settings recap, completed-form readback). Do NOT use it as a generic content card. If you need a generic info tile, use weather_card / calendar_event_card / reminder_list_item / message_preview_card / eta_card / now_playing_card / shortcut_tile instead.
 - If a single concept (e.g. "ingredients ready") would naturally repeat 3+ times, instead express it ONCE in a list/grid component (reminder_list_item or shortcut_tile) — not as 3 separate cards with similar labels.
-- When in doubt between two similar componentTypes for the same slot, pick the MORE SPECIFIC one.`;
+- When in doubt between two similar componentTypes for the same slot, pick the MORE SPECIFIC one.
+- Cooking / kitchen / recipe scenarios: do NOT use \`action_chip_row\` for generic gallery-style shortcuts (e.g. "Videos", "Favorites", "Shared albums") unless the scenario is explicitly a media gallery — prefer timers, substitutions, scaling, step actions, or pair chips with the recipe subject.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -1522,6 +1526,12 @@ Examples of GOOD task units:
 Anti-pattern (do NOT emit):
   group role=supporting:
     - context: action_chip   (action chip in a supporting group is incoherent — actions belong with their subject)
+
+Structured content for dialog registry rows (when these appear in Selected Components, include in each child’s \`content\` in the downstream content-filling stage):
+  - \`dialog.icon-grid-box\` → \`content.apps\` or \`content.items\`: [{ "name": "…", "icon": "optional-keyword" }]
+  - \`dialog.browser-top-bar\` → \`content.shortcuts\`: [{ "label": "…", "icon": "optional-keyword" }] or label/value lists split on punctuation
+  - \`dialog.website-share-header\` → \`content.siteName\` (or label) + \`content.url\` (or value)
+  - \`action_chip_row\` → \`content.actions\`: [{ "label": "…", "icon": "optional", "kind": "primary"|"secondary" }] when the scenario has distinct actions; otherwise \`label\` / \`value\` lists are still OK
 
 ## Reference Layout
 
@@ -2670,6 +2680,32 @@ async function runSelect({ scenarioText, interpretation, planningPacket, rawComb
       plan.plannerNotes = plan.plannerNotes || {};
       plan.plannerNotes.duplicatesDropped = dupDropped;
       console.log('[pipeline] runPlan: dedup — dropped ' + dupDropped + ' duplicate-labeled component(s)');
+    }
+  }
+
+  // ── Cooking domain: de-prioritize gallery-style action_chip_row (soft) ──
+  const goalAndScenario = `${scenario}\n${interpretation && interpretation.primaryGoal ? interpretation.primaryGoal : ''}`;
+  const COOKING_DOMAIN_RE = /\b(cooking|kitchen|recipe|chef)\b/i;
+  const GALLERY_CHIP_RE = /\b(videos|favorites|recent|locations|shared\s+albums|go\s+to\s+studio|clean\s+out)\b/i;
+  if (COOKING_DOMAIN_RE.test(goalAndScenario) && Array.isArray(plan.requiredComponents)) {
+    let nudge = 0;
+    plan.requiredComponents.forEach(c => {
+      if (c.componentType !== 'action_chip_row') return;
+      const lbl = String((c.content && c.content.label) || '');
+      const val = String((c.content && c.content.value) || '');
+      const blob = `${lbl} ${val}`;
+      if (GALLERY_CHIP_RE.test(blob)) {
+        const p = typeof c.priority === 'number' ? c.priority : 2;
+        if (p < 4) {
+          c.priority = Math.min(4, p + 1);
+          nudge += 1;
+        }
+      }
+    });
+    if (nudge) {
+      plan.plannerNotes = plan.plannerNotes || {};
+      plan.plannerNotes.cookingGalleryChipNudged = nudge;
+      console.log('[pipeline] runSelect: cooking — de-prioritized ' + nudge + ' gallery-like action_chip_row');
     }
   }
 
