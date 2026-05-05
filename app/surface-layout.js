@@ -916,16 +916,21 @@ function _T(size, opts) {
   return 'font-size:' + (pxMap[size] || 15) + 'px;font-weight:' + (weightMap[o.weight || 'regular']) + ';color:' + color + ';';
 }
 function _G(tier) {
-  if (_themeSurfaceStyleRoot() === 'base') {
-    return 'background:rgba(23,23,26,0.60);' +
-      '-webkit-backdrop-filter:blur(48px);backdrop-filter:blur(48px);' +
-      'border:1px solid rgba(255,255,255,0.12);' +
-      'box-shadow:none;';
-  }
-  if (_themeSurfaceStyleRoot() === 'flat') {
+  var __surfTier = _themeSurfaceStyleRoot();
+  // Neon matches flat: single matte surface token — avoid the glass gradient stack.
+  if (__surfTier === 'flat' || __surfTier === 'neon') {
     return 'background:var(--surface-bg, rgba(23,23,26,0.80));' +
       '-webkit-backdrop-filter:var(--surface-filter, blur(24px));backdrop-filter:var(--surface-filter, blur(24px));' +
       'border:var(--surface-border, 1px solid rgba(255,255,255,0.06));' +
+      'box-shadow:var(--surface-shadow, none);';
+  }
+  // Default / 기본 프리셋: 단일 표면 레이어 + 토큰 기반 블러/테두리.
+  // (구형 이중 레이어 `transparent, var(--surface-bg)` + color-mix 폴백은
+  // 일부 브라우저에서 배경 전체가 빠져 카드가 투명해 보이는 경우가 있었음.)
+  if (_themeSurfaceStyleRoot() === 'base') {
+    return 'background:var(--surface-bg, rgba(23,23,26,0.60));' +
+      '-webkit-backdrop-filter:var(--surface-filter, blur(48px));backdrop-filter:var(--surface-filter, blur(48px));' +
+      'border:var(--surface-border, 1px solid rgba(255,255,255,0.12));' +
       'box-shadow:var(--surface-shadow, none);';
   }
   if (_themeSurfaceStyleRoot() === 'glass') {
@@ -937,7 +942,7 @@ function _G(tier) {
   }
   var fallback = tier === 'widgetPill'
     ? 'rgba(23,23,26,0.6)'
-    : 'color-mix(in srgb, var(--page-bg,#171717) 68%, transparent)';
+    : 'rgba(23,23,26,0.60)';
   return 'background:var(--surface-overlay, transparent), var(--surface-bg,' + fallback + ');' +
     'background-size:var(--surface-bg-size, auto);animation:var(--surface-animation, none);' +
     '-webkit-backdrop-filter:var(--surface-filter, blur(20px));backdrop-filter:var(--surface-filter, blur(20px));' +
@@ -1351,7 +1356,8 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
 
       var STYLES = ['dark', 'light', 'ai-dark', 'ai-light'];
       var sbStyle = sbv.style || STYLES[Math.floor(Math.random() * STYLES.length)];
-      if (_themeSurfaceStyleRoot() === 'flat' && (sbStyle === 'ai-dark' || sbStyle === 'ai-light')) {
+      var __surfStyle = _themeSurfaceStyleRoot();
+      if ((__surfStyle === 'flat' || __surfStyle === 'neon') && (sbStyle === 'ai-dark' || sbStyle === 'ai-light')) {
         sbStyle = 'dark';
       }
 
@@ -1777,35 +1783,37 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         var wBgStyle;
         if (_isMonoChromaRoot()) {
           wBgStyle = 'background:linear-gradient(180deg,rgba(111,111,117,0.86) 0%,rgba(155,155,160,0.78) 100%), color-mix(in srgb, var(--page-bg,#171717) 26%, transparent);-webkit-backdrop-filter:blur(18px) saturate(1.12);backdrop-filter:blur(18px) saturate(1.12);border:1px solid rgba(255,255,255,0.18);box-shadow:inset 0 1px 0 rgba(255,255,255,0.22), var(--surface-shadow, none);';
-        } else if (themeSurface === 'base' || themeSurface === 'flat') {
-          wBgStyle = themeSurface === 'flat'
-            ? 'background:var(--surface-bg, rgba(23,23,26,0.80));-webkit-backdrop-filter:var(--surface-filter, blur(24px));backdrop-filter:var(--surface-filter, blur(24px));border:var(--surface-border, 1px solid rgba(255,255,255,0.06));box-shadow:var(--surface-shadow, none);'
-            : 'background:linear-gradient(180deg,rgba(63,136,221,0.86) 0%,rgba(112,177,230,0.78) 100%), color-mix(in srgb, var(--page-bg,#171717) 28%, transparent);-webkit-backdrop-filter:blur(18px) saturate(1.16);backdrop-filter:blur(18px) saturate(1.16);border:1px solid rgba(255,255,255,0.20);box-shadow:inset 0 1px 0 rgba(255,255,255,0.24), 0 18px 42px rgba(30,93,160,0.28);';
+        } else if (themeSurface === 'flat' || themeSurface === 'neon') {
+          wBgStyle = 'background:var(--surface-bg, rgba(23,23,26,0.80));-webkit-backdrop-filter:var(--surface-filter, blur(24px));backdrop-filter:var(--surface-filter, blur(24px));border:var(--surface-border, 1px solid rgba(255,255,255,0.06));box-shadow:var(--surface-shadow, none);';
+        } else if (themeSurface === 'base') {
+          wBgStyle = 'background:linear-gradient(180deg,rgba(63,136,221,0.86) 0%,rgba(112,177,230,0.78) 100%), color-mix(in srgb, var(--page-bg,#171717) 28%, transparent);-webkit-backdrop-filter:blur(18px) saturate(1.16);backdrop-filter:blur(18px) saturate(1.16);border:1px solid rgba(255,255,255,0.20);box-shadow:inset 0 1px 0 rgba(255,255,255,0.24), 0 18px 42px rgba(30,93,160,0.28);';
         } else {
           wBgStyle = _G('panel');
         }
+        var wGlassSheen = (themeSurface === 'flat' || themeSurface === 'neon') ? '' : '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.18),transparent 42%,rgba(0,0,0,0.08));pointer-events:none;"></div>';
+        var wInsetBorder = 'inset 0 0 0 1px ' + (themeSurface === 'neon' ? 'rgba(5,8,5,0.10)' : 'rgba(255,255,255,0.08)');
         return '<div style="width:100%;min-height:160px;height:100%;border-radius:var(--card-radius,' + _R('widget') + ');' +
           wBgStyle +
-          'padding:20px 24px 18px;box-sizing:border-box;color:#fff;' +
+          'padding:20px 24px 18px;box-sizing:border-box;color:var(--text-primary,#fff);' +
           'display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;overflow:hidden;position:relative;font-family:var(--font);">' +
-          (themeSurface === 'flat' ? '' : '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.18),transparent 42%,rgba(0,0,0,0.08));pointer-events:none;"></div>') +
-          '<div style="position:absolute;inset:1px;border-radius:calc(var(--card-radius,' + _R('widget') + ') - 1px);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08);pointer-events:none;"></div>' +
+          wGlassSheen +
+          '<div style="position:absolute;inset:1px;border-radius:calc(var(--card-radius,' + _R('widget') + ') - 1px);box-shadow:' + wInsetBorder + ';pointer-events:none;"></div>' +
           '<div style="position:relative;z-index:1;grid-column:1;grid-row:1;display:flex;flex-direction:column;align-items:flex-start;">' +
-            '<div style="font-size:32px;font-weight:700;line-height:0.95;letter-spacing:-1px;text-shadow:0 1px 3px rgba(0,0,0,0.16);">' + wTemp + '</div>' +
-            (wLocation ? '<div style="margin-top:7px;font-size:12px;font-weight:600;line-height:1;color:rgba(255,255,255,0.86);display:flex;align-items:center;gap:4px;"><span style="font-size:11px;">⊙</span><span>' + wLocation + '</span></div>' : '') +
+            '<div style="font-size:var(--card-weather-temp-size,32px);font-weight:var(--card-weather-temp-weight,700);line-height:0.95;letter-spacing:var(--card-weather-temp-letterspacing,-1px);color:var(--card-weather-temp-color,var(--text-primary,#fff));">' + wTemp + '</div>' +
+            (wLocation ? '<div style="margin-top:7px;font-size:12px;font-weight:600;line-height:1;color:var(--text-secondary,rgba(255,255,255,0.86));display:flex;align-items:center;gap:4px;"><span style="font-size:11px;">⊙</span><span>' + wLocation + '</span></div>' : '') +
           '</div>' +
           '<div style="position:relative;z-index:1;grid-column:2;grid-row:1;justify-self:end;width:58px;height:48px;filter:drop-shadow(0 3px 4px rgba(0,0,0,0.18));">' +
             '<div style="width:100%;height:100%;">' + wIcon + '</div>' +
           '</div>' +
           '<div style="position:relative;z-index:1;grid-column:1;grid-row:3;align-self:end;display:flex;flex-direction:column;gap:4px;min-width:0;">' +
-            (wCondition ? '<div style="font-size:12px;font-weight:600;line-height:1.1;color:rgba(255,255,255,0.94);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + wCondition + '</div>' : '') +
-            '<div style="font-size:11px;font-weight:600;line-height:1;color:rgba(255,255,255,0.78);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (wFeels ? 'Feels ' + wFeels : wWind) + '</div>' +
+            (wCondition ? '<div style="font-size:12px;font-weight:600;line-height:1.1;color:var(--text-primary,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + wCondition + '</div>' : '') +
+            '<div style="font-size:11px;font-weight:600;line-height:1;color:var(--text-secondary,rgba(255,255,255,0.78));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (wFeels ? 'Feels ' + wFeels : wWind) + '</div>' +
           '</div>' +
           '<div style="position:relative;z-index:1;grid-column:2;grid-row:3;align-self:end;justify-self:end;text-align:right;display:flex;flex-direction:column;gap:4px;">' +
-            '<div style="font-size:13px;font-weight:700;line-height:1;color:rgba(255,255,255,0.90);white-space:nowrap;">' + wDate + '</div>' +
-            '<div style="font-size:46px;font-weight:700;line-height:0.86;letter-spacing:-1.6px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.16);">' + wTime + '</div>' +
+            '<div style="font-size:13px;font-weight:700;line-height:1;color:var(--text-secondary,rgba(255,255,255,0.90));white-space:nowrap;">' + wDate + '</div>' +
+            '<div style="font-size:46px;font-weight:700;line-height:0.86;letter-spacing:-1.6px;color:var(--text-primary,#fff);">' + wTime + '</div>' +
           '</div>' +
-          '<div style="position:absolute;left:24px;right:24px;bottom:12px;height:1px;background:rgba(255,255,255,0.16);transform:translateY(7px);"></div>' +
+          '<div style="position:absolute;left:24px;right:24px;bottom:12px;height:1px;background:color-mix(in srgb, var(--text-primary,#fff) 18%, transparent);transform:translateY(7px);"></div>' +
         '</div>';
       }
 
@@ -1990,6 +1998,8 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           ? '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex-shrink:0;">' + ACTION_ICONS[name] + '</span>'
           : '';
       }
+      var actionRowSkin = _themeSurfaceStyleRoot();
+      var actionRowNeon = actionRowSkin === 'neon';
       var PANEL_ICONS = {
         video: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M10 8l5 4-5 4V8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
         heart: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
@@ -2002,18 +2012,30 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         chevron: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
       };
       function shortcut(icon, label) {
-        return '<div style="display:flex;flex-direction:column;align-items:center;gap:12px;min-width:0;color:rgba(239,238,242,0.54);">' +
-          '<div style="width:54px;height:54px;border-radius:50%;background:rgba(10,10,12,0.86);display:flex;align-items:center;justify-content:center;color:rgba(239,238,242,0.56);">' + PANEL_ICONS[icon] + '</div>' +
+        var scWrapFg = actionRowNeon ? 'var(--text-primary,#050805)' : 'rgba(239,238,242,0.54)';
+        var scCircleBg = actionRowNeon ? '#ffffff' : 'rgba(10,10,12,0.86)';
+        var scCircleFg = actionRowNeon ? 'var(--text-primary,#050805)' : 'rgba(239,238,242,0.56)';
+        var scCircleBorder = actionRowNeon ? '1px solid rgba(5,8,5,0.12)' : 'none';
+        return '<div style="display:flex;flex-direction:column;align-items:center;gap:12px;min-width:0;color:' + scWrapFg + ';">' +
+          '<div style="width:54px;height:54px;border-radius:50%;background:' + scCircleBg + ';border:' + scCircleBorder + ';display:flex;align-items:center;justify-content:center;color:' + scCircleFg + ';">' + PANEL_ICONS[icon] + '</div>' +
           '<div style="font-size:15px;font-weight:500;line-height:1;white-space:nowrap;">' + label + '</div>' +
         '</div>';
       }
       function panelPill(icon, label, dot) {
-        return '<div style="height:44px;border-radius:28px;background:rgba(10,10,12,0.86);display:flex;align-items:center;justify-content:center;gap:12px;color:rgba(239,238,242,0.58);font-size:15px;font-weight:500;line-height:1;position:relative;">' +
+        var pillBg = actionRowNeon ? '#ffffff' : 'rgba(10,10,12,0.86)';
+        var pillFg = actionRowNeon ? 'var(--text-primary,#050805)' : 'rgba(239,238,242,0.58)';
+        var pillBorder = actionRowNeon ? '1px solid rgba(5,8,5,0.12)' : 'none';
+        return '<div style="height:44px;border-radius:28px;background:' + pillBg + ';border:' + pillBorder + ';display:flex;align-items:center;justify-content:center;gap:12px;color:' + pillFg + ';font-size:15px;font-weight:500;line-height:1;position:relative;">' +
           '<span style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;flex:none;">' + PANEL_ICONS[icon] + '</span>' +
           '<span style="display:inline-flex;align-items:center;justify-content:center;line-height:1;white-space:nowrap;">' + label + '</span>' +
           (dot ? '<span style="position:absolute;right:36px;top:50%;transform:translateY(-11px);width:6px;height:6px;border-radius:50%;background:#E65B17;"></span>' : '') +
         '</div>';
       }
+      var studioBarBg = actionRowNeon ? '#ffffff' : 'rgba(10,10,12,0.86)';
+      var studioBarFg = actionRowNeon ? 'var(--text-primary,#050805)' : 'rgba(239,238,242,0.70)';
+      var studioBarChev = actionRowNeon ? 'var(--text-primary,#050805)' : 'rgba(239,238,242,0.72)';
+      var studioBarBorder = actionRowNeon ? '1px solid rgba(5,8,5,0.12)' : 'none';
+      var studioTileBg = actionRowNeon ? 'rgba(5,8,5,0.10)' : '#e6e6e6';
       return '<div style="width:415px;height:345px;display:flex;flex-direction:column;align-items:center;padding:24px;gap:20px;box-sizing:border-box;background:var(--surface-bg, rgba(23,23,26,0.80));-webkit-backdrop-filter:var(--surface-filter, blur(24px));backdrop-filter:var(--surface-filter, blur(24px));border-radius:28px;color:var(--text-primary,#fff);font-family:var(--font);overflow:hidden;flex:none;flex-grow:0;">' +
         '<div style="width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;">' +
           shortcut('video', 'Videos') + shortcut('heart', 'Favorites') + shortcut('clock', 'Recent') + shortcut('pin', 'Locations') +
@@ -2022,10 +2044,10 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           panelPill('users', 'Shared albums') + panelPill('clean', 'Clean out', true) +
           panelPill('trash', 'Trash') + panelPill('settings', 'Settings') +
         '</div>' +
-        '<div style="width:100%;height:64px;border-radius:32px;background:rgba(10,10,12,0.86);display:flex;align-items:center;gap:20px;padding:0 28px 0 20px;box-sizing:border-box;color:rgba(239,238,242,0.70);font-size:20px;font-weight:500;">' +
-          '<span style="width:24px;height:24px;border-radius:8px;background:#e6e6e6;flex:none;"></span>' +
+        '<div style="width:100%;height:64px;border-radius:32px;background:' + studioBarBg + ';border:' + studioBarBorder + ';display:flex;align-items:center;gap:20px;padding:0 28px 0 20px;box-sizing:border-box;color:' + studioBarFg + ';font-size:20px;font-weight:500;">' +
+          '<span style="width:24px;height:24px;border-radius:8px;background:' + studioTileBg + ';flex:none;"></span>' +
           '<span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Go to Studio</span>' +
-          '<span style="display:flex;color:rgba(239,238,242,0.72);">' + PANEL_ICONS.chevron + '</span>' +
+          '<span style="display:flex;color:' + studioBarChev + ';">' + PANEL_ICONS.chevron + '</span>' +
         '</div>' +
       '</div>';
     }
@@ -2219,8 +2241,12 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         };
         var tiles = tcvRow.toggles.map(function (t) {
           var iconPath = TOGGLE_ROW_ICONS[t.icon] || TOGGLE_ROW_ICONS['sound'];
-          var bg    = t.on ? 'rgba(246,248,248,0.88)' : 'rgba(56,77,82,0.42)';
-          var color = t.on ? 'rgba(30,42,46,0.82)' : 'rgba(214,226,226,0.52)';
+          var bg    = t.on
+            ? 'var(--qs-row-toggle-on-bg, rgba(246,248,248,0.88))'
+            : 'var(--qs-row-toggle-off-bg, rgba(56,77,82,0.42))';
+          var color = t.on
+            ? 'var(--qs-row-toggle-on-fg, rgba(30,42,46,0.82))'
+            : 'var(--qs-row-toggle-off-fg, rgba(214,226,226,0.52))';
           var shadow = t.on
             ? 'box-shadow:inset 0 1px 0 rgba(255,255,255,0.65),0 8px 18px rgba(0,0,0,0.18);'
             : 'box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);';
@@ -2231,10 +2257,9 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           '</div>';
         }).join('');
         return '<div style="width:100%;min-height:92px;height:100%;display:flex;align-items:center;justify-content:space-around;gap:12px;padding:18px 20px;box-sizing:border-box;border-radius:var(--card-radius,' + _R('widget') + ');' +
-          'background:linear-gradient(135deg,rgba(69,100,105,0.56),rgba(31,64,68,0.44));' +
-          '-webkit-backdrop-filter:blur(22px) saturate(1.18);backdrop-filter:blur(22px) saturate(1.18);' +
-          'border:1px solid rgba(255,255,255,0.16);box-shadow:inset 0 1px 0 rgba(255,255,255,0.16),0 18px 38px rgba(0,0,0,0.22);overflow:hidden;position:relative;">' +
-          '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.10),transparent 58%,rgba(0,0,0,0.08));pointer-events:none;"></div>' +
+          _G('panel') +
+          'overflow:hidden;position:relative;">' +
+          '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.10),transparent 58%,rgba(0,0,0,0.08));pointer-events:none;opacity:var(--qs-row-sheen-opacity, 1);"></div>' +
           '<div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-around;gap:12px;width:100%;">' +
           tiles +
           '</div>' +
@@ -2312,16 +2337,17 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       };
       var iconPath = ICONS[iconKey] || ICONS['modes'];
       var size = label ? 22 : 24;
-      var iconColor = on ? '#222' : '#fff';
-      var plusSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>';
-      var iconSvg = '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" style="color:' + iconColor + ';">' + iconPath + '</svg>';
+      var iconColorOn = 'var(--qs-chip-icon-on, #222)';
+      var iconColorOff = 'var(--qs-chip-icon-off, #fff)';
+      var plusSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="' + iconColorOff + '" stroke-width="1.8" stroke-linecap="round"/></svg>';
+      var iconSvg = '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" style="color:' + (on ? iconColorOn : iconColorOff) + ';">' + iconPath + '</svg>';
       var circle = '<div data-toggle-chip data-on="' + (on ? '1' : '0') + '" ' +
         'style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;' +
-          'background:' + (on ? '#d5d5d5' : 'rgba(180,180,180,0.2)') + ';transition:background 180ms ease;' +
+          'background:' + (on ? 'var(--qs-chip-on-bg, #d5d5d5)' : 'var(--qs-chip-off-bg, rgba(180,180,180,0.2))') + ';transition:background 180ms ease;' +
           (label ? 'margin:0 auto 8px;' : 'margin:auto;') + '">' +
           '<span data-toggle-on style="display:' + (on ? 'inline-flex' : 'none') + ';">' + iconSvg + '</span>' +
           '<span data-toggle-off style="display:' + (on ? 'none' : 'inline-flex') + ';">' +
-            (iconKey ? iconSvg.replace('color:#222', 'color:#fff') : plusSvg) +
+            (iconKey ? iconSvg.replace('color:' + iconColorOn, 'color:' + iconColorOff) : plusSvg) +
           '</span>' +
         '</div>';
       if (!label) return circle;
@@ -2330,10 +2356,10 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       // label wraps to 1 or 2 lines. Circle at padding-top:4; label at
       // fixed margin-top so it hangs below at a consistent offset.
       return '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;' +
-        'padding-top:4px;box-sizing:border-box;color:#fff;font-family:var(--font);overflow:visible;">' +
+        'padding-top:4px;box-sizing:border-box;color:var(--text-primary,#fff);font-family:var(--font);overflow:visible;">' +
         circle +
         '<div style="font-size:11px;font-weight:500;text-align:center;line-height:1.25;max-width:86px;' +
-          'margin-top:8px;white-space:normal;word-break:keep-all;color:rgba(255,255,255,0.92);">' + label + '</div>' +
+          'margin-top:8px;white-space:normal;word-break:keep-all;color:var(--text-secondary,rgba(255,255,255,0.92));">' + label + '</div>' +
       '</div>';
     }
 
@@ -2387,8 +2413,8 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       }
 
       return '<div style="width:100%;height:100%;' +
-        'background:rgba(23,23,26,0.6);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);' +
-        'border:1px solid rgba(255,255,255,0.2);border-radius:var(--card-radius,' + _R('widget') + ');' +
+        _G('panel') +
+        'border:var(--surface-border, 1px solid rgba(255,255,255,0.2));border-radius:var(--card-radius,' + _R('widget') + ');' +
         'padding:24px 25px;box-sizing:border-box;' +
         'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;' +
         'position:relative;overflow:hidden;">' +
@@ -2463,7 +2489,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var nbType = nbv.type || 'timer';
       var common = 'min-height:64px;height:64px;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);' +
         'padding:12px 18px 12px 12px;box-sizing:border-box;display:flex;align-items:center;gap:14px;' +
-        'border-radius:53px;color:#fff;font-family:var(--font);overflow:hidden;position:relative;';
+        'border-radius:53px;color:var(--text-primary,#fff);font-family:var(--font);overflow:hidden;position:relative;';
 
       if (nbType === 'media') {
         // Song title scrolls as a marquee. Earlier revisions used a
@@ -2480,22 +2506,22 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           || [nbv.title || nbv.song, nbv.artist, nbv.album].filter(Boolean).join(' \u00B7 ')
           || mSong;
         var mImgBg   = nbv.imgBg || '#5b53c8';
-        return '<div style="width:100%;' + common + _G('widgetPill') + 'padding:5px 12px;gap:8px;">' +
-          '<div style="width:40px;height:40px;border-radius:37px;background:' + mImgBg + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;">' +
-            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18V5l12-2v13" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" stroke="#fff" stroke-width="1.8"/><circle cx="18" cy="16" r="3" stroke="#fff" stroke-width="1.8"/></svg>' +
+        return '<div style="width:100%;' + common + _G('widgetPill') + 'padding:5px 12px;gap:8px;color:var(--text-primary,#fff);">' +
+          '<div style="width:40px;height:40px;border-radius:37px;background:' + mImgBg + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);">' +
+            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/></svg>' +
           '</div>' +
           '<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:10px;">' +
             // Marquee container: fixed 164 width, overflow-hidden, inner track animates
             '<div style="width:164px;height:14px;overflow:hidden;position:relative;mask-image:linear-gradient(to right,transparent 0,#000 8px,#000 calc(100% - 8px),transparent 100%);">' +
-              '<div class="nowbar-marquee-track" style="position:absolute;top:0;left:0;white-space:nowrap;font-size:14px;font-weight:600;line-height:14px;color:#fff;animation:nowbar-marquee 14s linear infinite;">' +
+              '<div class="nowbar-marquee-track" style="position:absolute;top:0;left:0;white-space:nowrap;font-size:14px;font-weight:600;line-height:14px;color:var(--text-primary,#fff);animation:nowbar-marquee 14s linear infinite;">' +
                 '<span style="padding-right:32px;">' + mMarquee + '</span>' +
                 '<span style="padding-right:32px;">' + mMarquee + '</span>' +
               '</div>' +
             '</div>' +
-            '<div style="display:flex;align-items:center;gap:15px;">' +
-              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18 5L8 12l10 7V5z" fill="#fff"/><rect x="5" y="5" width="2" height="14" fill="#fff"/></svg>' +
-              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="7" y="5" width="3.5" height="14" fill="#fff"/><rect x="13.5" y="5" width="3.5" height="14" fill="#fff"/></svg>' +
-              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6 5l10 7-10 7V5z" fill="#fff"/><rect x="17" y="5" width="2" height="14" fill="#fff"/></svg>' +
+            '<div style="display:flex;align-items:center;gap:15px;color:var(--text-primary,#fff);">' +
+              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18 5L8 12l10 7V5z" fill="currentColor"/><rect x="5" y="5" width="2" height="14" fill="currentColor"/></svg>' +
+              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="7" y="5" width="3.5" height="14" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" fill="currentColor"/></svg>' +
+              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6 5l10 7-10 7V5z" fill="currentColor"/><rect x="17" y="5" width="2" height="14" fill="currentColor"/></svg>' +
             '</div>' +
           '</div>' +
         '</div>';
@@ -2519,18 +2545,22 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           merge:   '<svg width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M12 19V8M12 8l-4 4M12 8l4 4M5 19l4-4M19 19l-4-4" stroke="var(--card-nav-accent,#14B8A6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
         };
         var arrow = ARROW[dir] || ARROW.straight;
-        return '<div style="width:100%;' + common + _G('widgetPill') + 'gap:10px;">' +
+        var nbSkin = _themeSurfaceStyleRoot();
+        var navPillShell = nbSkin === 'neon'
+          ? 'background:#ffffff;border:var(--surface-border);box-shadow:var(--surface-shadow);-webkit-backdrop-filter:none;backdrop-filter:none;'
+          : _G('widgetPill');
+        return '<div style="width:100%;' + common + navPillShell + 'gap:10px;">' +
           '<div style="width:40px;height:40px;border-radius:20px;background:var(--card-nav-arrow-bg,rgba(20,184,166,0.25));display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:8px;">' +
             arrow +
           '</div>' +
           '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;overflow:visible;">' +
             (navDist
-              ? '<div style="font-size:var(--card-nav-distance-size,22px);font-weight:600;line-height:1;color:#fff;letter-spacing:-0.4px;">' + navDist + '</div>'
+              ? '<div style="font-size:var(--card-nav-distance-size,22px);font-weight:600;line-height:1;color:var(--text-primary,#fff);letter-spacing:-0.4px;">' + navDist + '</div>'
               : '') +
-            '<div style="font-size:8.5px;font-weight:500;color:rgba(255,255,255,0.85);white-space:nowrap;overflow:visible;text-overflow:clip;letter-spacing:-0.45px;line-height:1.05;">' + navInstr + '</div>' +
+            '<div style="font-size:8.5px;font-weight:500;color:var(--text-secondary,rgba(255,255,255,0.85));white-space:nowrap;overflow:visible;text-overflow:clip;letter-spacing:-0.45px;line-height:1.05;">' + navInstr + '</div>' +
           '</div>' +
           (navEta
-            ? '<div style="font-size:8.5px;font-weight:500;color:rgba(255,255,255,0.7);flex-shrink:0;padding-left:5px;border-left:1px solid rgba(255,255,255,0.15);">' + navEta + '</div>'
+            ? '<div style="font-size:8.5px;font-weight:500;color:var(--text-secondary,rgba(255,255,255,0.7));flex-shrink:0;padding-left:5px;border-left:1px solid color-mix(in srgb, var(--text-primary,#fff) 18%, transparent);">' + navEta + '</div>'
             : '') +
         '</div>';
       }
@@ -2552,14 +2582,14 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         return '<div style="margin:0 auto;width:248px;height:64px;flex:none;flex-grow:0;' +
           'box-sizing:border-box;display:flex;flex-direction:row;align-items:center;padding:12px 18px 12px 12px;gap:14px;' +
           'background:var(--surface-bg, rgba(23,23,26,0.80));border:var(--surface-border, 1px solid rgba(255,255,255,0.12));' +
-          '-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:53px;' +
-          'color:#fff;font-family:var(--font);overflow:hidden;">' +
+          '-webkit-backdrop-filter:var(--surface-filter, blur(12px));backdrop-filter:var(--surface-filter, blur(12px));border-radius:53px;' +
+          'color:var(--text-primary,#fff);font-family:var(--font);overflow:hidden;">' +
           '<div style="width:40px;height:40px;border-radius:20px;background:' + dlIconBg + ';flex:none;display:flex;align-items:center;justify-content:center;color:#000;overflow:hidden;">' +
             '<div style="font-weight:800;font-size:13px;line-height:11px;letter-spacing:-0.7px;text-align:left;white-space:normal;">' + dlApp.replace(/\s+/, '<br>') + '</div>' +
           '</div>' +
           '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px;">' +
-            '<div style="font-size:17px;font-weight:700;line-height:18px;color:#fff;letter-spacing:-0.45px;white-space:nowrap;overflow:hidden;text-overflow:clip;">' + dlTitle + '</div>' +
-            '<div style="font-size:13px;font-weight:400;line-height:15px;color:rgba(255,255,255,0.92);letter-spacing:-0.25px;white-space:nowrap;overflow:hidden;text-overflow:clip;">' + dlSubtitle + '</div>' +
+            '<div style="font-size:17px;font-weight:700;line-height:18px;color:var(--text-primary,#fff);letter-spacing:-0.45px;white-space:nowrap;overflow:hidden;text-overflow:clip;">' + dlTitle + '</div>' +
+            '<div style="font-size:13px;font-weight:400;line-height:15px;color:var(--text-secondary,rgba(255,255,255,0.92));letter-spacing:-0.25px;white-space:nowrap;overflow:hidden;text-overflow:clip;">' + dlSubtitle + '</div>' +
           '</div>' +
           dlTrailSvg +
         '</div>';
@@ -2570,20 +2600,30 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         var voicePrompt = nbv.prompt || nbv.placeholder || 'What are you looking for?';
         var voiceSurface = _themeSurfaceStyleRoot();
         var voiceIsFlat = voiceSurface === 'flat';
+        var voiceIsNeon = voiceSurface === 'neon';
         var voiceIsGlass = voiceSurface === 'glass';
-        var voiceBg = voiceIsFlat
+        var voiceBg = voiceIsNeon
+          ? '#ffffff'
+          : (voiceIsFlat
           ? 'var(--surface-bg, rgba(23,23,26,0.80))'
           : (voiceIsGlass
             ? 'radial-gradient(circle at 14% 0%,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.045) 30%,transparent 58%), linear-gradient(90deg,rgba(102,161,243,0.28) 0%,rgba(34,201,166,0.18) 58%,rgba(255,255,255,0.04) 100%), rgba(23,23,26,0.18)'
-            : 'linear-gradient(90deg,#364B6F 0%,#384247 64.81%,#2D2D30 87.17%)');
-        var voiceTextStyle = voiceIsFlat
-          ? 'color:var(--accent-primary,#0381FE);'
-          : 'background:linear-gradient(90deg,#78AFFF 0%,#31D8B3 100%);-webkit-background-clip:text;background-clip:text;color:transparent;';
-        var voiceIconColor = voiceIsFlat ? 'var(--accent-primary,#0381FE)' : '#31D8B3';
+            : 'linear-gradient(90deg,#364B6F 0%,#384247 64.81%,#2D2D30 87.17%)'));
+        var voiceNeonGreen = 'var(--surface-bg,#b8ff42)';
+        var voiceTextStyle = voiceIsNeon
+          ? 'color:' + voiceNeonGreen + ';'
+          : (voiceIsFlat
+            ? 'color:var(--accent-primary,#0381FE);'
+            : 'background:linear-gradient(90deg,#78AFFF 0%,#31D8B3 100%);-webkit-background-clip:text;background-clip:text;color:transparent;');
+        var voiceIconColor = voiceIsNeon
+          ? voiceNeonGreen
+          : (voiceIsFlat ? 'var(--accent-primary,#0381FE)' : '#31D8B3');
         var voiceChrome = voiceIsGlass
           ? 'border:1px solid rgba(255,255,255,0.16);-webkit-backdrop-filter:blur(42px) saturate(1.45) brightness(1.02);backdrop-filter:blur(42px) saturate(1.45) brightness(1.02);box-shadow:inset 0 1px 0 rgba(255,255,255,0.20), inset 0 -1px 0 rgba(255,255,255,0.035), 0 18px 42px rgba(0,0,0,0.24);'
-          : 'box-shadow:-1px 0px 4px 1px rgba(78,102,139,0.58);';
-        return '<div style="margin:0 auto;width:381px;height:58px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;padding:17px 20px;gap:12px;box-sizing:border-box;background:' + voiceBg + ';' + voiceChrome + 'border-radius:30px;color:#fff;font-family:var(--font);overflow:hidden;flex:none;flex-grow:0;">' +
+          : (voiceIsNeon
+            ? 'border:var(--surface-border, 1px solid rgba(255,255,255,0.12));-webkit-backdrop-filter:var(--surface-filter, blur(12px));backdrop-filter:var(--surface-filter, blur(12px));box-shadow:var(--surface-shadow, none);'
+            : 'box-shadow:-1px 0px 4px 1px rgba(78,102,139,0.58);');
+        return '<div style="margin:0 auto;width:381px;height:58px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;padding:17px 20px;gap:12px;box-sizing:border-box;background:' + voiceBg + ';' + voiceChrome + 'border-radius:30px;color:var(--text-primary,#fff);font-family:var(--font);overflow:hidden;flex:none;flex-grow:0;">' +
           '<div style="font-size:17px;font-weight:700;line-height:1.05;letter-spacing:-0.55px;white-space:nowrap;overflow:visible;text-overflow:clip;' + voiceTextStyle + '">' + voicePrompt + '</div>' +
           '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex:none;color:' + voiceIconColor + ';">' +
             '<rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="2" fill="none"/>' +
@@ -2596,7 +2636,38 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         var percent = nbv.percent != null ? nbv.percent : 69;
         var chargeSurface = _themeSurfaceStyleRoot();
         var chargeIsFlat = chargeSurface === 'flat';
+        var chargeIsNeon = chargeSurface === 'neon';
         var chargeIsGlass = chargeSurface === 'glass';
+        // Neon: white track (unfilled / right), neon-green fill grows from the
+        // left by percent — avoids the legacy two-layer gradient trick.
+        if (chargeIsNeon) {
+          var neonTrack = 'var(--nowbar-charging-track-bg, #ffffff)';
+          var neonFill = 'var(--nowbar-charging-fill-bg, var(--surface-bg))';
+          var neonBolt = 'var(--nowbar-charging-bolt-fill, var(--text-primary,#050805))';
+          var neonPct = 'var(--nowbar-charging-percent-color, var(--text-primary,#050805))';
+          var pctW = Math.max(0, Math.min(100, Number(percent)));
+          if (isNaN(pctW)) pctW = 69;
+          return '<div style="margin:0 auto;width:248px;height:64px;max-width:100%;' +
+            'display:flex;flex-direction:row;align-items:center;padding:12px 18px 12px 12px;gap:14px;' +
+            'isolation:isolate;position:relative;overflow:hidden;box-sizing:border-box;' +
+            'background:' + neonTrack + ';' +
+            'border:var(--surface-border, 1px solid rgba(5,8,5,0.14));' +
+            'box-shadow:var(--surface-shadow, none);' +
+            '-webkit-backdrop-filter:none;backdrop-filter:none;' +
+            'border-radius:53px;font-family:var(--font);">' +
+            '<div style="position:absolute;left:0;top:0;bottom:0;width:' + pctW + '%;max-width:100%;background:' + neonFill + ';z-index:0;pointer-events:none;"></div>' +
+            '<div style="width:40px;height:40px;position:relative;z-index:1;flex:none;">' +
+              '<div style="position:absolute;width:40px;height:40px;left:0;top:0;background:#5B53C8;opacity:0;border-radius:20px;"></div>' +
+              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="position:absolute;left:8px;top:8px;">' +
+                '<path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="' + neonBolt + '"/>' +
+              '</svg>' +
+            '</div>' +
+            '<div style="position:relative;z-index:2;flex:1 1 auto;min-width:0;height:23px;display:flex;align-items:center;justify-content:center;">' +
+              '<div style="font-size:26px;font-weight:600;line-height:18px;color:' + neonPct + ';letter-spacing:-0.2px;font-feature-settings:\'pnum\' on, \'lnum\' on;">' + percent + '%</div>' +
+            '</div>' +
+            '<div style="width:24px;height:24px;opacity:0;position:relative;z-index:3;flex:none;"></div>' +
+          '</div>';
+        }
         var chargeFill = chargeIsFlat
           ? 'var(--accent-primary,#0381FE)'
           : (_isMonoChromaRoot()
@@ -2616,7 +2687,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           'display:flex;flex-direction:row;align-items:center;padding:12px 18px 12px 12px;gap:14px;' +
           'isolation:isolate;position:relative;overflow:hidden;box-sizing:border-box;' +
           chargeShell +
-          'border-radius:53px;color:#fff;font-family:var(--font);">' +
+          'border-radius:53px;color:var(--text-primary,#fff);font-family:var(--font);">' +
           '<div style="position:absolute;width:157px;height:76px;left:-0.5px;bottom:0;background:' + chargeFill + ';' + chargeMotionStyle + 'z-index:0;"></div>' +
           '<div style="position:absolute;width:154px;height:64px;left:-0.5px;top:0;background:' + chargeSubtract + ';' + chargeMotionStyle + 'z-index:0;"></div>' +
           chargeShimmer +
@@ -2627,7 +2698,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
             '</svg>' +
           '</div>' +
           '<div style="position:relative;z-index:2;flex:1 1 auto;min-width:0;height:23px;display:flex;align-items:center;justify-content:center;">' +
-            '<div style="font-size:26px;font-weight:600;line-height:18px;color:#fff;letter-spacing:-0.2px;font-feature-settings:\'pnum\' on, \'lnum\' on;">' + percent + '%</div>' +
+            '<div style="font-size:26px;font-weight:600;line-height:18px;color:var(--text-primary,#fff);letter-spacing:-0.2px;font-feature-settings:\'pnum\' on, \'lnum\' on;">' + percent + '%</div>' +
           '</div>' +
           '<div style="width:24px;height:24px;opacity:0;position:relative;z-index:3;flex:none;"></div>' +
         '</div>';
@@ -2645,16 +2716,16 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var iconBg = nbv.iconBg !== false;
       var isLive = nbv.live === true;
       var TIMER_ICONS = {
-        'stopwatch':'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="14" r="7" stroke="#fff" stroke-width="1.6"/><path d="M12 11v3l2 1.5M10 3h4M14 5l1.5-1.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>',
-        'timer':    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#fff" stroke-width="1.6"/><path d="M12 8v5l3 2" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>'
+        'stopwatch':'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="14" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M12 11v3l2 1.5M10 3h4M14 5l1.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+        'timer':    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
       };
       var timerSvg = TIMER_ICONS[tIcon] || TIMER_ICONS['stopwatch'];
       var liveAttrs = isLive ? ' data-live-timer="1" data-start="' + Date.now() + '"' : '';
       return '<div style="width:100%;' + common + _G('widgetPill') + '">' +
-        '<div style="width:40px;height:40px;border-radius:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;' +
+        '<div style="width:40px;height:40px;border-radius:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);' +
           (iconBg ? 'background:#5b53c8;' : '') + '">' + timerSvg + '</div>' +
-        '<div style="flex:1;min-width:0;"><div' + liveAttrs + ' style="font-size:26px;font-weight:600;line-height:18px;color:#fff;letter-spacing:-0.2px;white-space:nowrap;font-family:Inter,system-ui,sans-serif;">' + tLabel + '</div></div>' +
-        (showPause ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><rect x="7" y="5" width="3.5" height="14" fill="#fff"/><rect x="13.5" y="5" width="3.5" height="14" fill="#fff"/></svg>' : '') +
+        '<div style="flex:1;min-width:0;"><div' + liveAttrs + ' style="font-size:26px;font-weight:600;line-height:18px;color:var(--text-primary,#fff);letter-spacing:-0.2px;white-space:nowrap;font-family:Inter,system-ui,sans-serif;">' + tLabel + '</div></div>' +
+        (showPause ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:var(--text-primary,#fff);"><rect x="7" y="5" width="3.5" height="14" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" fill="currentColor"/></svg>' : '') +
       '</div>';
     }
 
@@ -2766,6 +2837,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var ncGlyph = ncv.glyph || '';
       var ncShowSub = !!ncBody;
 
+      var ncSurfRoot = _themeSurfaceStyleRoot();
       var ncBg, ncBlur, ncTitleColor, ncTimeColor, ncSubColor, ncChevronColor;
       if (ncTheme === 'light') {
         ncBg = '#ffffff';
@@ -2774,13 +2846,20 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         ncTimeColor = '#555555';
         ncSubColor = '#333333';
         ncChevronColor = '#222222';
+      } else if (ncSurfRoot === 'neon') {
+        ncBg = '#ffffff';
+        ncBlur = '';
+        ncTitleColor = 'var(--text-primary,#050805)';
+        ncTimeColor = 'var(--text-secondary,rgba(5,8,5,0.72))';
+        ncSubColor = 'var(--text-secondary,rgba(5,8,5,0.72))';
+        ncChevronColor = 'var(--text-primary,#050805)';
       } else {
         ncBg = 'rgba(23,23,26,0.6)';
         ncBlur = '-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);';
         ncTitleColor = 'var(--text-primary,#efeef2)';
         ncTimeColor = 'var(--text-secondary,#d5d5d5)';
         ncSubColor = 'var(--text-secondary,#cfcccf)';
-        ncChevronColor = '#ffffff';
+        ncChevronColor = 'var(--text-primary,#ffffff)';
       }
 
       // 56×56 circular app icon. Uses the png if provided, else a colored
@@ -2791,10 +2870,11 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
             ';display:flex;align-items:center;justify-content:center;flex-shrink:0;' +
             'color:#fff;font-size:22px;font-weight:600;line-height:1;">' + ncGlyph + '</div>';
 
-      var ncSurfaceStyle = _themeSurfaceStyleRoot();
-      var ncSurface = (ncSurfaceStyle === 'glass' || ncSurfaceStyle === 'base')
-        ? _G('panel')
-        : (ncTheme === 'light' ? 'background:' + ncBg + ';' + ncBlur : 'background:var(--surface-bg, rgba(23,23,26,0.80));-webkit-backdrop-filter:var(--surface-filter, blur(48px));backdrop-filter:var(--surface-filter, blur(48px));');
+      var ncSurface = ncTheme === 'light'
+        ? 'background:' + ncBg + ';' + ncBlur
+        : (ncSurfRoot === 'neon'
+          ? 'background:' + ncBg + ';border:var(--surface-border);box-shadow:var(--surface-shadow);-webkit-backdrop-filter:none;backdrop-filter:none;'
+          : _G('panel'));
       return '<div style="width:415px;height:86px;max-width:100%;' +
         ncSurface +
         'border-radius:50px;padding:15px 20px 15px 16px;box-sizing:border-box;' +
@@ -2826,15 +2906,18 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var aiTitle = (naiv.title && naiv.title !== 'Title') ? naiv.title : '';
       var aiSub   = (naiv.subtitle && naiv.subtitle !== 'Subtitle') ? naiv.subtitle : (naiv.body || '');
       var aiTime  = naiv.time || '';
+      var aiSurface = _themeSurfaceStyleRoot();
       var aiTitleColor = aiTheme === 'light' ? '#111111' : 'var(--text-primary,#efeef2)';
       var aiTimeColor  = aiTheme === 'light' ? '#444444' : 'var(--text-secondary,rgba(239,238,242,0.7))';
       var aiSubColor   = aiTheme === 'light' ? '#222222' : 'var(--text-secondary,rgba(239,238,242,0.85))';
-      var aiChevColor  = aiTheme === 'light' ? '#111111' : '#ffffff';
+      var aiChevColor  = aiTheme === 'light' ? '#111111' : 'var(--text-primary,#ffffff)';
+      var aiSparkFill = aiSurface === 'neon'
+        ? '#ffffff'
+        : (aiTheme === 'light' ? '#111111' : 'var(--text-primary,#ffffff)');
       // Richer gradient: blue → purple → teal — three-stop AI signature.
       // Theme-driven via --card-ai-grad. Light mode keeps a stronger
       // gradient (no backdrop blur); dark mode uses a translucent one.
-      var aiSurface = _themeSurfaceStyleRoot();
-      var aiGrad = aiSurface === 'flat'
+      var aiGrad = (aiSurface === 'flat' || aiSurface === 'neon')
         ? 'var(--card-ai-grad, var(--surface-bg, rgba(23,23,26,0.80)))'
         : (aiTheme === 'light'
           ? 'linear-gradient(120deg, rgba(102,161,243,1) 0%, rgba(167,139,250,1) 50%, rgba(34,201,166,1) 100%)'
@@ -2842,11 +2925,16 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var aiSurfaceStyle = aiSurface === 'glass' ? _G('panel') : 'background:' + aiGrad + ';';
       // Shimmer overlay — animated white sweep, very subtle. Speed
       // tunable via --card-ai-shimmer-speed for theme variations.
-      var shimmer = _themeSurfaceStyleRoot() === 'flat' ? '' : '<div style="position:absolute;inset:0;background:linear-gradient(110deg,transparent 0%,transparent 35%,rgba(255,255,255,0.10) 50%,transparent 65%,transparent 100%);background-size:300% 100%;animation:aiShimmer var(--card-ai-shimmer-speed,3.6s) linear infinite;pointer-events:none;border-radius:inherit;"></div>';
+      var shimmerSpeed = (getComputedStyle(document.documentElement).getPropertyValue('--card-ai-shimmer-speed') || '3.6s').trim();
+      var shimmerOff = shimmerSpeed === '0s' || shimmerSpeed === '0ms';
+      var shimmer = (aiSurface === 'flat' || aiSurface === 'neon' || shimmerOff) ? '' : '<div style="position:absolute;inset:0;background:linear-gradient(110deg,transparent 0%,transparent 35%,rgba(255,255,255,0.10) 50%,transparent 65%,transparent 100%);background-size:300% 100%;animation:aiShimmer var(--card-ai-shimmer-speed,3.6s) linear infinite;pointer-events:none;border-radius:inherit;"></div>';
+      var aiIconBubble = aiSurface === 'neon'
+        ? 'background:var(--surface-bg,#b8ff42);-webkit-backdrop-filter:none;backdrop-filter:none;border:1px solid rgba(5,8,5,0.14);'
+        : 'background:rgba(255,255,255,0.22);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.3);';
       return '<div style="position:relative;width:415px;height:86px;max-width:100%;' + aiSurfaceStyle + 'border-radius:50px;padding:15px 20px 15px 16px;display:flex;align-items:center;gap:10px;box-sizing:border-box;overflow:hidden;">' +
         shimmer +
-        '<div style="position:relative;z-index:1;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.22);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.3);">' +
-          '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 4.5L18 9l-4.2 1.5L12 15l-1.8-4.5L6 9l4.2-1.5L12 3zM18 15l.9 2.2L21 18l-2.1.8L18 21l-.9-2.2L15 18l2.1-.8L18 15z" fill="#fff"/></svg>' +
+        '<div style="position:relative;z-index:1;width:56px;height:56px;border-radius:50%;' + aiIconBubble + 'flex-shrink:0;display:flex;align-items:center;justify-content:center;">' +
+          '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 4.5L18 9l-4.2 1.5L12 15l-1.8-4.5L6 9l4.2-1.5L12 3zM18 15l.9 2.2L21 18l-2.1.8L18 21l-.9-2.2L15 18l2.1-.8L18 15z" fill="' + aiSparkFill + '"/></svg>' +
         '</div>' +
         '<div style="position:relative;z-index:1;flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;overflow:hidden;">' +
           (aiTitle || aiTime

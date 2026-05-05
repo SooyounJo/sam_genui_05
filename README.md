@@ -7,6 +7,18 @@ The whole loop runs through a 5-stage LLM pipeline with a parallel
 content-enrichment side-call, an auto-iterating self-improvement engine,
 and a theme system that swaps CSS variables in real time across windows.
 
+### Framework overview
+
+| Area | What it is |
+|------|------------|
+| **Server** | `server.js` — HTTP, SSE pipeline, embeddings, `/api/themes`, improvement engine routes |
+| **Pipeline** | `pipeline.js` — interpret → select (RAG) + parallel content bag → compose → validate → explain |
+| **Renderer** | `app/scenes.js` (orchestration) + `app/surface-layout.js` + `app/templates.js` + `app/atomics.js` |
+| **GenUI shell** | `genui.html` — scenario UI, canvas, theme picker (`:root` theme apply) |
+| **Theme editor** | `customize.html` — scoped live preview (`#preview-theme-scope`); Save posts to `/api/themes` |
+| **Knowledge** | `figma-refs/*.json` — component registry, embeddings, themes, scenarios, rules |
+| **Self-improve** | `improvement_engine.js` + `/improve` — test suite, rule trials, `evolve.md` |
+
 ---
 
 ## Diagram legend
@@ -360,6 +372,19 @@ noise violations every run.
 
 ## Theme system
 
+Presets live in **`figma-refs/themes.json`** and are served by **`GET /api/themes`** / **`POST /api/themes/active`**. Built-in ids today include **default**, **flat**, **gradient**, **glass**, **grain**, and **neon**, plus user **custom** themes saved from the editor.
+
+### Two apply paths (this changed vs older README drafts)
+
+The main app and the customizer intentionally apply tokens differently:
+
+| Surface | Mechanism | Why |
+|---------|-----------|-----|
+| **`genui.html`** | `<style id="theme-vars">` injects **all** vars as `:root { … }` (`applyVarsToRoot`) | Top bar, sidebar, and phone canvas should share one coherent preset. |
+| **`customize.html`** | **`document.documentElement`** gets **`--oneui-theme-style`** and **`--oneui-chroma`** only; **everything else** (`--page-bg`, `--text-*`, `--surface-*`, card tokens, …) goes on **`#preview-theme-scope`** around the preview grid (`applyThemeVars` / `_writeVar`) | Left editor chrome stays readable; neon/dark presets must not collapse contrast on the inspector. |
+
+The renderer reads **`--oneui-theme-style`** from `:root` (`surface-layout.js` → `_themeSurfaceStyleRoot()`). **`_G()`** builds card shells: **`flat`** and **`neon`** use one matte **`var(--surface-bg)`** layer; **`glass`** keeps overlay + blur; **`base`** uses a single tokenized surface stack (see code for grain/other styles).
+
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {
   'fontFamily':'ui-sans-serif, system-ui, sans-serif',
@@ -367,24 +392,33 @@ noise violations every run.
   'lineColor':'#7C6F9C'
 }}}%%
 flowchart TD
-  themes[(themes.json<br/>default · minimal · vibrant · mono · custom)]:::data
-  api[/api/themes · /api/themes/active/]:::io
-  customize[Customizer · two-pane editor<br/>/customize]:::proc
-  root[":root inline<br/>style.setProperty(--var)"]:::proc
-  vars[(CSS variables<br/>--page-bg · --card-radius · …)]:::data
-  consumer[Card kinds<br/>weather · calendar · reminder ·<br/>message · eta · input · now-bar]:::proc
-  bc[/BroadcastChannel<br/>oneui-themes/]:::io
-  topbar[GenUI topbar picker<br/>Theme ▾ ✎]:::proc
+  themes[(themes.json + custom)]:::data
+  api[/GET·POST /api/themes<br/>POST /api/themes/active/]:::io
+  customize[Customizer /customize]:::proc
+  scope["#preview-theme-scope<br/>most CSS vars"]:::proc
+  rootDoc["documentElement<br/>--oneui-theme-style · --oneui-chroma"]:::proc
+  genui[GenUI genui.html]:::proc
+  rootStyle["#theme-vars :root<br/>full preset"]:::proc
+  vars[(Shared token names<br/>--surface-bg · --text-primary · …)]:::data
+  consumer[Atomic cards<br/>surface-layout.js]:::proc
+  bc[/BroadcastChannel oneui-themes/]:::io
+  picker[Topbar Theme picker]:::proc
   canvas([Phone canvas]):::start
 
   themes --> api
   api --> customize
-  customize -- "live preview (every keystroke)" --> root
-  customize -- "Save · POST /api/themes + activate" --> api
-  customize -. "theme-saved /<br/>theme-active-changed" .-> bc
-  bc -. "cross-window sync" .-> topbar
-  topbar --> root
-  root --> vars --> consumer --> canvas
+  customize --> scope
+  customize --> rootDoc
+  customize -- Save / activate --> api
+  customize -. theme-saved · theme-active-changed .-> bc
+  bc -. sync .-> picker
+  api --> genui
+  genui --> rootStyle
+  rootStyle --> vars
+  scope --> vars
+  rootDoc -. style flag .-> consumer
+  vars --> consumer --> canvas
+  picker --> genui
 
   classDef start fill:#F3E5F5,stroke:#8E24AA,color:#212121
   classDef proc  fill:#FAFAFA,stroke:#90A4AE,color:#212121
@@ -392,18 +426,9 @@ flowchart TD
   classDef data  fill:#E8F5E9,stroke:#43A047,color:#212121
 ```
 
-**Live preview is real-time.** `_writeVar(key, value)` writes to
-`document.documentElement.style.setProperty` on every input event. CSS
-variables propagate immediately to all consumers; the preview grid
-re-renders on the same tick. The **Save** button is the only
-persistence step — it POSTs the new theme and atomically broadcasts
-`theme-active-changed` to other open windows so the GenUI main app's
-topbar picker updates without a manual refresh.
+**Live preview** — In the customizer, edits call `_writeVar`; values go to the selected preview cell **or** to `#preview-theme-scope` (and document-only keys to `:root`). The preview grid re-renders so atoms pick up new vars. **Save** persists via **`POST /api/themes`** and broadcasts **`theme-active-changed`** so **`genui.html`** refreshes its theme list / active preset without a manual reload.
 
-Theme transitions across the page chrome animate over 280ms
-`cubic-bezier(0.2, 0, 0, 1)` for color / background / border / shadow
-— limited to non-layout properties so there's no reflow.
-`prefers-reduced-motion` skips the animation.
+Theme transitions across GenUI chrome (where implemented in CSS) animate over ~280ms **`cubic-bezier(0.2, 0, 0, 1)`** for color / background / border / shadow — non-layout properties only. **`prefers-reduced-motion`** skips animation where wired.
 
 ---
 
@@ -480,11 +505,12 @@ rehydrated`. Cycle history snapshots are persisted under
 | | `improvement_engine.js` | Test runner + pattern extractor + trial harness + persist |
 | | `generator.js` | Local-mode keyword matcher (legacy fallback) |
 | **Client (UI shell)** | `genui.html` | Sidebar tabs (Generate / Design / Refine / Wallpaper / Motion), topbar (Theme / Light / Device / Clear), canvas frame |
-| | `customize.html` | Two-pane theme editor + live preview + Save / Discard |
+| | `customize.html` | Theme editor — scoped preview (`#preview-theme-scope`), Save / Discard, BroadcastChannel |
 | | `improve.html` | Self-improvement cycle dashboard |
 | | `index.html` | Project landing — links to genui / customize / improve / preview |
 | **Client (renderer)** | `app/scenes.js` | `renderPipelineResponse` orchestrator, per-slot content resolver, focus-block / now-bar / action-row adapters, kind parsers |
-| | `app/surface-layout.js` | Atomic shapes: status bar, app bar, gesture bar, focus block, now bar, action row, list item, dialog, etc. |
+| | `app/surface-layout.js` | Atomic shapes + `_G()` surfaces · now-bar · focus-block · notifications · QS · embeds `GalaxyAtomics` |
+| | `app/atomics.js` | Samsung-shaped primitives (Clock, WeatherDate, toggles, …) consumed by surface-layout |
 | | `app/templates.js` | Editor-primitive templates + `PIPELINE_FALLBACK_TEMPLATES` |
 | | `app/agent.js` | Path-A pipeline client (SSE consumer) + auto-iterate loop |
 | | `app/canvas.js` | `clearCanvas` + DesignDoc reset |
@@ -495,7 +521,7 @@ rehydrated`. Cycle history snapshots are persisted under
 | | `figma-refs/test_scenarios.json` | 20 scenarios for the improvement engine |
 | | `figma-refs/generator_memory.json` | Mandatory components per surface, layout reference orders |
 | | `figma-refs/design_rules.json` | Token families |
-| | `DESIGN.md` / `GENUI.md` / `ORCH.md` | Knowledge base for `buildPromptContext` to slice into prompts |
+| | `DESIGN.md` / `GENUI-PRINCIPLES.md` / `ORCHESTRATION.md` | Knowledge base for `buildPromptContext` to slice into prompts |
 | | `evolve.md` | Persisted learned constraints from the self-improvement engine |
 | **Build** | `scripts/build_component_embeddings.js` | Regenerates the RAG corpus from `component_registry.json` |
 | **State** | `data/improvement_history/*.json` | Snapshots of past improvement cycles |

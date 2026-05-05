@@ -227,6 +227,10 @@
     border-radius: 28px;
     padding: 18px;
   }
+  .preview-theme-scope {
+    min-width: 0;
+    /* Inherits nothing; receives all live theme vars via inline style in applyThemeVars */
+  }
   @media (max-width: 1080px) {
     /* Stack vertically on narrow screens — editor first, preview after. */
     .layout-row { grid-template-columns: 1fr; }
@@ -517,7 +521,10 @@
          as the editor changes :root variables. -->
     <div class="preview-col" id="preview-col">
       <h2 style="font-size:14px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;margin:0 0 16px;">Live preview · all themed cards</h2>
-      <div class="preview-grid" id="preview-grid"></div>
+      <!-- Theme tokens apply here only — left editor / header / toolbar stay on fixed chrome vars. -->
+      <div class="preview-theme-scope" id="preview-theme-scope">
+        <div class="preview-grid" id="preview-grid"></div>
+      </div>
     </div>
   </div>
 </main>
@@ -533,6 +540,18 @@
 
 <script>
 'use strict';
+
+/** Theme style + chroma stay on documentElement (renderer reads --oneui-theme-style from :root). All other preset tokens live on #preview-theme-scope so the editor chrome never inherits them. */
+var THEME_VARS_DOCUMENT_ONLY = ['--oneui-theme-style', '--oneui-chroma'];
+
+function previewThemeScopeEl() {
+  return document.getElementById('preview-theme-scope');
+}
+
+/** Element that holds --page-bg, --surface-bg, --text-*, card tokens, etc. */
+function themeTokenContext() {
+  return previewThemeScopeEl() || document.documentElement;
+}
 
 // ---------------------------------------------------------------------------
 //  Sample card variants — what we feed each renderer to produce a preview.
@@ -766,6 +785,21 @@ var _SURFACE_THEME_KEYS = [
   '--surface-bg-size',
   '--surface-animation',
   '--qs-tile-bg',
+  '--qs-row-toggle-on-bg',
+  '--qs-row-toggle-off-bg',
+  '--qs-row-toggle-on-fg',
+  '--qs-row-toggle-off-fg',
+  '--qs-row-sheen-opacity',
+  '--qs-chip-on-bg',
+  '--qs-chip-off-bg',
+  '--qs-chip-icon-on',
+  '--qs-chip-icon-off',
+  '--qs-fallback-toggle-on-bg',
+  '--qs-fallback-toggle-off-bg',
+  '--nowbar-charging-track-bg',
+  '--nowbar-charging-fill-bg',
+  '--nowbar-charging-bolt-fill',
+  '--nowbar-charging-percent-color',
   '--oneui-chroma'
 ];
 var FLAT_SCHEME = 'dark';
@@ -1023,9 +1057,13 @@ function isFlatThemeActive() {
   return (getComputedStyle(document.documentElement).getPropertyValue('--oneui-theme-style') || '').trim().toLowerCase() === 'flat';
 }
 
+function isNeonThemeActive() {
+  return (getComputedStyle(document.documentElement).getPropertyValue('--oneui-theme-style') || '').trim().toLowerCase() === 'neon';
+}
+
 function solidForGradientValue(value) {
   var v = String(value || '').toLowerCase();
-  var styles = getComputedStyle(document.documentElement);
+  var styles = getComputedStyle(themeTokenContext());
   var accent = (styles.getPropertyValue('--accent-primary') || FLAT_ACCENT).trim();
   var surface = (styles.getPropertyValue('--surface-bg') || 'rgba(23,23,26,0.80)').trim();
   if (v.indexOf('98dfa9') >= 0 || v.indexOf('31ce8a') >= 0 || v.indexOf('3bd18b') >= 0) return accent;
@@ -1033,7 +1071,7 @@ function solidForGradientValue(value) {
 }
 
 function stripGradientsForFlat(root) {
-  if (!root || !isFlatThemeActive()) return;
+  if (!root || (!isFlatThemeActive() && !isNeonThemeActive())) return;
   const nodes = [root].concat(Array.from(root.querySelectorAll('[style]')));
   nodes.forEach(function (el) {
     var css = el.getAttribute('style') || '';
@@ -1057,41 +1095,85 @@ function stripGradientsForFlat(root) {
 }
 
 function normalizeFlatTextForScheme(root) {
-  if (!root || !isFlatThemeActive()) return;
-  var textPrimary = (getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '').trim().toLowerCase();
-  if (!/^#?0a0a0c$|^#?000/.test(textPrimary)) return;
+  var style = (getComputedStyle(document.documentElement).getPropertyValue('--oneui-theme-style') || '').trim().toLowerCase();
+  if (!root || (style !== 'flat' && style !== 'neon')) return;
+  var textPrimary = (getComputedStyle(themeTokenContext()).getPropertyValue('--text-primary') || '').trim().toLowerCase();
+  if (!/^#?0a0a0c$|^#?050805$|^#?000/.test(textPrimary)) return;
   const nodes = [root].concat(Array.from(root.querySelectorAll('[style]')));
   nodes.forEach(function (el) {
     if (el.closest && el.closest('svg')) return;
     var css = el.getAttribute('style') || '';
-    if (!/color\s*:\s*(#fff|#ffffff|rgba\(255\s*,\s*255\s*,\s*255)/i.test(css)) return;
-    el.style.color = 'var(--text-primary,#0a0a0c)';
-    if (/webkit-text-fill-color/i.test(css)) el.style.webkitTextFillColor = 'var(--text-primary,#0a0a0c)';
+    var touched = false;
+    if (/color\s*:\s*(#fff|#ffffff|rgba\(255\s*,\s*255\s*,\s*255)/i.test(css)) {
+      el.style.color = 'var(--text-primary,#0a0a0c)';
+      touched = true;
+    }
+    if (/color\s*:\s*#efeef2\b/i.test(css)) {
+      el.style.color = 'var(--text-primary,#0a0a0c)';
+      touched = true;
+    }
+    if (/color\s*:\s*#cfcccf\b/i.test(css)) {
+      el.style.color = 'var(--text-secondary,rgba(10,10,12,0.68))';
+      touched = true;
+    }
+    if (/stroke\s*:\s*#848487\b/i.test(css)) {
+      el.style.stroke = 'var(--text-tertiary,rgba(10,10,12,0.44))';
+      touched = true;
+    }
+    if (/fill\s*:\s*#848487\b/i.test(css)) {
+      el.style.fill = 'var(--text-tertiary,rgba(10,10,12,0.44))';
+      touched = true;
+    }
+    if (touched && /webkit-text-fill-color/i.test(css)) el.style.webkitTextFillColor = 'var(--text-primary,#0a0a0c)';
   });
 }
 
-// Apply a theme's vars to :root in real-time — drives both the customize
-// page's preview cells AND the toolbar surfaces. We override declaratively
-// by setting each var on documentElement.style.
+function _stripPriorInlineThemeVars() {
+  var root = document.documentElement;
+  var scope = previewThemeScopeEl();
+  ['--pg-bg', '--text', '--primary'].forEach(function (k) {
+    root.style.removeProperty(k);
+  });
+  THEME_EDIT_SCHEMA.forEach(function (section) {
+    section.vars.forEach(function (v) {
+      var k = v.key;
+      root.style.removeProperty(k);
+      if (scope && THEME_VARS_DOCUMENT_ONLY.indexOf(k) < 0) scope.style.removeProperty(k);
+    });
+  });
+}
+
+// Apply preset vars: documentElement gets style/chroma only; everything else
+// goes on #preview-theme-scope so header · toolbar · left editor stay stable.
 function applyThemeVars(vars) {
   const root = document.documentElement;
+  const scope = previewThemeScopeEl();
   var isMono = vars && String(vars['--oneui-chroma'] || '').trim().toLowerCase() === 'mono';
   root.classList.toggle('is-mono-chroma', isMono);
+
+  _stripPriorInlineThemeVars();
+
   _SURFACE_THEME_KEYS.forEach(function (key) {
+    var docOnly = THEME_VARS_DOCUMENT_ONLY.indexOf(key) >= 0;
     if (!vars || vars[key] == null || String(vars[key]).trim() === '') {
-      root.style.removeProperty(key);
+      if (docOnly) root.style.removeProperty(key);
+      else if (scope) scope.style.removeProperty(key);
     }
   });
 
   if (!vars || !String(vars['--oneui-chroma'] || '').trim()) {
     root.style.removeProperty('--oneui-chroma');
   }
+
   Object.entries(vars || {}).forEach(([k, v]) => {
-    root.style.setProperty(k, v);
+    if (THEME_VARS_DOCUMENT_ONLY.indexOf(k) >= 0) {
+      root.style.setProperty(k, v);
+    } else if (scope) {
+      scope.style.setProperty(k, v);
+    } else {
+      root.style.setProperty(k, v);
+    }
   });
-  if (vars && vars['--page-bg']) root.style.setProperty('--pg-bg', vars['--page-bg']);
-  if (vars && vars['--text-primary']) root.style.setProperty('--text', vars['--text-primary']);
-  if (vars && vars['--accent-primary']) root.style.setProperty('--primary', vars['--accent-primary']);
 }
 
 function flatSchemeVars(scheme) {
@@ -1112,10 +1194,17 @@ function flatSchemeVars(scheme) {
 function setFlatScheme(scheme, markUnsaved) {
   FLAT_SCHEME = scheme === 'light' ? 'light' : 'dark';
   var vars = flatSchemeVars(FLAT_SCHEME);
+  var scope = previewThemeScopeEl();
   Object.keys(vars).forEach(function (key) {
-    document.documentElement.style.setProperty(key, vars[key]);
+    if (THEME_VARS_DOCUMENT_ONLY.indexOf(key) >= 0) {
+      document.documentElement.style.setProperty(key, vars[key]);
+    } else if (scope) {
+      scope.style.setProperty(key, vars[key]);
+      document.documentElement.style.removeProperty(key);
+    } else {
+      document.documentElement.style.setProperty(key, vars[key]);
+    }
   });
-  document.documentElement.style.setProperty('--primary', vars['--accent-primary']);
   updateFlatSchemeToggle();
   renderPreviewGrid();
   buildEditorBody();
@@ -1216,6 +1305,19 @@ function _scopedPreviewCell() {
 }
 
 function _readVarFromRootOnly(key) {
+  if (THEME_VARS_DOCUMENT_ONLY.indexOf(key) >= 0) {
+    var root = document.documentElement;
+    var inlineDoc = root.style.getPropertyValue(key);
+    if (inlineDoc) return inlineDoc.trim();
+    return getComputedStyle(root).getPropertyValue(key).trim();
+  }
+  var scope = previewThemeScopeEl();
+  if (scope) {
+    var inl = scope.style.getPropertyValue(key);
+    if (inl) return inl.trim();
+    var fromScope = getComputedStyle(scope).getPropertyValue(key);
+    if (fromScope && fromScope.trim()) return fromScope.trim();
+  }
   var root = document.documentElement;
   var inline = root.style.getPropertyValue(key);
   if (inline) return inline.trim();
@@ -1239,7 +1341,7 @@ function _readVar(key) {
 }
 
 function _writeVar(key, value) {
-  if (isFlatThemeActive() && _isCssGradient(value)) {
+  if ((isFlatThemeActive() || isNeonThemeActive()) && _isCssGradient(value)) {
     value = solidForGradientValue(value);
   }
   var idx = SELECTED_PREVIEW_INDEX;
@@ -1256,10 +1358,17 @@ function _writeVar(key, value) {
     _markUnsaved(true);
     return;
   }
-  document.documentElement.style.setProperty(key, value);
-  if (key === '--page-bg') document.documentElement.style.setProperty('--pg-bg', value);
-  if (key === '--text-primary') document.documentElement.style.setProperty('--text', value);
-  if (key === '--accent-primary') document.documentElement.style.setProperty('--primary', value);
+  if (THEME_VARS_DOCUMENT_ONLY.indexOf(key) >= 0) {
+    document.documentElement.style.setProperty(key, value);
+  } else {
+    var scope = previewThemeScopeEl();
+    if (scope) {
+      scope.style.setProperty(key, value);
+      document.documentElement.style.removeProperty(key);
+    } else {
+      document.documentElement.style.setProperty(key, value);
+    }
+  }
   _markUnsaved(true);
 }
 
@@ -1599,9 +1708,6 @@ function discardChanges() {
   const id = $('theme-select').value;
   const theme = THEMES.find(t => t.id === id);
   if (!theme) return;
-  THEME_EDIT_SCHEMA.forEach(section => {
-    section.vars.forEach(v => document.documentElement.style.removeProperty(v.key));
-  });
   applyThemeVars(theme.vars);
   if (isFlatThemeActive()) setFlatScheme(FLAT_SCHEME, false);
   else updateFlatSchemeToggle();
@@ -1649,11 +1755,6 @@ function updateOnSelect(id, applyServer) {
   PREVIEW_CELL_VAR_OVERRIDES = {};
   const theme = THEMES.find(t => t.id === id);
   if (!theme) return;
-  // Strip prior inline overrides so the new theme's vars cleanly take
-  // effect (avoids leaking from a previously-edited custom theme).
-  THEME_EDIT_SCHEMA.forEach(section => {
-    section.vars.forEach(v => document.documentElement.style.removeProperty(v.key));
-  });
   applyThemeVars(theme.vars);
   if (isFlatThemeActive()) setFlatScheme(FLAT_SCHEME, false);
   else updateFlatSchemeToggle();
@@ -1670,10 +1771,6 @@ $('theme-select').addEventListener('change', (e) => {
   SELECTED_PREVIEW_INDEX = null;
   INSPECTOR_LAYER = null;
   INSPECTOR_DOM_PATH = null;
-  // Switching presets is a clean state — drop any pending edits.
-  THEME_EDIT_SCHEMA.forEach(section => {
-    section.vars.forEach(v => document.documentElement.style.removeProperty(v.key));
-  });
   var pickedId = e.target.value;
   updateOnSelect(pickedId, false);
   var picked = THEMES.find(function (t) { return t.id === pickedId; });

@@ -350,7 +350,7 @@
   // Small 56×56 rounded icon container (with 30×30 icon inside)
   // activeBg=true → Samsung Blue-ish off-white bg, false → dim glass bg
   function qsToggleIcon(iconAsset, iconInset, activeBg) {
-    var bg = activeBg ? '#D5D5D5' : 'rgba(180,180,180,0.2)';
+    var bg = activeBg ? 'var(--qs-fallback-toggle-on-bg, #D5D5D5)' : 'var(--qs-fallback-toggle-off-bg, rgba(180,180,180,0.2))';
     return '<div style="position:relative;width:56px;height:56px;border-radius:63.636px;background:' + bg + ';' +
              'display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
              '<div style="position:relative;width:30px;height:30px;flex-shrink:0;overflow:hidden;">' +
@@ -361,7 +361,7 @@
 
   // Multi-layer 56×56 icon (for wifi3, tv-color composites)
   function qsToggleIconMulti(layers, activeBg) {
-    var bg = activeBg ? '#D5D5D5' : 'rgba(180,180,180,0.2)';
+    var bg = activeBg ? 'var(--qs-fallback-toggle-on-bg, #D5D5D5)' : 'var(--qs-fallback-toggle-off-bg, rgba(180,180,180,0.2))';
     var inner = layers.map(function (L) {
       return qsAbsImg(L.src, L.inset, L.extra || '');
     }).join('');
@@ -404,8 +404,8 @@
              '<div style="display:flex;gap:10px;align-items:center;width:100%;min-width:0;">' +
                iconHTML +
                '<div style="flex:1 0 0;min-width:0;display:flex;flex-direction:column;overflow:hidden;">' +
-                 '<p style="font-family:' + FONT_SEMI + ';font-weight:600;font-size:16px;line-height:20px;color:#EFEEF2;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + title + '</p>' +
-                 (subtitle ? '<p style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:14px;line-height:18px;color:#CFCCCF;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + subtitle + '</p>' : '') +
+                 '<p style="font-family:' + FONT_SEMI + ';font-weight:600;font-size:16px;line-height:20px;color:var(--text-primary,#EFEEF2);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + title + '</p>' +
+                 (subtitle ? '<p style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:14px;line-height:18px;color:var(--text-secondary,#CFCCCF);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + subtitle + '</p>' : '') +
                '</div>' +
              '</div>' +
            '</div>';
