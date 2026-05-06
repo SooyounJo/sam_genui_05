@@ -1109,7 +1109,12 @@ function _parseCalendarVariant(content) {
     if (labelStripped) title = labelStripped;
   }
 
-  return { kind: 'calendar', time, duration, title, location, section };
+  const imageUrl =
+    typeof c.imageUrl === 'string' ? c.imageUrl.trim()
+      : typeof c.image === 'string' ? c.image.trim()
+        : '';
+
+  return { kind: 'calendar', time, duration, title, location, section, imageUrl };
 }
 
 // Parse the LLM's free-form weather content (e.g. label="San Francisco ·
@@ -1855,18 +1860,27 @@ function renderPipelineResponse(resp) {
   if (frame)  frame.dataset.urgency  = _urgency;
   if (canvas && uiState.baseSurface) canvas.dataset.baseSurface = uiState.baseSurface;
 
+  const effectiveBackgroundPolicy =
+    uiState.backgroundPolicy === 'dialog-surface' ||
+    (layoutPlan.backgroundPolicy === 'dialog-surface')
+      ? 'dialog-surface'
+      : uiState.backgroundPolicy;
+  const uiForBackground = Object.assign({}, uiState, {
+    backgroundPolicy: effectiveBackgroundPolicy
+  });
+
   // (1) Background from canonical uiState — Generator resolves 3-layer model
   //     (wallpaper / app-bg / focus-block) per One UI 4+ guidelines.
   if (window.UIState && uiState.backgroundPolicy) {
     const decision = {
-      showWallpaper: (uiState.backgroundPolicy === 'wallpaper' ||
-                      uiState.backgroundPolicy === 'scrim-over-wallpaper'),
-      backgroundPolicy: uiState.backgroundPolicy
+      showWallpaper: (effectiveBackgroundPolicy === 'wallpaper' ||
+                      effectiveBackgroundPolicy === 'scrim-over-wallpaper'),
+      backgroundPolicy: effectiveBackgroundPolicy
     };
-    window.UIState.applyDecisionToFrame(frame, decision, uiState);
+    window.UIState.applyDecisionToFrame(frame, decision, uiForBackground);
 
     const layers = window.Generator
-      ? window.Generator.resolveLayers(uiState, { theme: 'dark' })
+      ? window.Generator.resolveLayers(uiForBackground, { theme: 'dark' })
       : null;
     // Background routing matches the policy:
     //   wallpaper / scrim-over-wallpaper → user wallpaper image
@@ -1877,7 +1891,7 @@ function renderPipelineResponse(resp) {
     // still showing the home/lock wallpaper underneath. Now we honour
     // decision.showWallpaper, computed above from the policy.
     if (typeof setWallpaper === 'function') {
-      if (uiState.backgroundPolicy === 'dialog-surface') {
+      if (effectiveBackgroundPolicy === 'dialog-surface') {
         setWallpaper('dialog-surface', { system: true });
       } else if (decision.showWallpaper) {
         setWallpaper(userWallpaperChoice || 'wp-1', { system: true });
@@ -1922,10 +1936,12 @@ function renderPipelineResponse(resp) {
   canvas.style.flexDirection = 'column';
   canvas.style.alignItems    = 'stretch';
   const _isAppShell = uiState && uiState.baseSurface === 'app';
+  const _lpBp = layoutPlan && layoutPlan.backgroundPolicy;
   const wantsPipelineBottomSheet =
     _isAppShell &&
     (uiState.backgroundPolicy === 'dialog-surface' ||
-     uiState.overlayType === 'system-dialog');
+     uiState.overlayType === 'system-dialog' ||
+     _lpBp === 'dialog-surface');
   // One UI phone body: ~20–24dp horizontal inset; composer often emits 0–14px → clamp up on app.
   // App vertical step: honor composer layoutPlan.gap when sane (catalog/travel polish ≈16–18px);
   // otherwise a calm default so stacks don’t jitter but stay breathable.
@@ -2200,7 +2216,9 @@ function renderPipelineResponse(resp) {
     // Lock/home and non-app surfaces keep top-align so dense widget grids stay compact.
     if (group.container === 'horizontal-stack') {
       groupEl.style.alignItems = _isAppShell ? 'stretch' : 'flex-start';
-    } else if (_isAppShell && group.role === 'primary-task' && group.container === 'grid') {
+    } else if (_isAppShell && group.container === 'grid') {
+      // All app grid bands (primary, meta, …): row cross-axis = tallest tile so
+      // short + medium pairs don’t leave a dead column beside a tall card.
       groupEl.style.alignItems = 'stretch';
     }
     if (group.container === 'grid') groupEl.style.flexWrap = 'wrap';

@@ -1253,13 +1253,15 @@ button[data-action-chip].genui-action-chip-ack {
   flex-grow: 0 !important;
 }
 
-/* Grid rows: default top-align on non-app; app primary-task 2-col stretches below. */
+/* Grid rows: default top-align on non-app; app 2-col grids stretch each row to the
+   tallest cell so a short tile + tall hero doesn’t leave an awkward empty strip
+   beside the hero (workout + music + session card patterns). */
 .canvas-group[data-pipeline-container="grid"] > .canvas-item.body-atomic {
   align-self: flex-start;
 }
 
-/* App primary-task grid (2-col hero + actions, travel strips): match row height. */
-#canvas[data-base-surface="app"] .canvas-group[data-group-role="primary-task"][data-pipeline-container="grid"] > .canvas-item.body-atomic {
+/* App — any pipeline grid band (primary / meta / supporting): match row height. */
+#canvas[data-base-surface="app"] .canvas-group[data-pipeline-container="grid"] > .canvas-item.body-atomic {
   align-self: stretch;
 }
 /* Default grid tile content height (lock/home + generic); overridden below for app 2-col. */
@@ -1269,8 +1271,9 @@ button[data-action-chip].genui-action-chip-ack {
   height: auto !important;
   max-height: none;
 }
-/* Let the painted card shell grow with the stretched wrapper (not 2×2 compact tiles). */
-#canvas[data-base-surface="app"] .canvas-group[data-group-role="primary-task"][data-pipeline-container="grid"]:not([data-grid-tile-count="4"]) > .canvas-item.body-atomic > *:first-child {
+/* Let the painted card shell grow with the stretched wrapper (not 2×2 compact tiles).
+   Exclude chip/now-bar strips so they don’t vertically balloon inside a grid row. */
+#canvas[data-base-surface="app"] .canvas-group[data-pipeline-container="grid"]:not([data-grid-tile-count="4"]) > .canvas-item.body-atomic:not([data-atomic-role="now-bar"]):not([data-atomic-role="action-row"]):not([data-atomic-role="toggle-chip"]):not([data-atomic-role="progress-track"]) > *:first-child {
   flex: 1 1 auto !important;
   flex-grow: 1 !important;
   min-height: 0 !important;

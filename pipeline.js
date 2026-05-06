@@ -56,6 +56,12 @@ const RAG_ENABLED = (process.env.PIPELINE_RAG || 'off').toLowerCase() === 'on';
 // specific deterministic injections/contracts so the model can reason freely.
 const HEAVY_RULES = (process.env.PIPELINE_HEAVY_RULES || 'off').toLowerCase() === 'on';
 
+// Bundled map hero (NYC POI preview). Default on so travel/running screens always
+// show a raster; set PIPELINE_MAP_DUMMY=off to use live OSM tiles again.
+const GENUI_DUMMY_MAP_PREVIEW_URL =
+  process.env.GENUI_DUMMY_MAP_URL || '/assets/genui/dummy-map-preview.png';
+const USE_DUMMY_MAP_PREVIEW = (process.env.PIPELINE_MAP_DUMMY || 'on').toLowerCase() !== 'off';
+
 // Glance / dashboard tiles that can share a 2-column grid (2×2, 2×3, …).
 // glanceable layouts forbid wide grids unless every visible child is from this set.
 const DASHBOARD_TILE_COMPONENT_IDS = new Set([
@@ -67,6 +73,20 @@ const DASHBOARD_TILE_COMPONENT_IDS = new Set([
   'input_summary_card',
   'widget-small'
 ]);
+
+/** E-book / reading status / chapter flows — used for 2-up grid heuristics. */
+function isReadingBriefScenarioText(scenarioText, planningPacket) {
+  const scen = String(scenarioText || '');
+  const ui = (planningPacket && planningPacket.uiState) || {};
+  const tags = Array.isArray(ui.contextTags) ? ui.contextTags.map(String) : [];
+  return (
+    /\b(reading|reader|e-?book|ebook|chapter|passage|pages?\s+\d|book\s+progress|novel|audiobook|book\s+reader|reading\s+status)\b/i.test(
+      scen
+    ) ||
+    /(독서|전자책|책\s*읽기|독서\s*현황|진행\s*률|챕터|책갈피)/.test(scen) ||
+    tags.some(t => /\b(e-?book|reading|reader|chapter)\b/i.test(t))
+  );
+}
 
 // ---------------------------------------------------------------------------
 //  CONTEXT-AWARE INJECTION RULES
@@ -393,9 +413,16 @@ function classifyScenarioDomains(scenarioText, interpretation) {
     ? String(interpretation.intent.primaryGoal)
     : '';
   const blob = `${scenarioText || ''}\n${goal}`;
-  const travel = /\b(flight|airplane|airport|\bgate\b|boarding|check-?in|itinerary|layover|carry-?on|boarding\s+pass|flight\s+assistant)\b/i.test(blob);
-  const cooking = /\b(cook(ing)?|kitchen|recipe|\bchef\b|meal\s+prep|\bmeal\b|ingredient|nutrition|kcal|calorie|substitut|gluten|vegan|\bdiet\b|food\s+delivery|takeout|tap\s+to\s+order|restaurant)\b/i.test(blob);
-  const workout = /\b(workout|fitness|exercise|\brunning\b|racing|cycling|\blaps?\b|heart\s+rate|yoga)\b/i.test(blob);
+  const travel =
+    /\b(flight|airplane|airport|\bgate\b|boarding|check-?in|itinerary|layover|carry-?on|boarding\s+pass|flight\s+assistant)\b/i.test(blob) ||
+    /\b(trip|travel|traveling|travelling|vacation|getaway|\bholiday\b|tour(ism)?|excursion|road\s*trip|city\s*break|sightseeing)\b/i.test(blob) ||
+    /(항공|비행기|공항|탑승|체크인|체크\s*인|출국|입국|환승|탑승구|탑승권|기내|\b기장\b|여행\s*일정|\b여행\b|출장|휴가|패키지(?:\s*여행)?)/.test(blob);
+  const cooking =
+    /\b(cook(ing)?|kitchen|recipe|\bchef\b|meal\s+prep|\bmeal\b|ingredient|nutrition|kcal|calorie|substitut|gluten|vegan|\bdiet\b|food\s+delivery|takeout|tap\s+to\s+order|restaurant)\b/i.test(blob) ||
+    /(요리|레시피|요리법|냉장고|재료|칼로리|다이어트|글루텐|비건|식단|밀키트|배달\s*음식|음식\s*주문|베이킹|굽기|삶기|볶음|찌개|반찬)/.test(blob);
+  const workout =
+    /\b(workout|fitness|exercise|\brunning\b|racing|cycling|\blaps?\b|heart\s+rate|yoga)\b/i.test(blob) ||
+    /(운동|헬스|요가|근력|유산소)/.test(blob);
   return { blob, travel, cooking, workout };
 }
 
@@ -435,15 +462,47 @@ function applyDialogSurfaceHeuristic(planningPacket, scenarioText, interpretatio
   if ((ui.baseSurface || 'app') !== 'app') return;
   if (ui.overlayType && ui.overlayType !== 'none') return;
   const raw = String(scenarioText || '');
-  const reEn = /\b(share\s*sheet|sharing\s*sheet|bottom\s*sheet|action\s*sheet|coordination\s*sheet|target\s*picker|option\s*picker|system\s*dialog|modal\s*(dialog|bottom)|pick\s+one(\s+of)?|choose\s+(an\s+)?option|pick\s+(a|an|your)\s+\w+\s+from)\b/i;
-  const reKo = /바텀\s*시트|하단\s*시트|공유\s*시트|옵션\s*(선택|피커)|액션\s*시트|조율\s*시트|시스템\s*다이얼로그|공유\s*하기|목록에서\s*(골라|선택)/;
-  if (!reEn.test(raw) && !reKo.test(raw)) return;
+  const goal = interpretation && interpretation.intent && interpretation.intent.primaryGoal
+    ? String(interpretation.intent.primaryGoal)
+    : '';
+  const blob = [raw, goal].join('\n');
+  const iu = interpretation && interpretation.uiState;
+  const tagStr = []
+    .concat(Array.isArray(ui.contextTags) ? ui.contextTags : [])
+    .concat(iu && Array.isArray(iu.contextTags) ? iu.contextTags : [])
+    .map(t => String(t || '').toLowerCase())
+    .join(' ');
+  const tagWantsDialog =
+    /\b(bottom[-_]?sheet|bottomsheet|sheet[-_]?ui|dialog[-_]?surface|share[-_]?sheet|action[-_]?sheet|coordination[-_]?sheet|option[-_]?picker|target[-_]?picker|system[-_]?dialog)\b/.test(
+      tagStr
+    );
+  const tagWantsReadingChrome =
+    /\b(reader[-_]?quick[-_]?bar|reading[-_]?quick[-_]?bar|ebook[-_]?quick[-_]?bar|reader[-_]?sheet|reading[-_]?sheet|ebook[-_]?sheet|book[-_]?reader[-_]?sheet|reading[-_]?bottom[-_]?sheet)\b/.test(
+      tagStr
+    );
+  const reEn =
+    /\b(share\s*sheet|sharing\s*sheet|bottom\s*sheet|action\s*sheet|coordination\s*sheet|target\s*picker|option\s*picker|system\s*dialog|modal\s*(dialog|bottom)|half\s*sheet|peek\s*sheet|slide\s*-?\s*up\s*(sheet|panel)?|sheet\s*-?\s*shaped|pick\s+one(\s+of)?|choose\s+(an\s+)?option|pick\s+(a|an|your)\s+\w+\s+from)\b/i;
+  const reReadingSheetEn =
+    /\b(reader\s+quick\s*bar|reading\s+quick\s*bar|e[- ]?book\s+quick\s*bar|book\s+reader\s+quick\s*bar|(reading|reader|e[- ]?book)\s+(bottom\s*sheet|as\s+a\s+sheet|sheet\s+only|peek\s+sheet|in\s+a\s+sheet)|(quick\s*bar|bottom\s*sheet)\s+only\s+(for\s+)?(reading|reader|book)|reading\s+controls\s+((in|on)\s+(a\s+)?(sheet|quick\s*bar))|controls\s+only\s+(sheet|quick\s*bar)|reading\s+status\s+(sheet|bar)\b)/i;
+  const reKo =
+    /바텀\s*시트|바텀시트|바텀\s*카드\s*형|카드\s*형\s*바텀|하단\s*시트|하단\s*(모달|패널|카드|영역)|공유\s*시트|옵션\s*(선택|피커)|액션\s*시트|조율\s*시트|시스템\s*다이얼로그|공유\s*하기|목록에서\s*(골라|선택)|시트\s*형|카드\s*형\s*시트|시트\s*형\s*카드|슬라이드\s*(업|올림)|반\s*올림|끌어\s*올려|딤\s*(처리|배경)|(둥근\s*)?하단\s*카드/;
+  const reReadingSheetKo =
+    /독서\s*(퀵\s*바|퀵바|바텀\s*시트|바텀시트|바텀만|하단\s*시트)|(전자)?책\s*(퀵\s*바|퀵바|바텀)|리딩\s*(퀵\s*바|퀵바|바텀)|독서\s*상태\s*(퀵\s*바|퀵바|시트|바텀)|바텀\s*만\s*으로|시트\s*만\s*으로|퀵\s*바\s*만/;
+  if (
+    !reEn.test(blob) &&
+    !reKo.test(blob) &&
+    !tagWantsDialog &&
+    !tagWantsReadingChrome &&
+    !reReadingSheetEn.test(blob) &&
+    !reReadingSheetKo.test(blob)
+  ) {
+    return;
+  }
   ui.overlayType = 'system-dialog';
   if (!ui.overlayCoverage || ui.overlayCoverage === 'none') {
     ui.overlayCoverage = 'partial';
   }
   ui.backgroundPolicy = 'dialog-surface';
-  const iu = interpretation && interpretation.uiState;
   if (iu) {
     iu.overlayType = ui.overlayType;
     iu.overlayCoverage = ui.overlayCoverage;
@@ -537,6 +596,497 @@ function isFlightTravelScenario(scenarioText, interpretation, planningPacket) {
 
 function likelyFlightTravelScenarioText(scenarioText) {
   return isFlightTravelScenario(scenarioText, null, null);
+}
+
+/** City / destination hint for trip copy — keeps placeholders scenario-grounded. */
+function tripLabelFromScenario(scenarioText) {
+  const s = String(scenarioText || '').trim();
+  const m = s.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(trip|travel|vacation|getaway|holiday)\b/i);
+  if (m) return m[1].trim();
+  const city = s.match(
+    /\b(New York|NYC|Los Angeles|San Francisco|London|Paris|Tokyo|Seoul|Busan|Jeju|Bangkok|Singapore|Rome|Berlin|Chicago|Boston)\b/i
+  );
+  if (city) return city[1];
+  const ko = s.match(/(서울|부산|제주|도쿄|뉴욕|파리|런던)/);
+  if (ko) return ko[1];
+  return '';
+}
+
+/**
+ * Travel / trip screens: never stay at "title + music strip + one CTA".
+ * Swaps spurious media_control_bar → itinerary card when playback wasn't requested,
+ * and backfills informational tiles up to a small floor.
+ */
+function ensureTravelTripPlanDensity(plan, scenarioText, interpretation, planningPacket) {
+  if (!plan || !Array.isArray(plan.requiredComponents)) return 0;
+  const ui = planningPacket && planningPacket.uiState;
+  if (!ui || ui.baseSurface !== 'app') return 0;
+  if (!isFlightTravelScenario(scenarioText, interpretation, planningPacket)) return 0;
+
+  const rows = plan.requiredComponents;
+  const dom = classifyScenarioDomains(scenarioText, interpretation);
+  const allowPlayback = travelScenarioWantsPlaybackStrip(dom.blob);
+  const city = tripLabelFromScenario(scenarioText);
+  const tripLine = city
+    ? `Day plan · ${city}: hotels, transit passes, reservations, museum slots, dinner — use real times & addresses (40+ chars).`
+    : 'Itinerary: arrival, lodging, day blocks, local transit, dinner reservation — concrete times and place names.';
+
+  const INFO = new Set([
+    'reminder_card',
+    'calendar_summary_card',
+    'eta_card',
+    'navigation_turn_card',
+    'message_summary_card',
+    'weather_glance_card',
+    'input_summary_card'
+  ]);
+  function countInfo() {
+    return rows.filter(c => c && c.role !== 'chrome' && INFO.has(c.componentType)).length;
+  }
+
+  let touched = 0;
+  if (!allowPlayback) {
+    for (let i = 0; i < rows.length; i++) {
+      const c = rows[i];
+      if (!c || c.componentType !== 'media_control_bar' || c.role === 'chrome') continue;
+      rows[i] = Object.assign({}, c, {
+        componentType: 'reminder_card',
+        slot: String(c.slot || 'trip_row').replace(/[^a-z0-9_]/gi, '_').toLowerCase() + '_itinerary_note',
+        content: {
+          label: city ? `Itinerary · ${city}` : 'Trip · Itinerary',
+          value: tripLine,
+          icon: 'schedule'
+        },
+        _source: (c._source || 'selector') + '+travel-swap-no-playback'
+      });
+      touched++;
+    }
+  }
+
+  let added = 0;
+  function pushRow(slot, type, role, pri, content) {
+    rows.push({
+      slot,
+      componentType: type,
+      variantHint: 'default',
+      priority: pri,
+      role,
+      content,
+      constraints: [],
+      _source: 'travel-density-floor'
+    });
+    added++;
+  }
+
+  let infoCount = countInfo();
+  if (infoCount < 3 && !rows.some(c => c && c.role !== 'chrome' && c.componentType === 'calendar_summary_card')) {
+    pushRow(
+      'travel_floor_calendar',
+      'calendar_summary_card',
+      'subject',
+      1,
+      {
+        label: city ? `Schedule · ${city}` : 'Schedule · Trip',
+        value: city
+          ? `Today · 9:30 AM meet guide · 2:00 PM museum ticket · 7:30 PM dinner (${city}) · buffer for jet lag.`
+          : 'Today · morning block, afternoon reservation, evening plans — local times and confirmation numbers.',
+        icon: 'schedule'
+      }
+    );
+    infoCount = countInfo();
+  }
+  if (infoCount < 3 && !rows.some(c => c && c.role !== 'chrome' && c.componentType === 'eta_card')) {
+    pushRow(
+      'travel_floor_eta',
+      'eta_card',
+      'context',
+      2,
+      {
+        label: city ? `Getting around · ${city}` : 'Transit & ETA',
+        value: city
+          ? `Airport to hotel ~45 min · subway + walk · buffer before first reservation (${city}).`
+          : 'Airport ↔ city center ETA, transit card, and buffer before first reservation.',
+        icon: null
+      }
+    );
+    infoCount = countInfo();
+  }
+  if (infoCount < 3 && !rows.some(c => c && c.role !== 'chrome' && c.componentType === 'navigation_turn_card')) {
+    pushRow(
+      'travel_floor_nav',
+      'navigation_turn_card',
+      'context',
+      2,
+      {
+        label: city ? `On foot · ${city}` : 'Walking / directions',
+        value: city
+          ? `Next: toward old town · 180 m · arrive before your timed entry (${city}).`
+          : 'Next turn + landmark cue toward your first booking — distances in meters.',
+        icon: null
+      }
+    );
+  }
+
+  const total = touched + added;
+  if (total) {
+    plan.plannerNotes = plan.plannerNotes || {};
+    plan.plannerNotes.travelDensity = { swapped: touched, added };
+    console.log('[pipeline] runSelect: travel density — swapped ' + touched + ', added ' + added);
+  }
+  return total;
+}
+
+// ---------------------------------------------------------------------------
+//  Personal travel / city-trip interface — explicit context contract
+//  (ticket + fare + map + schedule + actions). Inference merges slots into
+//  the planning packet; enforcement verifies coverage after select.
+// ---------------------------------------------------------------------------
+
+function isPersonalTravelInterfaceScenario(scenarioText, interpretation, planningPacket) {
+  if (!isFlightTravelScenario(scenarioText, interpretation, planningPacket)) return false;
+  const s = String(scenarioText || '');
+  const goal =
+    interpretation && interpretation.intent && interpretation.intent.primaryGoal
+      ? String(interpretation.intent.primaryGoal)
+      : '';
+  const blob = `${s}\n${goal}`;
+  const personalUi =
+    /\b(personal(ized)?|tailored|custom\b|just\s+for\s+me|my\s+own\s+ui|퍼스널|맞춤|나만의|개인(?:화)?)\b/i.test(blob) &&
+    /\b(interface|ui\b|screen|dashboard|hub|허브|화면|인터페이스)\b/i.test(blob);
+  const tripFor =
+    /(여행\s*(?:을|를)?\s*위한|for\s+(?:my\s+)?(?:\w+\s+)?trip|trip\s+to)/i.test(blob) &&
+    /\b(personal|tailored|custom|퍼스널|맞춤|나만의)\b/i.test(blob);
+  const koPersonalTrip =
+    /(퍼스널|맞춤|나만의).*(여행|인터페이스|화면|대시보드|앱)/.test(blob) ||
+    /여행\s*(?:을|를)?\s*위한.*(퍼스널|맞춤|나만의)/.test(blob);
+  return !!(personalUi || tripFor || koPersonalTrip);
+}
+
+/** Scenario-aware copy for transit ticket / fare / schedule lines (reference-quality density). */
+function personalTravelInterfaceCopyPack(scenarioText) {
+  const city = tripLabelFromScenario(scenarioText);
+  const s = String(scenarioText || '').toLowerCase();
+  const nyc =
+    /\b(new\s*york|nyc|manhattan|brooklyn|queens)\b/.test(s) ||
+    (city && /^new york$/i.test(String(city).trim()));
+  if (nyc) {
+    return {
+      ticketLabel: 'ACTIVE TICKET',
+      ticketValue:
+        '7-Day Unlimited MetroCard · Valid through May 12 · 2 rides used today',
+      fareLabel: 'FARE & PASSES',
+      fareValue: '$34 · 7-day unlimited · OMNY tap-to-pay or MetroCard · vs. pay-per-ride',
+      scheduleLabel: 'TODAY · NEW YORK',
+      scheduleValue:
+        '10:00 AM Midtown meet · 2:00 PM MoMA entry · 7:30 PM dinner SoHo — confirm reservations',
+      chipActions: [
+        { label: 'OMNY balance', kind: 'secondary', icon: 'credit_card' },
+        { label: 'Subway map', kind: 'secondary', icon: 'pin' },
+        { label: 'Museum passes', kind: 'primary', icon: 'bookmark' }
+      ]
+    };
+  }
+  const c = city || 'your city';
+  return {
+    ticketLabel: 'ACTIVE TICKET',
+    ticketValue: `${c} transit pass · validity window · rides / trips used today`,
+    fareLabel: 'FARE & BUDGET',
+    fareValue: `Day pass vs. stored value (${c}) · airport express · estimate weekly spend`,
+    scheduleLabel: `TODAY · ${c.toUpperCase()}`,
+    scheduleValue:
+      'Morning reservation · afternoon slot · evening plans — use local times and addresses',
+    chipActions: [
+      { label: 'Transit tickets', kind: 'primary', icon: 'pin' },
+      { label: 'City map', kind: 'secondary', icon: 'pin' },
+      { label: 'Saved places', kind: 'secondary', icon: 'bookmark' }
+    ]
+  };
+}
+
+const PERSONAL_TRAVEL_INTERFACE_SLOT_BLUEPRINT = [
+  {
+    slot:          'personal_trip_transit_ticket',
+    purpose:
+      'Hero transit pass / ticket card: pass name, validity, usage (e.g. MetroCard, OMNY, city pass)',
+    contentType:   'compound_summary',
+    priority:      1,
+    selectionHint:
+      'Prefer reminder_card or widget-small with ACTIVE TICKET-style label—never a bare title chip.'
+  },
+  {
+    slot:          'personal_trip_fare_pricing',
+    purpose:       'Concrete fares: unlimited vs pay-per-ride, currency, budget line',
+    contentType:   'compound_summary',
+    priority:      2,
+    selectionHint: 'Use input_summary_card or reminder_card with $ / local currency and pass names.'
+  },
+  {
+    slot:          'personal_trip_today_schedule',
+    purpose:       'Today’s time blocks: reservations, museums, dining with times',
+    contentType:   'schedule_prose',
+    priority:      1,
+    selectionHint: 'calendar_summary_card with distinct morning / afternoon / evening lines.'
+  },
+  {
+    slot:          'personal_trip_quick_actions',
+    purpose:       'Trip affordances: reload pass, maps, tickets, saved POIs',
+    contentType:   'chip_actions',
+    priority:      2,
+    selectionHint: 'action_chip_row with content.actions[] — travel verbs only.'
+  }
+];
+
+/**
+ * Stage 1–2 side: attach contract metadata + slot requirements so the selector
+ * sees the same “reasoning” the validator will check.
+ */
+function attachPersonalTravelInterfaceContract(planningPacket, scenarioText, interpretation) {
+  const pp = planningPacket;
+  if (!pp || typeof pp !== 'object') return;
+  if (!isPersonalTravelInterfaceScenario(scenarioText, interpretation, pp)) return;
+
+  const pack = personalTravelInterfaceCopyPack(scenarioText);
+  const city = tripLabelFromScenario(scenarioText) || 'destination';
+  pp.scenarioContentContract = {
+    intent:    'personal-travel-interface',
+    cityHint:  city,
+    facets:    ['transit_ticket', 'fare_pricing', 'map_route', 'today_schedule', 'quick_actions'],
+    rationale:
+      'Personal city-trip UI requires an active ticket/pass card, fare & pass economics, a map preview, ' +
+      "today's concrete schedule, and quick trip actions—validated after component selection.",
+    inferredCopy: pack
+  };
+
+  pp.slotRequirements = Array.isArray(pp.slotRequirements) ? pp.slotRequirements : [];
+  const keyOf = slot => String(slot || '').trim().toLowerCase().replace(/\s+/g, '_');
+  const existing = new Set(pp.slotRequirements.map(sr => keyOf(sr.slot)));
+  PERSONAL_TRAVEL_INTERFACE_SLOT_BLUEPRINT.forEach(blueprint => {
+    const k = keyOf(blueprint.slot);
+    if (!existing.has(k)) {
+      pp.slotRequirements.push({ ...blueprint });
+      existing.add(k);
+    }
+  });
+
+  pp.selectionConstraints = pp.selectionConstraints || {};
+  pp.selectionConstraints.prefer = pp.selectionConstraints.prefer || [];
+  const prefSet = new Set(pp.selectionConstraints.prefer.map(String));
+  [
+    'reminder_card',
+    'calendar_summary_card',
+    'input_summary_card',
+    'eta_card',
+    'navigation_turn_card',
+    'action_chip_row',
+    'widget-small',
+    'btn-contained'
+  ].forEach(p => prefSet.add(p));
+  pp.selectionConstraints.prefer = Array.from(prefSet);
+
+  console.log('[pipeline] scenarioContentContract: personal travel interface — slots merged');
+}
+
+function _planRowBlob(c) {
+  return `${(c.content && c.content.label) || ''} ${(c.content && c.content.value) || ''}`.toLowerCase();
+}
+
+function _facetTransitTicket(plan) {
+  return (plan.requiredComponents || []).some(c => {
+    if (!c || c.role === 'chrome') return false;
+    if (!['reminder_card', 'widget-small', 'input_summary_card'].includes(c.componentType)) return false;
+    const t = _planRowBlob(c);
+    return /active\s+ticket|metrocard|metro\s+card|omny|unlimited|\d+\s*-?\s*day|rides?\s+used|transit\s+pass|페리|패스|티켓|교통패스|탑승권/.test(t);
+  });
+}
+
+function _facetFarePricing(plan) {
+  return (plan.requiredComponents || []).some(c => {
+    if (!c || c.role === 'chrome') return false;
+    if (!['reminder_card', 'input_summary_card', 'widget-small'].includes(c.componentType)) return false;
+    const t = _planRowBlob(c);
+    return (
+      /\$|€|£|usd|eur|gbp|won|원|\d+\s*(usd|eur)|fare|price|budget|pass\b|pay-per|티켓\s*가|요금|가격/.test(t) &&
+      !/active\s+ticket|rides?\s+used/.test(t)
+    );
+  });
+}
+
+function _facetMapRoute(plan) {
+  return (plan.requiredComponents || []).some(c => {
+    if (!c || c.role === 'chrome') return false;
+    if (['eta_card', 'navigation_turn_card'].includes(c.componentType)) return true;
+    if (['calendar_summary_card', 'reminder_card', 'input_summary_card'].includes(c.componentType)) {
+      const u = String((c.content && c.content.imageUrl) || '').trim();
+      if (u) return true;
+    }
+    const t = _planRowBlob(c);
+    return /map|route|지도|내비|directions|turn\s+in|\d+\s*m\b|\d+\s*km/.test(t);
+  });
+}
+
+function _facetTodaySchedule(plan) {
+  return (plan.requiredComponents || []).some(
+    c => c && c.role !== 'chrome' && c.componentType === 'calendar_summary_card'
+  );
+}
+
+function _facetQuickActions(plan) {
+  const rows = (plan.requiredComponents || []).filter(c => c && c.role !== 'chrome');
+  const chips = rows.some(c => c.componentType === 'action_chip_row');
+  const btns = rows.filter(c => c.componentType === 'btn-contained' || c.componentType === 'btn-outlined');
+  return chips || btns.length >= 2;
+}
+
+/**
+ * Stage 3 tail: backfill missing contract facets, then emit violations for any gap.
+ */
+function enforcePersonalTravelInterfaceContract(plan, planningPacket, scenarioText, interpretation) {
+  const violations = [];
+  if (!plan || !Array.isArray(plan.requiredComponents)) return violations;
+  if (!isPersonalTravelInterfaceScenario(scenarioText, interpretation, planningPacket)) return violations;
+
+  const ui = planningPacket && planningPacket.uiState;
+  if (!ui || ui.baseSurface !== 'app') return violations;
+
+  const pack =
+    (planningPacket.scenarioContentContract && planningPacket.scenarioContentContract.inferredCopy) ||
+    personalTravelInterfaceCopyPack(scenarioText);
+  const rows = plan.requiredComponents;
+  const idGen = makeIdGen('contract-v');
+  const injected = [];
+
+  function inject(row) {
+    rows.push(row);
+    injected.push(row.slot || row.componentType);
+  }
+
+  if (!_facetTransitTicket(plan)) {
+    inject({
+      slot:          'contract_transit_ticket',
+      componentType: 'reminder_card',
+      variantHint:   'default',
+      priority:      1,
+      role:          'subject',
+      content:       {
+        label: pack.ticketLabel,
+        value: pack.ticketValue,
+        icon:  'credit_card'
+      },
+      constraints:   [],
+      _source:       'scenario-content-contract'
+    });
+  }
+  if (!_facetFarePricing(plan)) {
+    inject({
+      slot:          'contract_fare_pricing',
+      componentType: 'input_summary_card',
+      variantHint:   'default',
+      priority:      2,
+      role:          'context',
+      content:       {
+        label: pack.fareLabel,
+        value: pack.fareValue,
+        icon:  null
+      },
+      constraints:   [],
+      _source:       'scenario-content-contract'
+    });
+  }
+  if (!_facetTodaySchedule(plan)) {
+    inject({
+      slot:          'contract_today_schedule',
+      componentType: 'calendar_summary_card',
+      variantHint:   'default',
+      priority:      1,
+      role:          'subject',
+      content:       {
+        label: pack.scheduleLabel,
+        value: pack.scheduleValue,
+        icon:  'schedule'
+      },
+      constraints:   [],
+      _source:       'scenario-content-contract'
+    });
+  }
+  if (!_facetMapRoute(plan)) {
+    inject({
+      slot:          'contract_map_eta',
+      componentType: 'eta_card',
+      variantHint:   'default',
+      priority:      2,
+      role:          'context',
+      content:       {
+        label: `Map · ${tripLabelFromScenario(scenarioText) || 'Trip'}`,
+        value: 'Route preview and POI context — map tile attached after finalize',
+        icon:  null
+      },
+      constraints:   [],
+      _source:       'scenario-content-contract'
+    });
+  }
+  if (!_facetQuickActions(plan)) {
+    inject({
+      slot:          'contract_trip_chips',
+      componentType: 'action_chip_row',
+      variantHint:   'default',
+      priority:      2,
+      role:          'action',
+      content:       {
+        label: '',
+        value: '',
+        icon:  null,
+        actions: pack.chipActions || []
+      },
+      constraints:   [],
+      _source:       'scenario-content-contract'
+    });
+  }
+
+  if (injected.length) {
+    plan.plannerNotes = plan.plannerNotes || {};
+    plan.plannerNotes.scenarioContentContractInjected = injected;
+    console.log(
+      '[pipeline] scenarioContentContract: injected ' + injected.length + ' row(s): ' + injected.join(', ')
+    );
+  }
+
+  const contract = planningPacket.scenarioContentContract || {};
+  const checks = [
+    { id: 'transit_ticket', ok: _facetTransitTicket(plan), label: 'transit ticket / pass card' },
+    { id: 'fare_pricing', ok: _facetFarePricing(plan), label: 'fare & pass pricing' },
+    { id: 'map_route', ok: _facetMapRoute(plan), label: 'map or route context' },
+    { id: 'today_schedule', ok: _facetTodaySchedule(plan), label: "today's schedule" },
+    { id: 'quick_actions', ok: _facetQuickActions(plan), label: 'trip action chips or buttons' }
+  ];
+  checks.forEach(ch => {
+    if (ch.ok) return;
+    violations.push(
+      buildViolation({
+        id:       idGen(),
+        stage:    'plan',
+        ruleId:   'scenario_content_contract_gap',
+        category: 'scenario-contract',
+        severity: 'medium',
+        status:   'auto-fixable',
+        element:  ch.id,
+        property: 'facet',
+        actual:   'missing',
+        expected: ch.label,
+        message:  `Personal travel interface contract: still missing facet "${ch.label}" after enforcement.`,
+        autoFix:  { possible: true, action: 're-run contract inject', value: ch.id }
+      })
+    );
+  });
+
+  if (planningPacket.scenarioContentContract) {
+    planningPacket.scenarioContentContract.verifiedAt = 'runSelect';
+    planningPacket.scenarioContentContract.facetStatus = checks.reduce((acc, x) => {
+      acc[x.id] = x.ok;
+      return acc;
+    }, {});
+  }
+
+  return violations;
 }
 
 function isIoTAssistantScenario(scenarioText, interpretation, planningPacket) {
@@ -697,7 +1247,7 @@ function enrichPlanningPacketForFlightTravel(planningPacket, scenarioText, inter
   pp.planningSummary = pp.planningSummary || {};
   if (!String(pp.planningSummary.primaryGoal || '').trim()) {
     pp.planningSummary.primaryGoal =
-      'Flight assistant: itinerary + boarding/gate facts + ETA/context + travel actions—not passive chips or media playback.';
+      'Travel / trip assistant: rich itinerary (schedule, transit, maps, reservations) + travel actions—not a thin title with only playback and one CTA.';
   }
 
   console.log('[pipeline] enrichPlanningPacket: flight/travel — slot count', pp.slotRequirements.length);
@@ -763,14 +1313,31 @@ function buildFlightTravelSelectorContract(scenarioText, planningPacket, interpr
 
   return [
     '',
-    '[DETERMINISTIC SLOT→COMPONENT CONTRACT — flight / boarding / itinerary assistant]',
-    'Map flight behavioral slots to VOCABULARY ids:',
+    '[DETERMINISTIC SLOT→COMPONENT CONTRACT — flight / boarding / trip / itinerary assistant]',
+    'Map travel behavioral slots to VOCABULARY ids:',
     '1) itinerary + gate + boarding window → reminder_card AND/OR calendar_summary_card (subject) with REAL city pair or flight # + LOCAL date/times.',
     '2) mins to gate / security cue → eta_card.',
     '3) optional short turn cue → navigation_turn_card.',
     '4) travel-only chips → action_chip_row (offline pass, lounge, directions, seat)—never recipe Voice tip / Substitute / Scale.',
     '5) boarding CTA → btn-contained (+ btn-outlined) (“Open boarding pass”, “Add to Wallet”, “Navigate”).',
     'FORBID media_control_bar unless the user scenario explicitly names audio playback OR you show a GATE countdown (timer semantics).',
+    ''
+  ].join('\n');
+}
+
+function buildPersonalTravelInterfaceSelectorContract(scenarioText, planningPacket, interpretation) {
+  if (!isPersonalTravelInterfaceScenario(scenarioText, interpretation, planningPacket)) return '';
+
+  return [
+    '',
+    '[SCENARIO CONTENT CONTRACT — personal / tailored city-trip interface]',
+    'The planning packet includes server-inferred scenarioContentContract. Cover EVERY facet as a DISTINCT requiredComponents row:',
+    '1) Transit ticket / pass — reminder_card or widget-small: ACTIVE TICKET headline, pass name, validity end date, rides used today (or trip-day equivalent).',
+    '2) Fare & pricing — input_summary_card or reminder_card: currency, unlimited vs pay-per-ride, realistic amounts (e.g. OMNY / MetroCard).',
+    "3) Map / route — eta_card or navigation_turn_card with city/route semantics; map preview may be attached server-side.",
+    "4) Today's schedule — calendar_summary_card with morning / afternoon / evening blocks and venue names.",
+    '5) Quick trip actions — action_chip_row (reload, maps, passes) plus btn-contained primary (e.g. Continue / Open wallet).',
+    'Do not collapse these into one vague card; the validation stage checks each facet.',
     ''
   ].join('\n');
 }
@@ -1874,6 +2441,8 @@ function ensureMinimumRoleCoverage(plan, scenarioText, interpretation, planningP
   const goal = (planningPacket && planningPacket.planningSummary && planningPacket.planningSummary.primaryGoal) || '';
   const corpus = `${scenarioText || ''}\n${goal || ''}\n${dom.blob || ''}`.toLowerCase();
   const iotLike = /\b(iot|smart[\s-]?home|device|room|light|lamp|switch|thermostat|scene|automation)\b/i.test(corpus);
+  const travelLike = !!(dom.travel && !dom.cooking);
+  const tripCity = tripLabelFromScenario(scenarioText);
 
   // If the model already produced a sufficiently rich app task unit, don't touch it.
   if (nonChrome.length >= 4) return 0;
@@ -1902,15 +2471,25 @@ function ensureMinimumRoleCoverage(plan, scenarioText, interpretation, planningP
   }
 
   if (!hasRole('state')) {
+    const useTravelReminder =
+      travelLike && !travelScenarioWantsPlaybackStrip(`${scenarioText || ''}\n${goal || ''}`);
     push({
       slot: 'primary_state',
-      componentType: 'media_control_bar',
+      componentType: iotLike ? 'media_control_bar' : useTravelReminder ? 'reminder_card' : 'media_control_bar',
       variantHint: 'default',
       priority: 2,
       role: 'state',
       content: iotLike
         ? { label: 'Brightness', value: '65% · Auto', icon: 'timer' }
-        : { label: 'Live state', value: '00:05:39 · active', icon: 'timer' },
+        : useTravelReminder
+          ? {
+              label: tripCity ? `Today · ${tripCity}` : 'Trip · Today',
+              value: tripCity
+                ? `Reservations, transit passes, and timed entries for ${tripCity} — confirm local times and addresses.`
+                : 'Itinerary status: next booking, travel time, and check-in windows — specific times.',
+              icon: 'schedule'
+            }
+          : { label: 'Live state', value: '00:05:39 · active', icon: 'timer' },
       constraints: [],
       _source: 'min-role-coverage'
     });
@@ -2185,7 +2764,10 @@ Examples:
   * "Show the home screen with weather and music widgets" → home
   * "Lock screen with now-playing media" → lock
   * "Notification shade" → home with overlay_type=notification-shade
-  * "Share sheet", "bottom sheet", "pick sharing target", "coordination sheet", "option picker" → app with overlay_type=system-dialog and background_policy=dialog-surface`;
+  * "Share sheet", "bottom sheet", "pick sharing target", "coordination sheet", "option picker" → app with overlay_type=system-dialog and background_policy=dialog-surface
+  * Korean: "바텀시트", "하단 시트/카드", "공유 시트", "옵션 피커", "슬라이드 업", "시트형 카드 UI" → same (system-dialog + dialog-surface); optional context_tags entry bottom_sheet when explicit
+  * E-book / reading scenarios that describe **only** a quick control strip or a **peek** panel (e.g. "reading quick bar", "book controls in a bottom sheet", "독서 퀵바만", "전자책 바텀시트로만") → same: system-dialog + dialog-surface; optional context_tags like reader_quick_bar or reading_sheet — the UI need not be a full-page grid of cards
+  * "Personal / tailored interface for my New York (or any city) trip" → app; slot_requirements must cover transit ticket/pass, fares & pricing, map/route context, today's timed schedule, and quick trip actions — not a single vague summary card.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -2337,16 +2919,19 @@ Selection guidance:
 - Workout / running / health on lock or glance: combine state + context (lock-screen.widget-activity, lock-screen.widget-battery, eta_card, reminder_card) with a now-bar or timer row when appropriate; mix icon chips or actions for start/pause/end.
 - Prefer media-card or media_control_bar when playback or a dominant media surface is the subject; use widget-small only for compact glance tiles.
 - Dense full-screen tasks (running, cycling, hiking, GPS, maps, workout dashboards): emit at least 4 distinct selected body components (subject + state + context + action) — never settle for two tiny glance cards unless the packet explicitly demands minimal glanceable density.
+- **Briefing / dashboard / “at a glance” / home-widget style summaries**: when the user (or planning packet) implies a passive overview, stock-ticker, or multi-metric readout — not a single-task assistant — emit **≥4** body picks from compact glance types: \`weather_glance_card\`, \`calendar_summary_card\`, \`reminder_card\`, \`message_summary_card\`, \`eta_card\`, \`input_summary_card\`, \`widget-small\`. Put **different numbers, names, times, or places** in each \`content.value\`. Keep a separate **action** group for controls unless the scenario is strictly read-only.
 - Slot names should be DESCRIPTIVE (e.g. "current_instruction", "save_action", "weather_glance") — they will be carried into the layout for visual grouping.
 
 Content authoring:
 - For each requiredComponent you pick, fill content.label and content.value with REAL, scenario-specific text — NOT placeholders.
 - The vocabulary block above shows "Content examples" for each component (label / value pairs across diverse scenarios). Use them as a TEMPLATE — match the structure and concreteness, then adapt the wording to the user's scenario.
 - NEVER emit content like "Title", "Subtitle", "Item", "Content", "Personalized guidance", "Adaptations based on preferences" — those are bad placeholders.
+- Glance / summary / dashboard tiles: each \`content.value\` SHOULD carry **~24+ characters** of concrete detail (counts, times, venue names, flight numbers, temperatures) unless the slot is intentionally empty — ultra-short values read as broken or “autonomy collapsed” UI.
 - When two requiredComponents share the same componentType but different slots, their content.label and content.value MUST be DISTINCT and tailored to each slot's purpose.
 
 DIVERSITY RULES (anti-repetition — STRICTLY enforced):
 - Pick DIFFERENT componentTypes across slots. The same componentType MUST NOT appear more than TWICE in one plan (excluding chrome like status_bar / app_bar / gesture_bar / bottom_navigation_bar).
+- **Exception — briefing / widget-grid / dashboard overview:** you MUST still use **≥3 distinct** componentTypes from the glance list in the briefing bullet above (never 4× one type). Up to **four** such tiles total is encouraged for true 2×2-style home summaries.
 - Each requiredComponent MUST have a UNIQUE label string. No two components may share the same label text (case-insensitive, whitespace-insensitive).
 - Prefer VARIETY: a screen with weather_card + calendar_event_card + reminder_list_item + message_preview_card is BETTER than 4× input_summary_card. Mix subject + state + context + action types.
 - input_summary_card is for FORM SUMMARIES ONLY (search recap, settings recap, completed-form readback). Do NOT use it as a generic content card. If you need a generic info tile, use weather_card / calendar_event_card / reminder_list_item / message_preview_card / eta_card / now_playing_card / shortcut_tile instead.
@@ -2608,6 +3193,7 @@ INFORMATION HIERARCHY (exposure + optical weight — mandatory):
 One UI fidelity (mandatory for generated layouts):
   - primary-task **defaults** to vertical-stack with subject → state → actions top-to-bottom, **but** use **grid (2 columns)** or **horizontal-stack** when the task pairs a **tall hero** (recipe/media/focus summary, step card, media strip) with a **compact action column** (Repeat, timers, chips, contained buttons) — same pattern as guided cooking, workouts, and reader apps. Follow the Reference Layout order when it already specifies grid/horizontal-stack.
   - **Bottom-sheet / modal flows** (\`overlayType\` implies system dialog, or \`backgroundPolicy\` is \`dialog-surface\` / \`scrim-over-app\`): treat the body as a **sheet-shaped** stack — full-width rounded cards (design token **dialog** radius ≈36px / One UI squircle), primary CTA anchored **low** in the primary-task group, scrim-dimming implied by policy; avoid scattering tiny floating tiles at the top only.
+  - **E-book / reading-status / chapter / bookmark flows** — the surface does **not** have to be a full canvas of balanced 2×2 tiles. Valid patterns include: (a) a normal in-app stack/grid when the scenario is a full "reading status" screen; (b) **sheet-only** chrome — when \`uiState\` uses dialog/bottom-sheet (see \`overlayType\` / \`backgroundPolicy\`), use **one** tight primary-task **vertical-stack** (progress/summary + \`action_chip_row\` / \`media_control_bar\` / page \`btn-contained\`) with **no** mosaic of sibling glance tiles; (c) **quick-bar** style — one **meta** or **supporting** horizontal band (compact stats + \`action_chip_row\`) and **minimal** primary-task (or only chrome + that band) when the scenario implies "peek" / "quick controls". Prefer \`media_control_bar\` or dense chip rows for page/skip/bookmark affordances in (b)–(c).
   - On app surfaces, do NOT emit \`quick_toggle_row\` unless the uiState overlay is quick-settings — use \`action_chip_row\` / \`btn-contained\` for Save/Share/Timer-style actions (quick toggles are Quick Settings affordances, not floating app footers).
   - Keep action \`btn-contained\` / chips AFTER chip rows so touch targets do not overlap in the same band.
   - Cooking / recipe: first subject card should be textual step or reminder suitable for a thumbnail (downstream may attach \`content.imageUrl\`). **Maps / commute / running / hiking / trail / GPS**: favor \`navigation_turn_card\`, \`eta_card\`, or a route-style \`reminder_card\`/\`widget-small\`; server post-processing may attach an **OpenStreetMap static preview** to the first eligible card without \`imageUrl\`. You may still set \`content.imageUrl\` to a real https map/hero image when you have one.
@@ -2689,6 +3275,7 @@ LAYOUT TEMPLATE INFERENCE (Tier 3 — pick a richer container shape based on the
 - APP surface with chip rows OR action rows → those go in horizontal-stack groups; the rest stays vertical-stack.
 - Food delivery, recipe catalog, takeout, or “order food” flows (when the scenario is NOT flight/travel/airport): structure like a store app — one primary-task group uses **grid** for category/filter tiles (widget-small or compact chips), then ONE large hero subject card beneath (detail + price + quantity + primary CTA). Avoid duplicating the same uppercase section header (“TODAY” / category) across multiple separate cards unless they show genuinely different semantic content.
 - Guided cooking / live recipe steps — and **any** hands-busy app step with the same shape: when a tall **subject** card (ingredients, photo, step headline, media summary) and a narrower **action** cluster (Repeat, timer chips, Next, contained buttons) are BOTH primary-task peers, put them **side-by-side** — primary-task **grid** (2 columns, preferred) or **horizontal-stack** with exactly those two children. The renderer biases ~58% / ~42% width (hero / actions). Use vertical-stack for extra bands below (full-width prose, bottom rails).
+- **2×2 (or 3+) control tiles** — Repeat / timer / ingredient shortcuts / quick actions: prefer \`container: "grid"\`, \`gridColumns: 2\`, **group role \`meta\`**, ordered **after** primary-task + supporting + tertiary so the cluster sits **low on the sheet** (just above the wide \`btn-contained\` primary CTA and gesture bar). If you only have \`action_chip_row\`, still use role \`meta\` for that row when it is a dense control strip. Do not park these grids in the middle of the scroll above the hero unless the scenario is a pure control dashboard.
 - NOTIFICATION-SHADE overlay → vertical-stack with notif-card / notif-card-ai stacked (no grid).
 - Pick container='grid' when groups[].children would otherwise repeat the same component type 3+ times (e.g. 4 toggle chips, 4 widgets) — grid avoids the "wall of identical cards" anti-pattern.
 
@@ -3140,6 +3727,299 @@ function validateLayout(layoutPlan, uiState, plan, referenceLayout) {
   return { violations };
 }
 
+/**
+ * When the composer splits glance/dashboard tiles across several *tile-only*
+ * body groups, auto-grid never sees ≥2 siblings in one stack. Merge those
+ * tiles into one tile-only group so the existing auto-grid pass can
+ * promote a 2-column Samsung-style widget row. Prefer **primary-task** when
+ * it already holds tiles so the grid stays in the main band, not supporting.
+ */
+function coalesceDashboardTilesForWidgetGrid(layoutPlan, planningPacket, scenarioText) {
+  if (!layoutPlan || !Array.isArray(layoutPlan.groups)) return 0;
+
+  const ui = (planningPacket && planningPacket.uiState) || {};
+  const scen = String(scenarioText || '');
+  const tags = Array.isArray(ui.contextTags) ? ui.contextTags.map(String) : [];
+  const wantsBrief =
+    /\b(brief|briefing|dashboard|widget|glance|at-a-glance|summary|tiles?|2\s*[×x]\s*2|home\s+screen|widget\s+grid|overview)\b/i.test(scen) ||
+    /(대시보드|브리핑|요약|한\s*눈|위젯|타일|홈\s*화면)/.test(scen) ||
+    /\b(reading|reader|e-?book|ebook|chapter|passage|pages?\s+\d|book\s+progress|novel|audiobook|book\s+reader|reading\s+status)\b/i.test(scen) ||
+    /(독서|전자책|책\s*읽기|독서\s*현황|진행\s*률|챕터|책갈피)/.test(scen) ||
+    tags.some(t => /briefing|agenda|schedule|dashboard|morning|evening/i.test(t)) ||
+    ui.baseSurface === 'home';
+
+  if (!wantsBrief) return 0;
+
+  const isVisible = ch => ch && (!ch.visibility || ch.visibility === 'visible');
+  const isTile = ch => ch && DASHBOARD_TILE_COMPONENT_IDS.has(ch.componentId || '');
+  const childKey = ch => `${ch.componentId || ''}\t${ch.slot || ''}`;
+
+  const stats = layoutPlan.groups.map(g => {
+    if (g.role === 'chrome' || g.container === 'horizontal-stack') {
+      return { g, tileCount: 0, hasNonTileVisible: false, skip: true };
+    }
+    let tileCount = 0;
+    let hasNonTileVisible = false;
+    (g.children || []).forEach(ch => {
+      if (!isVisible(ch)) return;
+      if (isTile(ch)) tileCount++;
+      else hasNonTileVisible = true;
+    });
+    return { g, tileCount, hasNonTileVisible, skip: false };
+  });
+
+  const tileOnly = stats.filter(s => !s.skip && !s.hasNonTileVisible && s.tileCount > 0);
+  if (tileOnly.length < 2) return 0;
+
+  const totalTiles = tileOnly.reduce((a, s) => a + s.tileCount, 0);
+  const minTiles = isReadingBriefScenarioText(scen, { uiState: ui }) ? 2 : 3;
+  if (totalTiles < minTiles) return 0;
+
+  tileOnly.sort((a, b) => b.tileCount - a.tileCount);
+  // Prefer primary-task when it is tile-only so we never drain the main band
+  // into supporting (grid ended up in the yellow "supporting" stripe, felt
+  // like broken / ambiguous placement).
+  const primaryCand = tileOnly.find(s => s.g.role === 'primary-task');
+  const target = primaryCand ? primaryCand.g : tileOnly[0].g;
+  const seen = new Set();
+  (target.children || []).forEach(ch => {
+    if (isVisible(ch) && isTile(ch)) seen.add(childKey(ch));
+  });
+
+  let moved = 0;
+  layoutPlan.groups.forEach(g => {
+    if (g === target || g.role === 'chrome' || g.container === 'horizontal-stack') return;
+    const next = [];
+    (g.children || []).forEach(ch => {
+      if (!isVisible(ch) || !isTile(ch)) {
+        next.push(ch);
+        return;
+      }
+      const k = childKey(ch);
+      if (seen.has(k)) {
+        next.push(ch);
+        return;
+      }
+      seen.add(k);
+      if (!target.children) target.children = [];
+      target.children.push(ch);
+      moved++;
+    });
+    g.children = next;
+  });
+
+  return moved;
+}
+
+/**
+ * When the composer stacks 2+ dashboard tiles and then CTAs in ONE primary
+ * vertical-stack, each card stays full-width in a column and reads as a broken
+ * "staircase" of half-empty rows. Split into: primary grid (2-up tiles) +
+ * trailing meta stack (buttons / chip rows), matching reader / status UIs.
+ */
+function splitPrimaryMixedStackToGridAndActions(layoutPlan, planningPacket, scenarioText) {
+  const ui = planningPacket && planningPacket.uiState;
+  if (!ui || ui.baseSurface !== 'app') return 0;
+  if (!layoutPlan || !Array.isArray(layoutPlan.groups)) return 0;
+
+  const reading = isReadingBriefScenarioText(scenarioText, planningPacket);
+  const isVisible = ch => ch && (!ch.visibility || ch.visibility === 'visible');
+  const isTile = ch => DASHBOARD_TILE_COMPONENT_IDS.has((ch && ch.componentId) || '');
+  const ACTION_IDS = new Set([
+    'action_chip_row',
+    'btn-contained',
+    'btn-outlined',
+    'btn-flat',
+    'fab',
+    'chip',
+    'button.dark',
+    'button.light',
+    'button.accent',
+    'button.galaxy-ai',
+    'button.header-small',
+    'quick_toggle_row'
+  ]);
+  const isActionBand = ch => {
+    if (!ch) return false;
+    if (ch.role === 'action' || ch.role === 'navigation') return true;
+    return ACTION_IDS.has(ch.componentId || '');
+  };
+
+  let splits = 0;
+  const next = [];
+  layoutPlan.groups.forEach(g => {
+    const bandOk = g.role === 'primary-task' || (reading && g.role === 'supporting');
+    if (!bandOk) {
+      next.push(g);
+      return;
+    }
+    const cont = g.container || 'vertical-stack';
+    if (cont === 'grid' || cont === 'horizontal-stack') {
+      next.push(g);
+      return;
+    }
+    const children = (g.children || []).filter(isVisible);
+    const baseId = g.groupId || 'primary';
+    // Two dashboard tiles alone → 2-column row (reading / status cards).
+    if (children.length === 2 && children.every(isTile)) {
+      next.push(
+        Object.assign({}, g, {
+          groupId:     `${baseId}-tiles-2up`,
+          container:   'grid',
+          gridColumns: 2,
+          children:    children.slice()
+        })
+      );
+      splits++;
+      return;
+    }
+    if (children.length < 3) {
+      next.push(g);
+      return;
+    }
+    let k = 0;
+    while (k < children.length && isTile(children[k])) k++;
+    if (k < 2 || k >= children.length) {
+      next.push(g);
+      return;
+    }
+    const tail = children.slice(k);
+    if (!tail.some(isActionBand)) {
+      next.push(g);
+      return;
+    }
+
+    const tiles = children.slice(0, k);
+    next.push(
+      Object.assign({}, g, {
+        groupId:     `${baseId}-tiles-2up`,
+        container:   'grid',
+        gridColumns: 2,
+        children:    tiles
+      })
+    );
+    next.push(
+      Object.assign({}, g, {
+        groupId:     `${baseId}-actions-trail`,
+        container:   'vertical-stack',
+        role:        'meta',
+        children:    tail
+      })
+    );
+    splits++;
+  });
+
+  if (splits > 0) layoutPlan.groups = next;
+  return splits;
+}
+
+/**
+ * Dense 2×2-style control clusters (all actions in a grid, or a lone action_chip_row)
+ * read better pinned just above the final CTA / gesture bar. Promote to role=meta and
+ * append after other body groups (cooking / workout / hands-busy patterns).
+ */
+function pinDenseActionGridsToBottom(layoutPlan, planningPacket) {
+  if (!layoutPlan || !Array.isArray(layoutPlan.groups)) return 0;
+  const ui = planningPacket && planningPacket.uiState;
+  if (!ui || ui.baseSurface !== 'app') return 0;
+
+  const ACTION_IDS = new Set([
+    'action_chip_row',
+    'btn-contained',
+    'btn-outlined',
+    'btn-flat',
+    'fab',
+    'chip',
+    'button.dark',
+    'button.light',
+    'button.accent',
+    'button.galaxy-ai',
+    'button.header-small',
+    'quick_toggle_row'
+  ]);
+  const isVisible = ch => ch && (!ch.visibility || ch.visibility === 'visible');
+  const visKids = g => (g.children || []).filter(isVisible);
+  const isActionish = ch => {
+    const id = (ch && ch.componentId) || '';
+    const r = (ch && ch.role) || '';
+    return ACTION_IDS.has(id) || r === 'action';
+  };
+  const subjectish = ch => {
+    if (!ch || (ch.visibility && ch.visibility !== 'visible')) return false;
+    if (ch.role === 'subject' || ch.role === 'state' || ch.role === 'context') return true;
+    const id = ch.componentId || '';
+    return /reminder_card|input_summary|message_summary|calendar_summary|eta_card|weather_glance|navigation_turn|media_control|now-bar|media-card|widget-small/i.test(
+      id
+    );
+  };
+
+  /** @type {typeof layoutPlan.groups} */
+  const groups = layoutPlan.groups;
+  const body = groups.filter(g => g.role !== 'chrome');
+  const anySubjectOutside = exclude =>
+    body.some(g => {
+      if (g === exclude) return false;
+      return (g.children || []).some(subjectish);
+    });
+
+  const isPinCandidate = g => {
+    if (g.role === 'chrome') return false;
+    const v = visKids(g);
+    if (!v.length) return false;
+    if (g.container === 'grid' && v.length >= 3 && v.every(isActionish)) return true;
+    if (
+      (g.container === 'vertical-stack' || !g.container) &&
+      v.length === 1 &&
+      v[0].componentId === 'action_chip_row'
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  const pins = body.filter(isPinCandidate);
+  if (!pins.length) return 0;
+
+  const liftable = pins.filter(g => {
+    if (g.role === 'supporting' || g.role === 'tertiary' || g.role === 'meta') return true;
+    if (g.role === 'primary-task' && anySubjectOutside(g)) return true;
+    return false;
+  });
+  if (!liftable.length) return 0;
+
+  liftable.forEach(g => {
+    if (g.role !== 'meta') g.role = 'meta';
+  });
+
+  const chrome = groups.filter(g => g.role === 'chrome');
+  const pinSet = new Set(liftable);
+  const nonPinBody = body.filter(g => !pinSet.has(g));
+  const byIdx = new Map(groups.map((g, i) => [g, i]));
+  const BAND = {
+    'primary-task': 1,
+    supporting: 2,
+    tertiary: 3,
+    meta: 4
+  };
+  nonPinBody.sort((a, b) => {
+    const ba = BAND[a.role] != null ? BAND[a.role] : 15;
+    const bb = BAND[b.role] != null ? BAND[b.role] : 15;
+    if (ba !== bb) return ba - bb;
+    return byIdx.get(a) - byIdx.get(b);
+  });
+  const pinOrdered = liftable.slice().sort((a, b) => byIdx.get(a) - byIdx.get(b));
+  layoutPlan.groups = chrome.concat(nonPinBody).concat(pinOrdered);
+
+  if (liftable.length) {
+    console.log(
+      '[pipeline] composer post-fix: pinned ' +
+        liftable.length +
+        ' dense control group(s) to bottom band (meta)'
+    );
+  }
+  return liftable.length;
+}
+
 // ---------------------------------------------------------------------------
 //  STEP 4 — RUNNER
 //  ---------------------------------------------------------------------------
@@ -3390,6 +4270,37 @@ async function runComposeLayout({ planningPacket, plan, llmCall, viewport, scena
     composed.layoutPlan.groups = tagged.map(x => x.g);
   }
 
+  const dashCoalesced = coalesceDashboardTilesForWidgetGrid(
+    composed.layoutPlan,
+    planningPacket,
+    scenario
+  );
+  if (dashCoalesced > 0) {
+    composed.composerNotes = composed.composerNotes || {};
+    composed.composerNotes.dashboardTilesCoalesced = dashCoalesced;
+    console.log('[pipeline] composer post-fix: coalesced ' + dashCoalesced + ' dashboard tile(s) into one tile-only group for 2-col grid');
+  }
+
+  const splitMixed = splitPrimaryMixedStackToGridAndActions(composed.layoutPlan, planningPacket, scenario);
+  if (splitMixed > 0) {
+    composed.composerNotes = composed.composerNotes || {};
+    composed.composerNotes.primaryTileActionSplit = splitMixed;
+    console.log(
+      '[pipeline] composer post-fix: split ' + splitMixed + ' mixed primary stack(s) → 2-up grid + action trail'
+    );
+    if (composed.layoutPlan && Array.isArray(composed.layoutPlan.groups)) {
+      const BAND = { chrome: 0, 'primary-task': 1, supporting: 2, tertiary: 3, meta: 4 };
+      const tagged = composed.layoutPlan.groups.map((g, i) => ({ g, i }));
+      tagged.sort((a, b) => {
+        const ba = BAND[a.g.role] != null ? BAND[a.g.role] : 15;
+        const bb = BAND[b.g.role] != null ? BAND[b.g.role] : 15;
+        if (ba !== bb) return ba - bb;
+        return a.i - b.i;
+      });
+      composed.layoutPlan.groups = tagged.map(x => x.g);
+    }
+  }
+
   // ── Auto-grid: mixed glance cards + repeated tile-safe types ──────
   // Promote vertical-stack → 2-column grid when (a) every visible child is a
   // compact glance/info card (Samsung-style 2-up widget row), or (b) 2+
@@ -3464,7 +4375,7 @@ async function runComposeLayout({ planningPacket, plan, llmCall, viewport, scena
         const allDashboardTiles = children.every(ch =>
           DASHBOARD_TILE_COMPONENT_IDS.has((ch && ch.componentId) || '')
         );
-        if (!allDashboardTiles) return;
+        if (!allDashboardTiles && !isReadingBriefScenarioText(scenario, planningPacket)) return;
       }
 
       const subjectActionSideBySide =
@@ -3528,6 +4439,12 @@ async function runComposeLayout({ planningPacket, plan, llmCall, viewport, scena
       composed.composerNotes.autoGridded = gridded;
       console.log('[pipeline] composer post-fix: auto-grid promoted ' + gridded + ' group(s) (glance cards / 2+ tile-friendly types)');
     }
+  }
+
+  const bottomPins = pinDenseActionGridsToBottom(composed.layoutPlan, planningPacket);
+  if (bottomPins > 0) {
+    composed.composerNotes = composed.composerNotes || {};
+    composed.composerNotes.bottomPinnedControlGrids = bottomPins;
   }
 
   // Programmatic backfill: the composer LLM frequently drops Selected
@@ -3658,11 +4575,33 @@ async function runInterpretAndNormalize({ scenarioText, llmCall, llmCallFast, fa
 
   applyDialogSurfaceHeuristic(planningPacket, scenario, interpretation);
 
+  // Trip / flight — always merge slot blueprint + strip assistant-task / music defaults
+  // (not only when PIPELINE_HEAVY_RULES=on); otherwise "New York trip" stays sparse
+  // with a media strip + one CTA and never gets itinerary slots.
+  enrichPlanningPacketForFlightTravel(planningPacket, scenario, interpretation);
+  stripCookingSignalsFromTravelUiState(planningPacket, interpretation, scenario);
+  attachPersonalTravelInterfaceContract(planningPacket, scenario, interpretation);
+
+  // Light rail: high-autonomy runs skip HEAVY_RULES enrich*, but dashboard/briefing
+  // scenarios still benefit from the deterministic briefing tag so Stage 3 injects
+  // calendar/reminder/message tiles (see CONTEXT_INJECTION_RULES).
+  if (!HEAVY_RULES && planningPacket && planningPacket.uiState) {
+    const s = scenario || '';
+    const looksBrief =
+      /\b(dashboard|briefing|widget\s+grid|at-a-glance|multi-tile|home\s+summary)\b/i.test(s) ||
+      /(대시보드|브리핑|한\s*눈에|위젯|요약\s*화면|홈\s*요약)/.test(s);
+    if (looksBrief) {
+      const ui = planningPacket.uiState;
+      const tags = Array.isArray(ui.contextTags) ? ui.contextTags.map(String) : [];
+      if (!tags.some(t => /^briefing$/i.test(t))) {
+        ui.contextTags = tags.concat(['briefing']);
+      }
+    }
+  }
+
   if (HEAVY_RULES) {
     enrichPlanningPacketForGuidedCookingAssistant(planningPacket, scenario, interpretation);
-    enrichPlanningPacketForFlightTravel(planningPacket, scenario, interpretation);
     enrichPlanningPacketForIoTAssistant(planningPacket, scenario, interpretation);
-    stripCookingSignalsFromTravelUiState(planningPacket, interpretation, scenario);
   }
 
   return {
@@ -3748,9 +4687,12 @@ async function runSelect({ scenarioText, interpretation, planningPacket, rawComb
   const guidedContract = HEAVY_RULES
     ? buildGuidedCookingAssistantSelectorContract(scenario, planningPacket, interpretation)
     : '';
-  const flightContract = HEAVY_RULES
-    ? buildFlightTravelSelectorContract(scenario, planningPacket, interpretation)
-    : '';
+  const flightContract = buildFlightTravelSelectorContract(scenario, planningPacket, interpretation);
+  const personalIfaceContract = buildPersonalTravelInterfaceSelectorContract(
+    scenario,
+    planningPacket,
+    interpretation
+  );
   const iotContract = HEAVY_RULES
     ? buildIoTAssistantSelectorContract(scenario, planningPacket, interpretation)
     : '';
@@ -3760,6 +4702,7 @@ async function runSelect({ scenarioText, interpretation, planningPacket, rawComb
     (mandatoryBlock ? mandatoryBlock + '\n\n---\n\n' : '') +
     (guidedContract ? guidedContract + '\n---\n\n' : '') +
     (flightContract ? flightContract + '\n---\n\n' : '') +
+    (personalIfaceContract ? personalIfaceContract + '\n---\n\n' : '') +
     (iotContract ? iotContract + '\n---\n\n' : '') +
     `User Scenario:\n${scenario}\n\n` +
     `Planning Packet:\n${JSON.stringify(planningPacketRaw)}`
@@ -4047,7 +4990,10 @@ async function runSelect({ scenarioText, interpretation, planningPacket, rawComb
   // driving, etc.) when the LLM's narrower task→slot mapping would
   // otherwise miss them. Each injection is gated on the component being
   // (a) not already picked, and (b) in the active semantic vocabulary.
-  if (HEAVY_RULES && uiStateForSelector && Array.isArray(uiStateForSelector.contextTags) && uiStateForSelector.contextTags.length) {
+  //
+  // Runs even when PIPELINE_HEAVY_RULES=off — otherwise AI-first mode never
+  // receives tag-driven tiles and briefings collapse to 1–2 empty cards.
+  if (uiStateForSelector && Array.isArray(uiStateForSelector.contextTags) && uiStateForSelector.contextTags.length) {
     if (!Array.isArray(plan.requiredComponents)) plan.requiredComponents = [];
     const havePicked = new Set(plan.requiredComponents.map(c => c.componentType).filter(Boolean));
     const allowedVocab = new Set(allowedSemanticComponentTypes());
@@ -4106,6 +5052,8 @@ async function runSelect({ scenarioText, interpretation, planningPacket, rawComb
   }
   // Always keep a minimal app task structure even in AI-first mode.
   ensureMinimumRoleCoverage(plan, scenario, interpretation, planningPacket, uiStateForSelector);
+
+  ensureTravelTripPlanDensity(plan, scenario, interpretation, planningPacketRaw);
 
   // ── Per-type cap (after all injections) ────────────────────────────
   // Even after label-dedup, the selector + context/affordance injects can
@@ -4267,11 +5215,18 @@ async function runSelect({ scenarioText, interpretation, planningPacket, rawComb
     }
   }
 
+  const contractViolations = enforcePersonalTravelInterfaceContract(
+    plan,
+    planningPacketRaw,
+    scenario,
+    interpretation
+  );
+
   const { violations } = validatePlan(plan);
 
   return {
     plan,
-    planViolations: violations
+    planViolations: violations.concat(contractViolations)
   };
 }
 
@@ -4762,13 +5717,19 @@ async function _nominatimLatLon(query) {
 }
 
 function _osmStaticMapUrl(lat, lon, zoom) {
-  const z = Number.isFinite(zoom) ? zoom : 13;
-  return (
-    'https://staticmap.openstreetmap.de/staticmap.php?center=' +
-    encodeURIComponent(lat + ',' + lon) +
-    '&zoom=' + z +
-    '&size=520x208&maptype=mapnik'
+  const zIn = Number.isFinite(zoom) ? Math.floor(zoom) : 13;
+  const z = Math.min(19, Math.max(0, zIn));
+  const lonClamped = Math.max(-180, Math.min(180, lon));
+  const latClamped = Math.max(-85.05112878, Math.min(85.05112878, lat));
+  const n = Math.pow(2, z);
+  const x = Math.floor(n * ((lonClamped + 180) / 360));
+  const latRad = latClamped * Math.PI / 180;
+  const y = Math.floor(
+    (n * (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI)) / 2
   );
+  // Official OSM raster tiles (staticmap.openstreetmap.de is often unreachable).
+  // Light demo use per https://operations.osmfoundation.org/policies/tiles/
+  return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
 }
 
 function _fallbackMapLatLon(query) {
@@ -4781,10 +5742,36 @@ function _fallbackMapLatLon(query) {
   return { lat: 37.5665, lon: 126.9780 };
 }
 
+/** Non-empty raster URL suitable for hero/map thumbnails (allow same-origin assets). */
+function _hasUsableHeroImage(content) {
+  const c = content || {};
+  const a = String((c.imageUrl != null ? c.imageUrl : '') || (c.image != null ? c.image : '') || '').trim();
+  if (!a) return false;
+  if (/^https?:\/\//i.test(a)) return true;
+  if (/^\/(?!\/)/.test(a)) return true;
+  if (/^(app-icons|assets)\//i.test(a)) return true;
+  return false;
+}
+
+/** True if we should attach a fetched preview (MealDB / OSM): missing URL or obvious placeholder. */
+function _shouldAttachMapRaster(content) {
+  const c = content || {};
+  const raw = String((c.imageUrl != null ? c.imageUrl : '') || (c.image != null ? c.image : '') || '').trim();
+  if (!raw) return true;
+  if (/^\/(?!\/)/.test(raw) || /^(app-icons|assets)\//i.test(raw)) return false;
+  if (!/^https?:\/\//i.test(raw)) return true;
+  const u = raw.toLowerCase();
+  if (/placeholder|picsum|dummyimage|fakeimg|lorempixel|placekitten|via\.placeholder|fill\.murray|example\.com|gravatar\.com\/avatar\?/.test(u)) {
+    return true;
+  }
+  if (/^https?:\/\/[^/]+\/?(\?.*)?$/.test(raw)) return true;
+  return false;
+}
+
 /**
  * Runs server-side after runSelect + runContentBag.merge.
- * - Cooking: first reminder_card without image gets a TheMealDB thumbnail URL.
- * - Commute/travel/navigation/running: first map-eligible card without image gets OSM static map.
+ * - Cooking: first eligible card (reminder_card, widget-small) without a real hero image gets a TheMealDB thumbnail.
+ * - Commute/travel/navigation/running: first map-eligible card gets `GENUI_DUMMY_MAP_PREVIEW_URL` by default (bundled PNG); set `PIPELINE_MAP_DUMMY=off` for live OSM tiles.
  */
 async function finalizeAssistantPlanPostProcess(scenarioText, planningPacket, plan) {
   if (!plan || !Array.isArray(plan.requiredComponents)) return;
@@ -4797,50 +5784,57 @@ async function finalizeAssistantPlanPostProcess(scenarioText, planningPacket, pl
   const dom = classifyScenarioDomains(scenarioText || '', interpStub);
   const mapBlob = `${scenarioText || ''}\n${goal}\n${dom.blob}`;
 
+  const mapMotion =
+    /\b(driv(?:e|ing)|commute|maps?|map\b|traffic|navigation|navigator|routes?|gps|directions|\beta\b|flight|airport|transit|itinerary|destination|layover|sightseeing|tour|hotel)\b/i.test(mapBlob) ||
+    /(내비|지도|교통|항공|공항|여행|관광|호텔|숙소|환승|출국|입국|탑승)/i.test(mapBlob);
+  const mapRunHike =
+    /\b(running|runner|run\b|jog|jogging|marathon|5k|10k|5\s*k\b|10\s*k\b|half\s*marathon|ultra|trail|trails|hike|hiking|trek|walk(?:ing)?|nordic\s*walk|cycling|cyclist|bicycle|bike\b|spin|workout|lap|laps|splits?\b|pace|strava|orienteering|gps\s*watch|gps\s*track|course\b|track\b|parkrun)\b/i.test(mapBlob) ||
+    /(달리기|조깅|러닝|마라톤|등산|트레일|하이킹|산책|자전거|싸이클|운동|트랙|랩|페이스|코스|공원\s*런)/i.test(mapBlob);
+  const mapContext = dom.travel || mapMotion || mapRunHike ||
+    (dom.workout && /(러닝|달리기|조깅|트레일|트랙|야외|공원\s*런|running|jog|trail|gps|route|5k|10k|marathon)/i.test(mapBlob));
+
   if (dom.cooking && !dom.travel) {
     const q = _mealDbSearchQueryFromScenario(scenarioText, plan);
     const url = await _mealDbThumbForQuery(q);
     // Only attach food thumbnails from TheMealDB — generic placeholders like picsum
     // seeds produced unrelated wildlife/scenery photos ("deer on cooking screen").
-    if (!url) return;
-
-    const row = plan.requiredComponents.find(rc => {
-      if (rc.componentType !== 'reminder_card') return false;
-      const img = String((rc.content && (rc.content.imageUrl || rc.content.image)) || '').trim();
-      return !img;
-    });
-    if (row) {
-      row.content = row.content || {};
-      row.content.imageUrl = url;
+    if (url) {
+      const COOK_ATTACH_TYPES = ['reminder_card', 'widget-small'];
+      let row = null;
+      for (let ci = 0; ci < COOK_ATTACH_TYPES.length; ci++) {
+        const wantT = COOK_ATTACH_TYPES[ci];
+        row = plan.requiredComponents.find(rc => rc.componentType === wantT && _shouldAttachMapRaster(rc.content));
+        if (row) break;
+      }
+      if (row) {
+        row.content = row.content || {};
+        row.content.imageUrl = url;
+      }
     }
-    return;
   }
 
-  const mapMotion =
-    /\b(driv(?:e|ing)|commute|maps?|traffic|navigation|navigator|routes?|gps|directions|\beta\b|flight|airport|transit|itinerary|destination|layover|sightseeing|tour|hotel)\b/i.test(mapBlob) ||
-    /(내비|지도|교통|항공|공항|여행|관광|호텔|숙소|환승|출국|입국|탑승)/i.test(mapBlob);
-  const mapRunHike =
-    /\b(running|runner|run\b|jog|jogging|marathon|5k|10k|5\s*k\b|10\s*k\b|half\s*marathon|ultra|trail|trails|hike|hiking|trek|walk(?:ing)?|nordic\s*walk|cycling|cyclist|bicycle|bike\b|spin|workout|lap|laps|splits?\b|pace|strava|orienteering|gps\s*watch|gps\s*track|course\b|track\b|parkrun)\b/i.test(mapBlob) ||
-    /(달리기|조깅|러닝|마라톤|등산|트레일|하이킹|산책|자전거|싸이클|운동|트랙|랩|페이스|코스|공원\s*런)/i.test(mapBlob);
-  const mapWant =
-    !dom.cooking &&
-    (dom.travel || mapMotion || mapRunHike);
-  if (!mapWant) return;
+  if (!mapContext) return;
 
-  const query =
-    _inferMapQueryFromPlan(plan, scenarioText) ||
-    (mapRunHike ? 'Olympic Park running trail Seoul' : '');
-  const queryForGeo = String(query || '').trim() ||
-    String(scenarioText || '').trim().slice(0, 160) ||
-    (mapRunHike ? 'city park running' : 'city center');
-  const ll =
-    (await _nominatimLatLon(queryForGeo)) ||
-    _fallbackMapLatLon(queryForGeo + ' ' + (scenarioText || ''));
-  const mapUrl = _osmStaticMapUrl(ll.lat, ll.lon, mapRunHike ? 14 : 13);
+  let mapUrl;
+  if (USE_DUMMY_MAP_PREVIEW) {
+    mapUrl = GENUI_DUMMY_MAP_PREVIEW_URL;
+  } else {
+    const query =
+      _inferMapQueryFromPlan(plan, scenarioText) ||
+      (mapRunHike ? 'Olympic Park running trail Seoul' : '');
+    const queryForGeo = String(query || '').trim() ||
+      String(scenarioText || '').trim().slice(0, 160) ||
+      (mapRunHike ? 'city park running' : 'city center');
+    const ll =
+      (await _nominatimLatLon(queryForGeo)) ||
+      _fallbackMapLatLon(queryForGeo + ' ' + (scenarioText || ''));
+    mapUrl = _osmStaticMapUrl(ll.lat, ll.lon, mapRunHike ? 14 : 13);
+  }
 
   const MAP_ATTACH_TYPES = [
     'eta_card',
     'navigation_turn_card',
+    'calendar_summary_card',
     'reminder_card',
     'widget-small',
     'input_summary_card',
@@ -4849,12 +5843,30 @@ async function finalizeAssistantPlanPostProcess(scenarioText, planningPacket, pl
   let mapTarget = null;
   for (let ti = 0; ti < MAP_ATTACH_TYPES.length; ti++) {
     const wantT = MAP_ATTACH_TYPES[ti];
-    mapTarget = plan.requiredComponents.find(rc => {
-      if (rc.componentType !== wantT) return false;
-      const img = String((rc.content && (rc.content.imageUrl || rc.content.image)) || '').trim();
-      return !img;
-    });
+    mapTarget = plan.requiredComponents.find(rc => rc.componentType === wantT && _shouldAttachMapRaster(rc.content));
     if (mapTarget) break;
+  }
+  if (!mapTarget && mapContext) {
+    const cityHint = tripLabelFromScenario(scenarioText);
+    plan.requiredComponents.push({
+      slot:          'map_preview_auto',
+      componentType: 'eta_card',
+      variantHint:   'default',
+      priority:      1,
+      role:          'subject',
+      content:       {
+        label: cityHint ? `Map · ${cityHint}` : (mapRunHike ? 'Run · Route map' : 'Map · Preview'),
+        value: cityHint
+          ? `Route and places near ${cityHint} — preview above; open full map for navigation.`
+          : (mapRunHike
+            ? 'GPS track, distance, and pace along your route — map preview above.'
+            : 'Directions and area context — map preview above.'),
+        icon: null
+      },
+      constraints:   [],
+      _source:       'map-preview-fallback'
+    });
+    mapTarget = plan.requiredComponents[plan.requiredComponents.length - 1];
   }
   if (mapTarget) {
     mapTarget.content = mapTarget.content || {};

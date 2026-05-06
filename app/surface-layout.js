@@ -1749,6 +1749,15 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         var cLocation = fv.location || '';
         var cDuration = fv.duration || '';
         var cSection  = fv.section  || '';
+        var calImgRaw = String(fv.imageUrl || '').trim();
+        var calImgEsc = calImgRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        var calMapHero = calImgEsc
+          ? '<div style="width:100%;height:clamp(100px,26vw,152px);border-radius:14px;overflow:hidden;margin:0 0 10px;flex-shrink:0;">' +
+            '<img src="' + calImgEsc + '" alt="" referrerpolicy="no-referrer"' +
+            ' style="width:100%;height:100%;object-fit:cover;display:block;background:rgba(255,255,255,0.06);"' +
+            ' loading="lazy" decoding="async"/>' +
+          '</div>'
+          : '';
         // Inline calendar glyph (24x24, fills container) — uses theme
         // accent color so a "vibrant" or "mono" theme recolors it.
         var calIcon = '<svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" style="display:block;">' +
@@ -1787,6 +1796,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           'padding:16px 20px;box-sizing:border-box;' +
           'display:flex;flex-direction:column;justify-content:flex-start;gap:7px;overflow:hidden;position:relative;">' +
           '<div style="position:relative;z-index:1;display:flex;flex-direction:column;justify-content:flex-start;gap:7px;min-height:0;">' +
+            calMapHero +
             headerRow +
             timeRow +
             '<div style="' + _T('body', { weight: 'semibold' }) + 'line-height:1.22;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;">' + cTitle + '</div>' +
