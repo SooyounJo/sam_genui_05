@@ -1228,12 +1228,27 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
   const A = window.GalaxyAtomics || {};
 
   switch (comp.role) {
-    case 'status-bar':
+    case 'status-bar': {
+      var sbv = (comp && comp.variant) || {};
+      var sbc = (comp && comp.content) || {};
+      var sbCarrier = sbv.carrier || sbc.carrier || sbc.title || sbc.label || 'K-Arts';
+      var sbBatt = sbv.battery != null ? +sbv.battery : 69;
+      if (!Number.isFinite(sbBatt)) sbBatt = 69;
+      var sbWifi = sbv.wifi != null ? +sbv.wifi : undefined;
+      var sbCell = sbv.cellular != null ? +sbv.cellular : undefined;
       return A.StatusBar
-        ? A.StatusBar({ theme: 'dark', battery: 69, carrier: 'K-Arts' })
+        ? A.StatusBar({
+          theme: sbv.theme || 'dark',
+          battery: sbBatt,
+          carrier: sbCarrier,
+          wifi: sbWifi,
+          cellular: sbCell,
+          batteryState: sbv.batteryState || sbv.batteryIcon
+        })
         : '<div style="height:100%;display:flex;align-items:center;justify-content:space-between;' +
             _T('caption', { color: 'statusBar' }) +
           '"><span>12:45</span><span>69%</span></div>';
+    }
 
     case 'list-top-bar': {
       // Figma "Top" 989:22761 + optional title line.
@@ -1392,10 +1407,21 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var thumbBg = 'linear-gradient(135deg,color-mix(in srgb,var(--accent-primary,#4A5568) 45%,var(--surface-bg,#2D3748)),color-mix(in srgb,var(--text-secondary,#2D3748) 40%,transparent))';
       var shareBg = _GDialogChromeCircle();
       var divider = 'color-mix(in srgb,var(--text-primary,#fff) 14%,transparent)';
+      var dshLogoRaw = (dshv.logoUrl || dshc.logoUrl || dshc.iconUrl || '').trim();
+      var dshLogoSrc = '';
+      if (dshLogoRaw && !/[\s"'<>]/.test(dshLogoRaw)) {
+        if (/^https?:\/\//i.test(dshLogoRaw)) dshLogoSrc = dshLogoRaw;
+        else if (/^\/(?!\/)/.test(dshLogoRaw)) dshLogoSrc = dshLogoRaw;
+        else if (/^app-icons\//i.test(dshLogoRaw)) dshLogoSrc = dshLogoRaw;
+      }
+      var thumbInner = dshLogoSrc
+        ? '<img src="' + dshLogoSrc + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" />'
+        : '<span style="opacity:0.75;">\u25A3</span>';
+      var thumbBgFinal = dshLogoSrc ? 'var(--surface-2, rgba(255,255,255,0.06))' : thumbBg;
       return (
         '<div style="width:100%;height:100%;display:flex;flex-direction:column;gap:12px;padding:8px 8px 0;box-sizing:border-box;color:var(--text-primary,#fff);">' +
           '<div style="display:flex;align-items:center;gap:15px;">' +
-            '<div style="width:50px;height:50px;border-radius:10px;background:' + thumbBg + ';flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);font-size:18px;font-weight:700;border:var(--surface-border, 1px solid rgba(255,255,255,0.08));">\u25A3</div>' +
+            '<div style="width:50px;height:50px;border-radius:10px;background:' + thumbBgFinal + ';flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);font-size:18px;font-weight:700;border:var(--surface-border, 1px solid rgba(255,255,255,0.08));">' + thumbInner + '</div>' +
             '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;">' +
               '<div style="' + _T('title', { weight: 'semibold' }) + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1;">' + dshTitle + '</div>' +
               '<div style="' + _T('caption', { weight: 'regular', color: 'translucentLabel' }) + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1;">' + dshUrl + '</div>' +
@@ -1702,6 +1728,15 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var fbody  = fv.body || fv.description || '';
       var fsub   = fv.sub   || (fv.kind === 'hero' ? '' : 'Important content goes here');
       var faccent = fv.accent || 'var(--accent-primary,#0381FE)';
+      var fImgRaw = String(fv.imageUrl || '').trim();
+      var fImgEsc = fImgRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+      var fHeroMap = fImgEsc
+        ? '<div style="width:100%;height:clamp(100px,26vw,152px);border-radius:14px;overflow:hidden;margin:0 0 10px;flex-shrink:0;">' +
+          '<img src="' + fImgEsc + '" alt="" referrerpolicy="no-referrer"' +
+          ' style="width:100%;height:100%;object-fit:cover;display:block;background:rgba(255,255,255,0.06);"' +
+          ' loading="lazy" decoding="async"/>' +
+        '</div>'
+        : '';
 
       // Calendar variant — dedicated visual treatment so
       // calendar_summary_card doesn't render as a generic banner. Layout:
@@ -1733,7 +1768,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         if (cSection && cDuration) headerParts.push('<span style="opacity:0.5;">·</span>');
         if (cDuration) headerParts.push('<span>' + cDuration + '</span>');
         var headerRow = headerParts.length
-          ? '<div style="' + _T('micro', { color: 'translucentLabel' }) + 'display:flex;gap:' + _S('xs') + ';align-items:center;letter-spacing:0.4px;text-transform:uppercase;">' + headerParts.join('') + '</div>'
+          ? '<div style="' + _T('caption', { weight: 'semibold', color: 'translucentLabel' }) + 'display:flex;gap:' + _S('xs') + ';align-items:center;letter-spacing:0.35px;text-transform:uppercase;">' + headerParts.join('') + '</div>'
           : '';
         // Build time + cal-icon row
         var timeRow = '<div style="display:flex;align-items:center;gap:' + _S('md') + ';">' +
@@ -1747,11 +1782,11 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
               '<div style="' + _T('caption', { color: 'translucentLabel' }) + '">' + cLocation + '</div>' +
             '</div>'
           : '';
-        return '<div style="width:100%;min-height:120px;height:100%;border-radius:18px;' +
+        return '<div style="width:100%;min-height:120px;height:auto;border-radius:18px;' +
           _G('panel') +
           'padding:16px 20px;box-sizing:border-box;' +
-          'display:flex;flex-direction:column;justify-content:center;gap:7px;overflow:hidden;position:relative;">' +
-          '<div style="position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:7px;min-height:0;">' +
+          'display:flex;flex-direction:column;justify-content:flex-start;gap:7px;overflow:hidden;position:relative;">' +
+          '<div style="position:relative;z-index:1;display:flex;flex-direction:column;justify-content:flex-start;gap:7px;min-height:0;">' +
             headerRow +
             timeRow +
             '<div style="' + _T('body', { weight: 'semibold' }) + 'line-height:1.22;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;">' + cTitle + '</div>' +
@@ -1770,6 +1805,15 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         var iTopic   = fv.topic   || '';
         var iDetail  = fv.detail  || '';
         var iFacets  = Array.isArray(fv.facets) ? fv.facets : [];
+        var iImgRaw  = String(fv.imageUrl || '').trim();
+        var iImgEsc  = iImgRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        var iMapHero = iImgEsc
+          ? '<div style="width:100%;height:clamp(100px,26vw,152px);border-radius:14px;overflow:hidden;margin:0 0 10px;flex-shrink:0;">' +
+            '<img src="' + iImgEsc + '" alt="" referrerpolicy="no-referrer"' +
+            ' style="width:100%;height:100%;object-fit:cover;display:block;background:rgba(255,255,255,0.06);"' +
+            ' loading="lazy" decoding="async"/>' +
+          '</div>'
+          : '';
         // Form-input glyph (search bar with text-line)
         var formIcon = '<svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" style="display:block;">' +
           '<rect x="3" y="6" width="18" height="12" rx="3" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>' +
@@ -1797,14 +1841,15 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         // as a 2-line clamped paragraph. Keeps the info accessible even
         // if it can't fit as chips.
         var detailLine = iDetail || (hasLongFacet ? iFacets.join(' · ') : '');
-        return '<div style="width:100%;min-height:116px;height:100%;border-radius:18px;' +
+        return '<div style="width:100%;min-height:116px;height:auto;border-radius:18px;' +
           _G('panel') +
-          'padding:16px 20px;box-sizing:border-box;' +
-          'display:flex;flex-direction:column;justify-content:center;gap:7px;overflow:hidden;">' +
+          'padding:14px 16px;box-sizing:border-box;' +
+          'display:flex;flex-direction:column;justify-content:flex-start;gap:7px;overflow:hidden;">' +
+          iMapHero +
           // Header: form-icon + section
           '<div style="display:flex;align-items:center;gap:' + _S('md') + ';">' +
             '<div style="width:18px;height:18px;flex-shrink:0;opacity:0.85;">' + formIcon + '</div>' +
-            '<div style="' + _T('micro', { color: 'translucentLabel' }) + 'letter-spacing:0.4px;text-transform:uppercase;">' + iSection + '</div>' +
+            '<div style="' + _T('caption', { weight: 'semibold', color: 'translucentLabel' }) + 'letter-spacing:0.35px;text-transform:uppercase;">' + iSection + '</div>' +
           '</div>' +
           // Body: topic (large) — what the user input was about
           (iTopic
@@ -1827,6 +1872,23 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         var rTask    = fv.task    || 'Reminder';
         var rDue     = fv.due     || '';
         var rSection = fv.section || (fv.count ? fv.count + ' ITEMS' : 'TODAY');
+        var rDueLine = '';
+        if (rDue) {
+          var _d = String(rDue).trim();
+          if (/^today$/i.test(_d)) rDueLine = 'Today';
+          else if (/^due\s+today$/i.test(_d)) rDueLine = 'Today';
+          else if (/^due\s+/i.test(_d)) rDueLine = _d.replace(/^due\s+/i, '').trim();
+          else rDueLine = _d;
+        }
+        var rImgRaw  = String(fv.imageUrl || '').trim();
+        var rImgEsc  = rImgRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        var rHeroImg = rImgEsc
+          ? '<div style="width:100%;height:clamp(112px,28vw,160px);border-radius:14px;overflow:hidden;margin:0 0 10px;flex-shrink:0;">' +
+            '<img src="' + rImgEsc + '" alt="" referrerpolicy="no-referrer"' +
+            ' style="width:100%;height:100%;object-fit:cover;display:block;background:rgba(255,255,255,0.06);"' +
+            ' loading="lazy" decoding="async"/>' +
+          '</div>'
+          : '';
         // Hollow checkbox SVG — accent driven by theme var
         var checkBox = '<svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" style="display:block;">' +
           '<rect x="4" y="4" width="16" height="16" rx="4" stroke="var(--card-reminder-accent,#F59E0B)" stroke-width="1.8" fill="color-mix(in srgb, var(--card-reminder-accent,#F59E0B) 12%, transparent)"/>' +
@@ -1835,22 +1897,23 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           '<circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>' +
           '<path d="M12 7v5l3 2" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"/>' +
         '</svg>';
-        return '<div style="width:100%;min-height:104px;height:100%;border-radius:18px;' +
+        return '<div style="width:100%;min-height:104px;height:auto;border-radius:18px;' +
           _G('panel') +
-          'padding:16px 20px;box-sizing:border-box;' +
-          'display:flex;flex-direction:column;justify-content:center;gap:7px;overflow:hidden;">' +
+          'padding:14px 16px;box-sizing:border-box;' +
+          'display:flex;flex-direction:column;justify-content:flex-start;gap:7px;overflow:hidden;">' +
+          rHeroImg +
           // Header: checkbox + section
           '<div style="display:flex;align-items:center;gap:' + _S('md') + ';">' +
-            '<div style="width:18px;height:18px;flex-shrink:0;">' + checkBox + '</div>' +
-            '<div style="' + _T('micro', { color: 'translucentLabel' }) + 'letter-spacing:0.4px;text-transform:uppercase;">' + rSection + '</div>' +
+            '<div style="width:20px;height:20px;flex-shrink:0;">' + checkBox + '</div>' +
+            '<div style="' + _T('caption', { weight: 'semibold', color: 'translucentLabel' }) + 'letter-spacing:0.35px;text-transform:uppercase;">' + rSection + '</div>' +
           '</div>' +
-          // Task title
-          '<div style="font-size:min(var(--card-reminder-task-size,16px),15px);font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--text-primary,#fff);">' + rTask + '</div>' +
-          // Due time row
-          (rDue
+          // Task title — honor CSS var from hero scope; do not cap below readable body size
+          '<div style="font-size:var(--card-reminder-task-size,16px);font-weight:600;line-height:1.28;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--text-primary,#fff);">' + rTask + '</div>' +
+          // Due / time row (compact copy — avoid redundant “Due” when value is already “Today”)
+          (rDueLine
             ? '<div style="display:flex;align-items:center;gap:' + _S('xs') + ';">' +
-                '<div style="width:12px;height:12px;flex-shrink:0;">' + clockIcon + '</div>' +
-                '<div style="' + _T('caption', { color: 'translucentLabel' }) + '">Due ' + rDue + '</div>' +
+                '<div style="width:14px;height:14px;flex-shrink:0;opacity:0.88;">' + clockIcon + '</div>' +
+                '<div style="' + _T('caption', { weight: 'medium', color: 'translucentLabel' }) + '">' + rDueLine + '</div>' +
               '</div>'
             : '') +
         '</div>';
@@ -1862,6 +1925,15 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         var mSender  = fv.sender  || '';
         var mPreview = fv.preview || '(no preview)';
         var mSection = fv.section || 'MESSAGES';
+        var mImgRaw  = String(fv.imageUrl || '').trim();
+        var mImgEsc  = mImgRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        var mMapHero = mImgEsc
+          ? '<div style="width:100%;height:clamp(100px,26vw,148px);border-radius:14px;overflow:hidden;margin:0 0 10px;flex-shrink:0;">' +
+            '<img src="' + mImgEsc + '" alt="" referrerpolicy="no-referrer"' +
+            ' style="width:100%;height:100%;object-fit:cover;display:block;background:rgba(255,255,255,0.06);"' +
+            ' loading="lazy" decoding="async"/>' +
+          '</div>'
+          : '';
         // Avatar — colored circle with first letter of sender (or chat
         // bubble glyph when no sender)
         var avatarLetter = mSender ? mSender.charAt(0).toUpperCase() : '';
@@ -1870,12 +1942,13 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           : '<div style="width:min(var(--card-message-avatar-size,32px),28px);height:min(var(--card-message-avatar-size,32px),28px);border-radius:50%;background:var(--card-message-avatar-grad,linear-gradient(135deg,#34D399,#10B981));display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
               '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12a8 8 0 1 1-3.5-6.6L21 4l-1.4 3.5A8 8 0 0 1 21 12z" fill="#fff"/></svg>' +
             '</div>';
-        return '<div style="width:100%;min-height:104px;height:100%;border-radius:18px;' +
+        return '<div style="width:100%;min-height:104px;height:auto;border-radius:18px;' +
           _G('panel') +
-          'padding:16px 20px;box-sizing:border-box;' +
-          'display:flex;flex-direction:column;justify-content:center;gap:7px;overflow:hidden;">' +
+          'padding:14px 16px;box-sizing:border-box;' +
+          'display:flex;flex-direction:column;justify-content:flex-start;gap:7px;overflow:hidden;">' +
+          mMapHero +
           // Header
-          '<div style="' + _T('micro', { color: 'translucentLabel' }) + 'letter-spacing:0.4px;text-transform:uppercase;">' + mSection + '</div>' +
+          '<div style="' + _T('caption', { weight: 'semibold', color: 'translucentLabel' }) + 'letter-spacing:0.35px;text-transform:uppercase;">' + mSection + '</div>' +
           // Body: avatar + (sender + preview)
           '<div style="display:flex;align-items:flex-start;gap:10px;">' +
             avatar +
@@ -1896,6 +1969,15 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         var eDestination = fv.destination || '';
         var eTraffic     = fv.traffic     || '';
         var eRoute       = fv.route       || '';
+        var eImgRaw      = String(fv.imageUrl || '').trim();
+        var eImgEsc      = eImgRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        var eMapHero     = eImgEsc
+          ? '<div style="width:100%;height:clamp(100px,26vw,148px);border-radius:14px;overflow:hidden;margin-bottom:10px;flex-shrink:0;">' +
+            '<img src="' + eImgEsc + '" alt="" referrerpolicy="no-referrer"' +
+            ' style="width:100%;height:100%;object-fit:cover;display:block;background:rgba(255,255,255,0.06);"' +
+            ' loading="lazy" decoding="async"/>' +
+          '</div>'
+          : '';
         // Trafficaccent: green for light, amber for moderate, red for heavy
         var trafficColor = '#10B981';  // light (default)
         if (/heavy|severe/i.test(eTraffic)) trafficColor = '#EF4444';
@@ -1909,10 +1991,11 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           '<path d="M12 22s7-7.58 7-13a7 7 0 0 0-14 0c0 5.42 7 13 7 13z" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" fill="none"/>' +
           '<circle cx="12" cy="9" r="2.2" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>' +
         '</svg>';
-        return '<div style="width:100%;min-height:104px;height:100%;border-radius:18px;' +
+        return '<div style="width:100%;min-height:104px;height:auto;border-radius:18px;' +
           _G('panel') +
           'padding:16px 20px;box-sizing:border-box;' +
-          'display:flex;flex-direction:column;justify-content:center;gap:7px;overflow:hidden;">' +
+          'display:flex;flex-direction:column;justify-content:flex-start;gap:7px;overflow:hidden;">' +
+          eMapHero +
           // Top: car icon + huge ETA
           '<div style="display:flex;align-items:center;gap:' + _S('lg') + ';">' +
             '<div style="width:min(var(--card-eta-icon-size,32px),24px);height:min(var(--card-eta-icon-size,32px),24px);flex-shrink:0;">' + carIcon + '</div>' +
@@ -2048,12 +2131,12 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         }
         var wGlassSheen = (themeSurface === 'flat' || themeSurface === 'neon') ? '' : '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.18),transparent 42%,rgba(0,0,0,0.08));pointer-events:none;"></div>';
         var wInsetBorder = 'inset 0 0 0 1px ' + (themeSurface === 'neon' ? 'rgba(5,8,5,0.10)' : 'rgba(255,255,255,0.08)');
-        return '<div style="width:100%;min-height:160px;height:100%;border-radius:var(--card-radius,' + _R('widget') + ');' +
+        return '<div style="width:100%;min-height:160px;height:100%;border-radius:var(--card-radius,' + _R('dialog') + ');' +
           wBgStyle +
           'padding:20px 24px 18px;box-sizing:border-box;color:var(--text-primary,#fff);' +
           'display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;overflow:hidden;position:relative;font-family:var(--font);">' +
           wGlassSheen +
-          '<div style="position:absolute;inset:1px;border-radius:calc(var(--card-radius,' + _R('widget') + ') - 1px);box-shadow:' + wInsetBorder + ';pointer-events:none;"></div>' +
+          '<div style="position:absolute;inset:1px;border-radius:calc(var(--card-radius,' + _R('dialog') + ') - 1px);box-shadow:' + wInsetBorder + ';pointer-events:none;"></div>' +
           '<div style="position:relative;z-index:1;grid-column:1;grid-row:1;display:flex;flex-direction:column;align-items:flex-start;">' +
             '<div style="font-size:var(--card-weather-temp-size,32px);font-weight:var(--card-weather-temp-weight,700);line-height:0.95;letter-spacing:var(--card-weather-temp-letterspacing,-1px);color:var(--card-weather-temp-color,var(--text-primary,#fff));">' + wTemp + '</div>' +
             (wLocation ? '<div style="margin-top:7px;font-size:12px;font-weight:600;line-height:1;color:var(--text-secondary,rgba(255,255,255,0.86));display:flex;align-items:center;gap:4px;"><span style="font-size:11px;">⊙</span><span>' + wLocation + '</span></div>' : '') +
@@ -2087,6 +2170,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         return '<div style="width:100%;height:100%;border-radius:' + _R('widget') + ';' +
           _G('panel') +
           'padding:20px 22px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:10px;overflow:hidden;">' +
+          fHeroMap +
           '<div style="' + _T('large', { weight: 'bold' }) + 'line-height:1.2;">' + ftitle + '</div>' +
           (fbody ? '<div style="' + _T('label', { color: 'translucentLabel' }) +
             'line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">' + fbody + '</div>' : '') +
@@ -2097,6 +2181,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         return '<div style="width:100%;height:100%;border-radius:' + _R('widget') + ';' +
           _G('panel') +
           'padding:' + _S('lg') + ';box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;gap:' + _S('sm') + ';overflow:hidden;">' +
+          fHeroMap +
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
             '<div style="' + _T('micro', { color: 'translucentLabel' }) + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + ftitle + '</div>' +
             '<div style="width:8px;height:8px;border-radius:50%;background:' + faccent + ';flex-shrink:0;"></div>' +
@@ -2109,6 +2194,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       return '<div style="width:100%;height:100%;border-radius:' + _R('widget') + ';' +
         _G('panel') +
         'padding:' + _S('3xl') + ';box-sizing:border-box;">' +
+        fHeroMap +
         '<div style="' + _T('large', { weight: 'bold' }) + '">' + ftitle + '</div>' +
         (fsub ? '<div style="' + _T('label', { color: 'translucentLabel' }) + 'margin-top:' + _S('sm') + ';">' + fsub + '</div>' : '') +
       '</div>';
@@ -2172,7 +2258,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         : '';
 
       return '<div style="width:100%;height:100%;background:' + liBg +
-        ';border-radius:var(--card-radius,' + _R('widget') + ');' + liNeonChrome +
+        ';border-radius:var(--card-radius,' + _R('dialog') + ');' + liNeonChrome +
         'padding:15px 20px 15px 16px;box-sizing:border-box;' +
         'display:flex;align-items:center;gap:10px;overflow:hidden;font-family:var(--font);">' +
         iconHTML +
@@ -2239,6 +2325,31 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         return String(s == null ? '' : s)
           .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
       }
+      function _normalizePipelineActionIconKey(raw) {
+        if (raw == null || raw === '') return null;
+        var k = String(raw).trim().toLowerCase().replace(/\s+/g, '-');
+        var aliases = {
+          microphone: 'mic', mic: 'mic', voice: 'mic', bixby: 'mic', 'galaxy-ai': 'mic',
+          timer: 'clock', time: 'clock', alarm: 'clock', stopwatch: 'clock',
+          replay: 'repeat', redo: 'repeat', refresh: 'repeat',
+          'repeat-step': 'repeat',
+          'next-step': 'skip-forward', next: 'skip-forward', forward: 'skip-forward',
+          skip: 'skip-forward',
+          'chevron-right': 'skip-forward', 'arrow-right': 'skip-forward',
+          'share-alt': 'share', send: 'share',
+          'trash-alt': 'trash', delete: 'trash', remove: 'trash',
+          pencil: 'edit',
+          'music-note': 'play', podcast: 'play',
+          navigation: 'pin', map: 'pin', maps: 'pin', commute: 'pin',
+          eta: 'pin', route: 'pin',
+          message: 'comment', chat: 'comment', sms: 'comment', reply: 'comment',
+          read: 'book', ingredients: 'book', list: 'book', cookbook: 'book',
+          run: 'pin', runner: 'pin', jogging: 'pin', hike: 'pin', hiking: 'pin',
+          trail: 'pin', 'checkmark': 'check', tick: 'check',
+          help: 'search', info: 'search'
+        };
+        return aliases[k] || k;
+      }
       // Inline glyph set for action chips. Compact 16×16 icons — currentColor.
       var ACTION_ICONS = {
         bookmark:    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 4v17l6-4 6 4V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
@@ -2260,11 +2371,38 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         search:      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
         clock:       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
         swap:        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 16V4M7 4l-3 3M7 4l3 3M17 8v12M17 20l3-3M17 20l-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-        scale:       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M8 7h8M8 17h8M6 21h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+        scale:       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M8 7h8M8 17h8M6 21h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+        mic:         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3z" stroke="currentColor" stroke-width="1.8"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 18v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+        repeat:      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17 3v6h6M7 21v-6H1M21 12a9 9 0 0 0-15.54-6.36M3 12a9 9 0 0 0 15.54 6.36" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        book:        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 5a2 2 0 0 1 2-2h4v16H6a2 2 0 0 1-2-2V5zM14 3h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4V3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+        pin:         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-6.2-6-11a6 6 0 1 1 12 0c0 4.8-6 11-6 11z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.2" fill="currentColor"/></svg>'
       };
-      function _renderActionIcon(name) {
-        return name && ACTION_ICONS[name]
-          ? '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex-shrink:0;">' + ACTION_ICONS[name] + '</span>'
+      function _actionIconRasterSrc(raw) {
+        if (raw == null || raw === '') return '';
+        var s = String(raw).trim();
+        if (!s) return '';
+        if (/[\s"'<>]/.test(s)) return '';
+        if (/^https?:\/\//i.test(s)) return s;
+        if (/^app-icons\//i.test(s)) return s;
+        if (/^assets\//i.test(s)) return s;
+        if (/^\/(?!\/)/.test(s)) return s;
+        return '';
+      }
+      function _renderActionIcon(rawIcon, act) {
+        var urlish =
+          _actionIconRasterSrc(rawIcon) ||
+          _actionIconRasterSrc(act && act.iconUrl) ||
+          _actionIconRasterSrc(act && act.imageUrl);
+        if (urlish) {
+          var esc = urlish.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+          return '<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex-shrink:0;overflow:hidden;border-radius:6px;background:rgba(255,255,255,0.06);">' +
+            '<img src="' + esc + '" alt="" referrerpolicy="no-referrer" loading="lazy" decoding="async" ' +
+            'style="width:100%;height:100%;object-fit:cover;display:block;"/>' +
+            '</span>';
+        }
+        var key = _normalizePipelineActionIconKey(rawIcon);
+        return key && ACTION_ICONS[key]
+          ? '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex-shrink:0;color:inherit;">' + ACTION_ICONS[key] + '</span>'
           : '';
       }
       var actionRowSkin = _themeSurfaceStyleRoot();
@@ -2278,16 +2416,20 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         var chipPadH = _S('xl');
         var chipRad = 'var(--card-radius,' + _R('pill') + ')';
         var rowPad = _S('base');
+        var maxRows = parseInt(av.maxRows || ac.maxRows || 0, 10);
+        if (!Number.isFinite(maxRows) || maxRows < 1) maxRows = 0;
         var chips = [];
         for (var ai = 0; ai < actions.length; ai++) {
           var act = actions[ai] || {};
           var albl = _escActionLbl(act.label || act.name || '');
           if (!albl) continue;
           var isPrimary = act.kind === 'primary' || (ai === 0 && act.kind !== 'secondary');
-          var iconPart = _renderActionIcon(act.icon);
+          var iconPart = _renderActionIcon(act.icon, act);
           var chipBase = 'display:inline-flex;align-items:center;justify-content:center;gap:' + _S('sm') + ';' +
             'min-height:44px;padding:0 ' + chipPadH + ';border-radius:' + chipRad + ';box-sizing:border-box;' +
-            'font-family:var(--font);border:none;cursor:default;' +
+            'font-family:inherit;font-size:inherit;line-height:inherit;' +
+            'border:none;cursor:pointer;-webkit-appearance:none;appearance:none;' +
+            '-webkit-tap-highlight-color:transparent;' +
             _T('label', { weight: 'medium' });
           var chipStyle = chipBase;
           if (isPrimary) {
@@ -2301,18 +2443,24 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
               'color:var(--text-primary,#fff);border:var(--surface-border, 1px solid rgba(255,255,255,0.12));';
           }
           chips.push(
-            '<span role="presentation" style="' + chipStyle + '">' +
+            '<button type="button" data-action-chip="1" onclick="event.stopPropagation();" ' +
+              'style="' + chipStyle + '">' +
               iconPart +
               '<span style="white-space:nowrap;line-height:1;">' + albl + '</span>' +
-            '</span>'
+            '</button>'
           );
         }
         if (!chips.length) {
           return '<div style="width:100%;height:100%;"></div>';
         }
+        var rowClampStyle = '';
+        if (maxRows > 0) {
+          // 44px chip height + ~8px row gap + row padding => ~56px per row.
+          rowClampStyle = 'max-height:' + (maxRows * 56 + 12) + 'px;';
+        }
         return '<div style="width:100%;max-width:100%;box-sizing:border-box;display:flex;flex-wrap:wrap;' +
           'align-items:center;gap:' + chipGap + ';padding:' + rowPad + ';' + _G('panel') +
-          'border-radius:var(--card-radius,' + _R('widget') + ');overflow:hidden;">' +
+          'border-radius:var(--card-radius,' + _R('dialog') + ');overflow:hidden;' + rowClampStyle + '">' +
           chips.join('') +
         '</div>';
       }
@@ -2354,7 +2502,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var studioBarBorder = actionRowNeon ? '1px solid rgba(5,8,5,0.12)' : 'none';
       var studioTileBg = actionRowNeon ? 'rgba(5,8,5,0.10)' : '#e6e6e6';
       return '<div style="width:100%;max-width:100%;min-height:0;display:flex;flex-direction:column;align-items:center;padding:24px;gap:20px;box-sizing:border-box;' + _G('panel') +
-        'border-radius:var(--card-radius,28px);color:var(--text-primary,#fff);font-family:var(--font);overflow:hidden;">' +
+        'border-radius:var(--card-radius,' + _R('dialog') + ');color:var(--text-primary,#fff);font-family:var(--font);overflow:hidden;">' +
         '<div style="width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;">' +
           shortcut('video', 'Videos') + shortcut('heart', 'Favorites') + shortcut('clock', 'Recent') + shortcut('pin', 'Locations') +
         '</div>' +
@@ -2482,7 +2630,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         '</div>';
       }).join('');
 
-      return '<div style="width:100%;height:100%;border-radius:var(--card-radius,' + _R('widget') + ');' +
+      return '<div style="width:100%;height:100%;border-radius:var(--card-radius,' + _R('dialog') + ');' +
         _G('widgetPill') +
         'display:flex;align-items:stretch;padding:6px 4px;box-sizing:border-box;">' +
         tabsHTML +
@@ -2574,7 +2722,10 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
             '</div>' +
           '</div>';
         }).join('');
-        return '<div style="width:100%;min-height:92px;height:100%;display:flex;align-items:center;justify-content:space-around;gap:12px;padding:18px 20px;box-sizing:border-box;border-radius:var(--card-radius,' + _R('widget') + ');' +
+        // Pipeline content flow: NEVER height:100% here — flex parent + huge
+        // primary-task min-height stretched this QS-strip to the full viewport,
+        // visually colliding with buttons below (#toggle-chip overlap bug).
+        return '<div style="width:100%;min-height:92px;height:auto;max-height:140px;display:flex;align-items:center;justify-content:space-around;gap:12px;padding:18px 20px;box-sizing:border-box;border-radius:var(--card-radius,' + _R('dialog') + ');' +
           _G('panel') +
           'overflow:hidden;position:relative;">' +
           '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.10),transparent 58%,rgba(0,0,0,0.08));pointer-events:none;opacity:var(--qs-row-sheen-opacity, 1);"></div>' +
@@ -2732,7 +2883,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
 
       return '<div style="width:100%;height:100%;' +
         _G('panel') +
-        'border:var(--surface-border, 1px solid rgba(255,255,255,0.2));border-radius:var(--card-radius,' + _R('widget') + ');' +
+        'border:var(--surface-border, 1px solid rgba(255,255,255,0.2));border-radius:var(--card-radius,' + _R('dialog') + ');' +
         'padding:24px 25px;box-sizing:border-box;' +
         'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;' +
         'position:relative;overflow:hidden;">' +
@@ -2853,6 +3004,15 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         var navInstr = nbv.instruction || 'Continue';
         var navEta   = nbv.eta         || '';
         var dir      = nbv.direction   || 'straight';
+        var navImgRaw = String(nbv.imageUrl || '').trim();
+        var navImgEsc = navImgRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        var navMapHero = navImgEsc
+          ? '<div style="width:100%;height:clamp(92px,24vw,140px);border-radius:14px;overflow:hidden;margin:0;flex-shrink:0;">' +
+            '<img src="' + navImgEsc + '" alt="" referrerpolicy="no-referrer"' +
+            ' style="width:100%;height:100%;object-fit:cover;display:block;background:rgba(255,255,255,0.06);"' +
+            ' loading="lazy" decoding="async"/>' +
+            '</div>'
+          : '';
         // Direction-aware arrow glyphs
         var ARROW = {
           left:    '<svg width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="var(--card-nav-accent,#14B8A6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2867,7 +3027,8 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         var navPillShell = nbSkin === 'neon'
           ? 'background:#ffffff;border:var(--surface-border);box-shadow:var(--surface-shadow);-webkit-backdrop-filter:none;backdrop-filter:none;'
           : _G('widgetPill');
-        return '<div style="width:100%;' + common + navPillShell + 'gap:10px;">' +
+        var navRow =
+          '<div style="width:100%;' + common + navPillShell + 'gap:10px;">' +
           '<div style="width:40px;height:40px;border-radius:20px;background:var(--card-nav-arrow-bg,rgba(20,184,166,0.25));display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:8px;">' +
             arrow +
           '</div>' +
@@ -2880,6 +3041,11 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           (navEta
             ? '<div style="font-size:8.5px;font-weight:500;color:var(--text-secondary,rgba(255,255,255,0.7));flex-shrink:0;padding-left:5px;border-left:1px solid color-mix(in srgb, var(--text-primary,#fff) 18%, transparent);">' + navEta + '</div>'
             : '') +
+        '</div>';
+        if (!navMapHero) return navRow;
+        return '<div style="width:100%;display:flex;flex-direction:column;align-items:stretch;gap:8px;">' +
+          navMapHero +
+          navRow +
         '</div>';
       }
 
@@ -3032,18 +3198,23 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var tIcon  = nbv.icon  || 'stopwatch';
       var showPause = nbv.showPause !== false;
       var iconBg = nbv.iconBg !== false;
-      var isLive = nbv.live === true;
+      var isLive = nbv.live !== false;
       var TIMER_ICONS = {
         'stopwatch':'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="14" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M12 11v3l2 1.5M10 3h4M14 5l1.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
         'timer':    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
       };
       var timerSvg = TIMER_ICONS[tIcon] || TIMER_ICONS['stopwatch'];
       var liveAttrs = isLive ? ' data-live-timer="1" data-start="' + Date.now() + '"' : '';
-      return '<div style="width:100%;' + common + _G('widgetPill') + '">' +
+      var pauseBtn = showPause
+        ? '<button type="button" data-timer-pause="1" onclick="event.stopPropagation();" aria-label="Pause or resume timer" ' +
+          'style="flex-shrink:0;background:none;border:none;padding:4px;margin:-4px -4px -4px 0;cursor:pointer;color:var(--text-primary,#fff);display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;">' +
+          '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="7" y="5" width="3.5" height="14" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" fill="currentColor"/></svg></button>'
+        : '';
+      return '<div data-now-bar-shell="1" style="width:100%;' + common + _G('widgetPill') + '">' +
         '<div style="width:40px;height:40px;border-radius:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);' +
           (iconBg ? 'background:#5b53c8;' : '') + '">' + timerSvg + '</div>' +
-        '<div style="flex:1;min-width:0;"><div' + liveAttrs + ' style="font-size:26px;font-weight:600;line-height:18px;color:var(--text-primary,#fff);letter-spacing:-0.2px;white-space:nowrap;font-family:Inter,system-ui,sans-serif;">' + tLabel + '</div></div>' +
-        (showPause ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:var(--text-primary,#fff);"><rect x="7" y="5" width="3.5" height="14" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" fill="currentColor"/></svg>' : '') +
+        '<div style="flex:1;min-width:0;padding-right:12px;box-sizing:border-box;"><div' + liveAttrs + ' style="font-size:26px;font-weight:600;line-height:1.05;color:var(--text-primary,#fff);letter-spacing:-0.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:Inter,system-ui,sans-serif;">' + tLabel + '</div></div>' +
+        pauseBtn +
       '</div>';
     }
 
@@ -3062,7 +3233,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var mhv = (comp && comp.variant) || {};
       var mhTitle = mhv.title || 'No Media Playing';
       var mhOutput = mhv.output || 'Media Output';
-      return '<div style="width:100%;height:100%;min-width:199px;' +
+      return '<div style="width:100%;height:auto;min-height:163px;max-height:none;min-width:199px;aspect-ratio:199 / 163;max-width:100%;' +
         _G('panel') +
         'border-radius:36px;padding:14px 29px;box-sizing:border-box;' +
         'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
@@ -3099,7 +3270,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var mTitle = mcv.title  || 'Title';
       var mArtist = mcv.artist || 'Artist';
       var mService = mcv.service || 'Samsung Music';
-      return '<div style="width:100%;height:100%;border-radius:' + _R('dialog') + ';padding:14px 29px;box-sizing:border-box;color:#fff;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(135deg,#2A1A5E,#1A0A3E 60%,#3A1A6E);overflow:hidden;position:relative;">' +
+      return '<div style="width:100%;height:auto;min-height:232px;max-height:none;aspect-ratio:408 / 180;border-radius:' + _R('dialog') + ';padding:14px 29px;box-sizing:border-box;color:#fff;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(135deg,#2A1A5E,#1A0A3E 60%,#3A1A6E);overflow:hidden;position:relative;">' +
         // Service + output row
         '<div style="display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">' +
           '<div style="display:flex;align-items:center;gap:6px;font-size:12px;letter-spacing:0.24px;">' +
@@ -3490,7 +3661,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       );
       return '<div style="width:100%;height:100%;' +
         _G('panel') +
-        'border-radius:var(--card-radius,' + _R('widget') + ');' +
+        'border-radius:var(--card-radius,' + _R('dialog') + ');' +
         'padding:18px;box-sizing:border-box;' +
         'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;' +
         'overflow:hidden;">' +
@@ -3516,7 +3687,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var stShowSub = stv.showSubtitle !== false;
       var stIcon  = stv.icon || 'add';
       var stOn    = stv.on === true;
-      var glass   = _G('panel') + 'border-radius:var(--card-radius,' + _R('widget') + ');box-sizing:border-box;';
+      var glass   = _G('panel') + 'border-radius:var(--card-radius,' + _R('dialog') + ');box-sizing:border-box;';
 
       // Reusable 56-circle. Delegates to the `toggle-chip` atomic so the
       // full icon library (Wi-Fi / Mobile Data / Bluetooth / …) is picked
@@ -3636,7 +3807,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
 
       return '<div style="width:415px;height:88px;max-height:88px;' +
         _G('panel') +
-        'border-radius:var(--card-radius,' + _R('widget') + ');padding:24px 17px 24px 20px;gap:20px;box-sizing:border-box;' +
+        'border-radius:var(--card-radius,' + _R('dialog') + ');padding:24px 17px 24px 20px;gap:20px;box-sizing:border-box;' +
         'display:flex;align-items:center;overflow:hidden;color:var(--text-primary,#fff);font-family:var(--font);">' +
         // Left: icon + title/sub
         '<div style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;">' +
@@ -3748,7 +3919,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       }
 
       var iconsHTML = apps.slice(0, 5).map(dockIconHTML).join('');
-      return '<div style="width:100%;height:100%;border-radius:var(--card-radius,' + _R('widget') + ');' +
+      return '<div style="width:100%;height:100%;border-radius:var(--card-radius,' + _R('dialog') + ');' +
         _G('widgetPill') +
         'display:flex;align-items:center;justify-content:space-around;padding:0 12px;box-sizing:border-box;">' +
         iconsHTML +
@@ -3783,7 +3954,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         '</div>';
       }).join('');
 
-      return '<div style="width:100%;height:100%;border-radius:var(--card-radius,' + _R('widget') + ');' +
+      return '<div style="width:100%;height:100%;border-radius:var(--card-radius,' + _R('dialog') + ');' +
         _G('widgetPill') +
         'display:flex;align-items:center;justify-content:space-around;padding:0 14px;box-sizing:border-box;">' +
         actHTML +
@@ -3988,6 +4159,15 @@ window.refreshCanvasForTheme = function refreshCanvasForTheme() {
     // Pixel Figma-rules surfaces (dataset set only in rules-renderer) — vars on
     // #canvasFrame still update live; skip rebuild to preserve rules layout glue.
     if (canvas.dataset.rulesMode === '1') return;
+    // Path A pipeline screen — CSS vars on #canvasFrame apply immediately, but
+    // some atoms inlined colors/size at first paint; replay the saved bundle so
+    // the canvas picks up Neon/glass/mat tokens after theme picker changes.
+    if (canvas.dataset.pipelineFillViewport === '1'
+        && window.__lastPipelineRenderBundle
+        && typeof window.renderPipelineResponse === 'function') {
+      window.renderPipelineResponse(window.__lastPipelineRenderBundle);
+      return;
+    }
     var st =
       window.currentSurfaceType ||
       window.SURFACE_TYPES?.FIRST_DEPTH_LIST ||
@@ -4174,4 +4354,28 @@ window.enableExpandableAppBarSnap = function enableExpandableAppBarSnap(canvas, 
   }, true);
   document.addEventListener('pointerup', function () { _drag = null; }, true);
   document.addEventListener('pointercancel', function () { _drag = null; }, true);
+})();
+
+// --- Pipeline action-row chips: click feedback + custom event (no Cmd/Ctrl) ---
+(function () {
+  if (window._genuiPipelineActionChipBound) return;
+  window._genuiPipelineActionChipBound = true;
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest && e.target.closest('[data-action-chip]');
+    if (!btn || btn.disabled) return;
+    var canvas = document.getElementById('canvas');
+    if (!canvas || !canvas.contains(btn)) return;
+    var label = '';
+    var sp = btn.querySelector('span');
+    if (sp) label = (sp.textContent || '').trim();
+    btn.classList.remove('genui-action-chip-ack');
+    void btn.offsetWidth;
+    btn.classList.add('genui-action-chip-ack');
+    window.setTimeout(function () {
+      btn.classList.remove('genui-action-chip-ack');
+    }, 280);
+    try {
+      window.dispatchEvent(new CustomEvent('genui:action', { detail: { label: label } }));
+    } catch (err) { /* ignore */ }
+  }, true);
 })();

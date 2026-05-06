@@ -326,8 +326,8 @@ function normalizeSelectorOutput(input) {
   return {
     requiredComponents: (Array.isArray(raw.requiredComponents) ? raw.requiredComponents : []).map((item) => {
       const c       = camelizeKeysDeep(item) || {};
-      const content = c.content || {};
-      return {
+      const content = camelizeKeysDeep(c.content || {}) || {};
+      const row = {
         slot:          assertString(c.slot),
         componentType: assertString(c.componentType),
         variantHint:   assertString(c.variantHint),
@@ -337,13 +337,30 @@ function normalizeSelectorOutput(input) {
         // the field. The composer reads role to assemble task-coherent
         // groups instead of flat component piles.
         role:          assertEnum(c.role, allowed.componentRole, 'context'),
-        content: {
+        content:       {
           label: assertString(content.label),
           value: assertString(content.value),
           icon:  content.icon == null ? null : assertString(content.icon)
         },
         constraints: assertStringArray(c.constraints)
       };
+      // action_chip_row / composite buttons: planner may emit content.actions[]
+      // (preserved for Path B action-row atomic — was previously stripped here).
+      const actRaw = Array.isArray(content.actions) ? content.actions : [];
+      if (actRaw.length) {
+        const actions = [];
+        for (let i = 0; i < actRaw.length; i++) {
+          const a = camelizeKeysDeep(actRaw[i]) || {};
+          const lbl = assertString(a.label != null ? a.label : a.name);
+          if (!String(lbl).trim()) continue;
+          const entry = { label: lbl };
+          if (a.icon != null && String(assertString(a.icon)).trim()) entry.icon = assertString(a.icon);
+          if (a.kind != null && String(assertString(a.kind)).trim()) entry.kind = assertString(a.kind);
+          actions.push(entry);
+        }
+        if (actions.length) row.content.actions = actions;
+      }
+      return row;
     }),
     plannerNotes: {
       keptPrimaryTasks:       assertStringArray(plannerNotes.keptPrimaryTasks),

@@ -91,7 +91,7 @@
     "panel":     40,
     "container": 50,
     "circle":    63.636,
-    "_usage": "small=thumbnails, card=notifications, widget=lock widgets, pill=now-bar, dialog=media cards, panel=surface shells, container=QS tiles, circle=toggle buttons"
+    "_usage": "small=thumbnails, card=compact notification rows (14), widget=lock glance tiles (20), pill=floating bars (32), dialog=One UI squircle / in-app Gen cards & media shells (36), panel=device frame shells (40), container=QS tiles (50), circle=toggle hit targets"
   },
 
   "spacing": {

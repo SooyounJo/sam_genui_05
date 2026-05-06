@@ -195,10 +195,22 @@ function groupIntrinsicHeight(group, visibleChildren) {
     return Math.max.apply(null, heights);
   }
   if (group.container === 'grid') {
-    const cols = 2;
-    const rows = Math.ceil(visibleChildren.length / cols);
-    const rowMax = Math.max.apply(null, heights);
-    return rows * rowMax + Math.max(0, rows - 1) * gap;
+    let cols =
+      group.gridColumns != null && Number(group.gridColumns) >= 2
+        ? Math.min(6, Number(group.gridColumns))
+        : 2;
+    const n      = visibleChildren.length;
+    const rows   = Math.ceil(n / cols) || 1;
+    let totalH   = 0;
+    let rowStart = 0;
+    while (rowStart < n) {
+      const slice = heights.slice(rowStart, rowStart + cols);
+      const rowMax = slice.length ? Math.max.apply(null, slice) : 0;
+      totalH += rowMax;
+      rowStart += cols;
+      if (rowStart < n) totalH += gap;
+    }
+    return totalH;
   }
   // vertical-stack (default)
   return heights.reduce((a, b) => a + b, 0) + Math.max(0, visibleChildren.length - 1) * gap;

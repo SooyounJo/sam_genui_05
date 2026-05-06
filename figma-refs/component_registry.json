@@ -4637,7 +4637,11 @@
       "navigation_turn_card",
       "reminder_card",
       "quick_toggle_row",
-      "input_summary_card"
+      "input_summary_card",
+      "btn-contained",
+      "btn-outlined",
+      "btn-flat",
+      "chip"
     ],
     "allowed_types": [
       "btn-contained",

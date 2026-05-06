@@ -394,6 +394,8 @@ function setGroupPadding(v) {
 function clearCanvas() {
   const canvas = document.getElementById('canvas');
   canvas.innerHTML = '';
+  delete canvas.dataset.pipelineFillViewport;
+  canvas.style.minHeight = '';
   // Clean up any legacy canvasHint element lingering from prior builds.
   // The "Click a component or scenario to start" affordance was removed
   // per user feedback — the sidebar palette + top-bar already signal

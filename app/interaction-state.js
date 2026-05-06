@@ -274,6 +274,13 @@
       // chip, switch, radio onclicks) without selecting/deselecting.
       if (_isInteractEvent(e)) return;
 
+      var t = e.target;
+      if (t && t.closest && t.closest(
+        'button, a[href], input, textarea, select, label, [data-action-chip], [data-timer-pause]'
+      )) {
+        return;
+      }
+
       var id = hitTestNodeIdFromPoint(e.clientX, e.clientY);
       if (!id) {
         // Clicked empty canvas → deselect

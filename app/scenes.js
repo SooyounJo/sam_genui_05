@@ -723,6 +723,21 @@ const PIPELINE_BODY_ATOMIC_ROLE = {
   'navigation_turn_card':      'now-bar',
   // chip / toggle rows
   'action_chip_row':           'action-row',
+  // Registry action primitives → real One UI chips (not generic oui-card stubs)
+  'btn-contained':             'action-row',
+  'btn-outlined':              'action-row',
+  'btn-flat':                  'action-row',
+  'fab':                       'action-row',
+  'chip':                      'action-row',
+  'button.dark':               'action-row',
+  'button.light':              'action-row',
+  'button.accent':             'action-row',
+  'button.galaxy-ai':          'action-row',
+  'button.header-small':       'action-row',
+  'media-card':                'media-card',
+  'widget-small':              'focus-block',
+  'lock-screen.widget-activity': 'focus-block',
+  'lock-screen.widget-battery':  'focus-block',
   'quick_toggle_row':          'toggle-chip',
   // notifications
   'notification-card':         'notif-card',
@@ -750,7 +765,7 @@ function _inferNowBarVariant(child, content, uiState) {
     return { type: 'charging', percent: 69 };
   }
   if (/timer/.test(id) || /timer|workout/.test(slot) || tags.indexOf('now-bar:timer') >= 0 || tags.indexOf('workout') >= 0) {
-    return { type: 'timer', label: '00:05:39', icon: 'stopwatch' };
+    return { type: 'timer', label: '00:00:00', icon: 'stopwatch', live: true };
   }
   if (/media|player|playback/.test(id + ' ' + slot) || tags.indexOf('now-bar:media') >= 0 || tags.indexOf('media-playing') >= 0) {
     return {
@@ -811,7 +826,12 @@ function _parseNavVariant(content) {
   instruction = instruction.replace(/^[\s·•|]+|[\s·•|]+$/g, '').trim();
   if (!instruction) instruction = label.trim();
 
-  return { type: 'navigation', distance, eta, direction, instruction };
+  const imageUrl =
+    typeof c.imageUrl === 'string' ? c.imageUrl.trim()
+      : typeof c.image === 'string' ? c.image.trim()
+        : '';
+
+  return { type: 'navigation', distance, eta, direction, instruction, imageUrl };
 }
 
 // Parse input_summary_card content (form summaries — search query summary,
@@ -834,6 +854,11 @@ function _parseInputVariant(content) {
   const topicMatch = label.match(/[·•|]\s*(.+)$/);
   const topic = topicMatch ? topicMatch[1].trim() : '';
 
+  const imageUrl =
+    typeof c.imageUrl === 'string' ? c.imageUrl.trim()
+      : typeof c.image === 'string' ? c.image.trim()
+        : '';
+
   // Detail / facets — split value into chips if it has separators
   let detail = value;
   let facets = [];
@@ -842,7 +867,7 @@ function _parseInputVariant(content) {
     detail = '';
   }
 
-  return { kind: 'input', section, topic, detail, facets };
+  return { kind: 'input', section, topic, detail, facets, imageUrl };
 }
 
 // Parse reminder content: due time, task title, count, priority.
@@ -888,7 +913,11 @@ function _parseReminderVariant(content) {
   if (count) sectionParts.push(count + ' ITEM' + (count === '1' ? '' : 'S'));
   const section = sectionParts.join(' · ');
 
-  return { kind: 'reminder', task, due, count, section };
+  const imgUrl =
+    typeof c.imageUrl === 'string' ? c.imageUrl.trim()
+      : typeof c.image === 'string' ? c.image.trim()
+        : '';
+  return { kind: 'reminder', task, due, count, section, imageUrl: imgUrl };
 }
 
 // Parse message content: sender, preview, time, count.
@@ -934,7 +963,12 @@ function _parseMessageVariant(content) {
   if (time && time.toLowerCase() !== count) sectionParts.push(time.toUpperCase());
   const section = sectionParts.length ? 'MESSAGES · ' + sectionParts.join(' · ') : 'MESSAGES';
 
-  return { kind: 'message', sender, preview, count, time, section };
+  const imageUrl =
+    typeof c.imageUrl === 'string' ? c.imageUrl.trim()
+      : typeof c.image === 'string' ? c.image.trim()
+        : '';
+
+  return { kind: 'message', sender, preview, count, time, section, imageUrl };
 }
 
 // Parse ETA content: time, destination, traffic, route.
@@ -972,7 +1006,12 @@ function _parseEtaVariant(content) {
   const routeMatch = all.match(/\bvia\s+(.+?)$/i);
   const route = routeMatch ? routeMatch[0] : '';
 
-  return { kind: 'eta', eta, destination, traffic, route };
+  const imageUrl =
+    typeof c.imageUrl === 'string' ? c.imageUrl.trim()
+      : typeof c.image === 'string' ? c.image.trim()
+        : '';
+
+  return { kind: 'eta', eta, destination, traffic, route, imageUrl };
 }
 
 // Parse notification content: app name, time, body, glyph.
@@ -1180,20 +1219,50 @@ function _adaptForBodyAtomic(atomicRole, child, content, uiState) {
         comp.variant = _parseInputVariant(c);
         break;
       }
+      const img =
+        typeof c.imageUrl === 'string' ? c.imageUrl.trim()
+          : typeof c.image === 'string' ? c.image.trim()
+            : '';
       // For richer content (recipe step instructions) use kind='secondary'
       // so value renders as a body paragraph; for short content use the
       // default kind which renders title + sub.
       const hasBody = (c.value || '').length > 28;
-      comp.variant = hasBody
-        ? { kind: 'secondary', title: c.label || child.slot || child.componentId, body: c.value }
-        : { title: c.label || child.slot || child.componentId, sub: c.value || '' };
+      if (hasBody) {
+        comp.variant = Object.assign(
+          { kind: 'secondary', title: c.label || child.slot || child.componentId, body: c.value },
+          img ? { imageUrl: img } : {}
+        );
+      } else {
+        comp.variant = Object.assign(
+          { title: c.label || child.slot || child.componentId, sub: c.value || '' },
+          img ? { imageUrl: img } : {}
+        );
+      }
       break;
     }
     case 'now-bar': {
       comp.variant = _inferNowBarVariant(child, c, uiState);
       break;
     }
+    case 'media-card': {
+      comp.variant = {
+        title:   c.title  || c.label || '',
+        artist:  c.artist || c.value || '',
+        service: c.service || ''
+      };
+      break;
+    }
     case 'action-row': {
+      const _rasterActionIcon = (v) => {
+        if (v == null || v === '') return '';
+        const t = String(v).trim();
+        if (!t || /[\s"'<>]/.test(t)) return '';
+        if (/^https?:\/\//i.test(t)) return t;
+        if (/^app-icons\//i.test(t)) return t;
+        if (/^assets\//i.test(t)) return t;
+        if (/^\/(?!\/)/.test(t)) return t;
+        return '';
+      };
       // VERIFIED at surface-layout.js:1342 — atomic expects
       // variant.actions = [{label, icon?, kind?}, …] (objects, not strings).
       // We try BOTH label and value so the LLM can put a list in either.
@@ -1211,8 +1280,13 @@ function _adaptForBodyAtomic(atomicRole, child, content, uiState) {
         [/comment|reply|message/i, 'comment'],
         [/play|start/i,            'play'],
         [/pause|stop/i,            'pause'],
-        [/skip|next/i,             'skip-forward'],
+        [/repeat|replay|redo/i,    'repeat'],
+        [/next\s+step|^next\b|\bskip\b/i, 'skip-forward'],
         [/back|previous/i,         'skip-back'],
+        [/read\b|ingredients|recipe\s+list/i, 'book'],
+        [/route|directions|navigate|commute|\beta\b|map\b|trail|loop\b/i, 'pin'],
+        [/skip\s+song|next\s+track/i, 'skip-forward'],
+        [/lap\b|split\b|pace\b/i, 'clock'],
         [/add|plus|new/i,          'plus'],
         [/cancel|close|dismiss/i,  'x'],
         [/ok|confirm|done|accept/i,'check'],
@@ -1220,19 +1294,55 @@ function _adaptForBodyAtomic(atomicRole, child, content, uiState) {
         [/search|find/i,           'search'],
         [/timer|countdown/i,       'clock'],
         [/substitute|swap|replace/i, 'swap'],
-        [/scale|measure|weight|grams?\b/i, 'scale']
+        [/scale|measure|weight|grams?\b/i, 'scale'],
+        [/voice|bixby|dictat|hands-?free/i, 'mic']
       ];
       function _inferIcon(label) {
         for (const [re, ic] of ICON_KEYWORDS) if (re.test(label)) return ic;
         return null;
       }
+      const REGISTRY_BTN_KIND = {
+        'btn-contained': 'primary',
+        'btn-outlined': 'secondary',
+        'btn-flat': 'secondary',
+        'fab': 'primary',
+        'chip': 'secondary',
+        'button.dark': 'secondary',
+        'button.light': 'secondary',
+        'button.accent': 'primary',
+        'button.galaxy-ai': 'primary',
+        'button.header-small': 'secondary'
+      };
+      const cidBtn = child && child.componentId;
+      if (cidBtn && REGISTRY_BTN_KIND[cidBtn]) {
+        const lbl =
+          String(c.label || '').trim() ||
+          String(c.value || '').trim() ||
+          'Continue';
+        const ri =
+          _rasterActionIcon(c.icon) ||
+          _rasterActionIcon(c.iconUrl) ||
+          _rasterActionIcon(c.imageUrl);
+        comp.variant = {
+          actions: [{
+            label: lbl,
+            icon: ri || _inferIcon(lbl),
+            kind: REGISTRY_BTN_KIND[cidBtn]
+          }]
+        };
+        break;
+      }
       if (Array.isArray(c.actions) && c.actions.length) {
         comp.variant = {
           actions: c.actions.map((a, i) => {
             const lbl = String(a.label || a.name || '').trim();
+            const ri =
+              _rasterActionIcon(a.icon) ||
+              _rasterActionIcon(a.iconUrl) ||
+              _rasterActionIcon(a.imageUrl);
             return {
               label: lbl,
-              icon: a.icon || _inferIcon(lbl),
+              icon: ri || (a.icon != null && String(a.icon).trim() ? a.icon : null) || _inferIcon(lbl),
               kind: a.kind != null ? a.kind
                 : (i === 0 && !/cancel|dismiss|delete|remove/i.test(lbl) ? 'primary' : null)
             };
@@ -1240,8 +1350,19 @@ function _adaptForBodyAtomic(atomicRole, child, content, uiState) {
         };
         break;
       }
-      const labelSrc = c.label || c.value || '';
-      const labels = labelSrc.split(/\s*[,/|·•]\s*/).map(s => s.trim()).filter(Boolean);
+      let labelSrc = '';
+      const vRaw = String(c.value || '').trim();
+      const lRaw = String(c.label || '').trim();
+      const SEP = /\s*[,/|·•]\s*/;
+      const hasSep = (s) => SEP.test(s);
+      if (child && child.componentId === 'action_chip_row') {
+        if (hasSep(vRaw)) labelSrc = vRaw;
+        else if (hasSep(lRaw)) labelSrc = lRaw;
+        else labelSrc = lRaw || vRaw || '';
+      } else {
+        labelSrc = lRaw || vRaw || '';
+      }
+      const labels = labelSrc.split(SEP).map(s => s.trim()).filter(Boolean);
       comp.variant = {
         actions: labels.map((l, i) => ({
           label: l,
@@ -1343,11 +1464,15 @@ function _adaptForBodyAtomic(atomicRole, child, content, uiState) {
       break;
     }
     case 'dialog-site-header': {
+      const logoUrl =
+        c.logoUrl || c.iconUrl || c.faviconUrl || c.thumbnailUrl ||
+        c.imageUrl || c.heroUrl || '';
       comp.variant = {
         siteName: c.siteName || c.title || c.label || '',
         url: c.url || c.siteDesc || c.value || '',
         title: c.title,
-        siteDesc: c.siteDesc
+        siteDesc: c.siteDesc,
+        logoUrl
       };
       break;
     }
@@ -1400,6 +1525,8 @@ const APP_DOMAIN_PATTERNS = [
   // Ordered most-specific → most-generic so "cooking assistant" wins
   // before generic "cooking".
   [/cooking\s+assistant/i,                'Cooking Assistant'],
+  [/personalized\s+running\s+assistant|running\s+assistant/i, 'Running Assistant'],
+  [/personalized\s+flight\s+assistant|flight\s+assistant/i,   'Flight Assistant'],
   [/recipe(?:\s+book|\s+app)?/i,           'Recipes'],
   [/cooking|kitchen|chef/i,                'Cooking'],
   [/workout|fitness|exercise|training/i,   'Fitness'],
@@ -1489,13 +1616,28 @@ function _adaptForChromeAtomic(atomicRole, child, content, pageHint) {
     return '';
   }
   switch (atomicRole) {
-    case 'status-bar':
+    case 'status-bar': {
+      let batt = c.battery != null ? +c.battery : NaN;
+      if (!Number.isFinite(batt) && c.value != null) {
+        const vn = parseFloat(String(c.value).trim().replace(/%/g, ''));
+        if (Number.isFinite(vn) && vn >= 0 && vn <= 100) batt = vn;
+      }
+      if (!Number.isFinite(batt)) batt = 69;
+      const wf =
+        c.wifi != null ? +c.wifi
+        : c.wifiStrength != null ? +c.wifiStrength
+        : undefined;
+      const cell = c.cellular != null ? +c.cellular : undefined;
       comp.variant = {
-        theme:   'dark',
-        battery: 69,
-        carrier: c.label || 'K-Arts'
+        theme: c.theme || 'dark',
+        battery: batt,
+        carrier: c.carrier || c.label || 'K-Arts',
+        wifi: Number.isFinite(wf) ? wf : undefined,
+        cellular: Number.isFinite(cell) ? cell : undefined,
+        batteryState: c.batteryState || c.batteryIcon || undefined
       };
       break;
+    }
     case 'collapsed-app-bar':
     case 'selection-app-bar': {
       const title = _titleFallback();
@@ -1629,6 +1771,69 @@ function pipelineRenderChild(child, content, groupId, uiState, pageHint) {
   return wrapper;
 }
 
+/** Group glance cards that share a "today" style header next to each other. */
+function clusterTodayGlanceCardsFirst(children, resolveContent) {
+  if (!Array.isArray(children) || children.length < 2) return children;
+  var GLANCE_IDS = {
+    calendar_summary_card: true,
+    reminder_card: true,
+    message_summary_card: true,
+    weather_glance_card: true,
+    eta_card: true
+  };
+  var scored = children.map(function (ch, i) {
+    var c = resolveContent(ch) || {};
+    var text = String((c.label || '') + ' ' + (c.value || '')).toLowerCase();
+    var todayish = /\b(today|now|오늘)\b/i.test(text);
+    var id = ch.componentId || '';
+    var isGlance = !!GLANCE_IDS[id];
+    var bucket = (isGlance && todayish) ? 0 : isGlance ? 1 : 2;
+    return { ch: ch, i: i, bucket: bucket };
+  });
+  scored.sort(function (a, b) {
+    if (a.bucket !== b.bucket) return a.bucket - b.bucket;
+    return a.i - b.i;
+  });
+  return scored.map(function (s) { return s.ch; });
+}
+
+// Primary-task 2-column layouts: wider hero + narrower action rail (One UI recipe / step UIs).
+const _PIPELINE_HERO_ATOMIC = new Set(['focus-block', 'media-card', 'now-bar']);
+const _PIPELINE_ACTION_ATOMIC = new Set(['action-row', 'toggle-chip']);
+
+function _pipelineVisibleChildrenInOrder(children) {
+  return (children || []).filter(function (ch) {
+    return !ch.visibility || ch.visibility === 'visible';
+  });
+}
+
+function _pipelineHeroActionAsymPair(group, visibleOrdered, isAppShell) {
+  if (!isAppShell || !group || group.role !== 'primary-task' || visibleOrdered.length !== 2) return false;
+  const ch0 = visibleOrdered[0];
+  const ch1 = visibleOrdered[1];
+  const r0 = ch0.role || '';
+  const r1 = ch1.role || '';
+  if ((r0 === 'subject' && r1 === 'action') || (r0 === 'action' && r1 === 'subject')) return true;
+  const a0 = PIPELINE_BODY_ATOMIC_ROLE[ch0.componentId || ''];
+  const a1 = PIPELINE_BODY_ATOMIC_ROLE[ch1.componentId || ''];
+  return (
+    (_PIPELINE_HERO_ATOMIC.has(a0) && _PIPELINE_ACTION_ATOMIC.has(a1)) ||
+    (_PIPELINE_HERO_ATOMIC.has(a1) && _PIPELINE_ACTION_ATOMIC.has(a0))
+  );
+}
+
+function _pipelineChildIsSubjectColumn(ch, other) {
+  const r = ch.role || '';
+  if (r === 'subject') return true;
+  if (r === 'action') return false;
+  const ro = other.role || '';
+  if (ro === 'subject' && r !== 'action') return false;
+  if (ro === 'action' && r !== 'subject') return true;
+  const a = PIPELINE_BODY_ATOMIC_ROLE[ch.componentId || ''];
+  const ao = PIPELINE_BODY_ATOMIC_ROLE[other.componentId || ''];
+  return _PIPELINE_HERO_ATOMIC.has(a) && !_PIPELINE_HERO_ATOMIC.has(ao);
+}
+
 function renderPipelineResponse(resp) {
   const canvas = document.getElementById('canvas');
   const frame  = document.getElementById('canvasFrame');
@@ -1648,6 +1853,7 @@ function renderPipelineResponse(resp) {
   const _urgency = (resp.interpretation && resp.interpretation.context && resp.interpretation.context.urgency) || 'low';
   if (canvas) canvas.dataset.urgency = _urgency;
   if (frame)  frame.dataset.urgency  = _urgency;
+  if (canvas && uiState.baseSurface) canvas.dataset.baseSurface = uiState.baseSurface;
 
   // (1) Background from canonical uiState — Generator resolves 3-layer model
   //     (wallpaper / app-bg / focus-block) per One UI 4+ guidelines.
@@ -1676,14 +1882,9 @@ function renderPipelineResponse(resp) {
       } else if (decision.showWallpaper) {
         setWallpaper(userWallpaperChoice || 'wp-1', { system: true });
       } else {
-        // App / dialog / solid surface — clear the wallpaper image and
-        // paint the frame with a solid app-shell color. Keeps the device
-        // bezel + radius intact via the frame element; only the inner
-        // surface changes.
-        if (frame) {
-          frame.style.backgroundImage = 'none';
-          frame.style.backgroundColor = '#010102';  // app-shell dark, matches generator_memory.app.shellVariants.dark.background
-        }
+        // Keep user's wallpaper on generated app surfaces too. One UI depth
+        // comes from surface cards/scrims, not a forced black frame fill.
+        setWallpaper(userWallpaperChoice || 'wp-1', { system: true });
       }
     }
   }
@@ -1693,6 +1894,7 @@ function renderPipelineResponse(resp) {
   clearCanvas();
 
   if (layoutPlan.surfaceType && typeof window.generateSurfaceScenario === 'function') {
+    window.__lastPipelineRenderBundle = null;
     window.generateSurfaceScenario(layoutPlan.surfaceType);
     return;
   }
@@ -1719,9 +1921,84 @@ function renderPipelineResponse(resp) {
   canvas.style.display       = 'flex';
   canvas.style.flexDirection = 'column';
   canvas.style.alignItems    = 'stretch';
-  canvas.style.gap           = (layoutPlan.gap ?? 12) + 'px';
-  const pad = layoutPlan.padding || { top:16, right:16, bottom:16, left:16 };
-  canvas.style.padding = `${Math.max(pad.top, topReserve + 8)}px ${pad.right}px ${Math.max(pad.bottom, bottomReserve + 8)}px ${pad.left}px`;
+  const _isAppShell = uiState && uiState.baseSurface === 'app';
+  const wantsPipelineBottomSheet =
+    _isAppShell &&
+    (uiState.backgroundPolicy === 'dialog-surface' ||
+     uiState.overlayType === 'system-dialog');
+  // One UI phone body: ~20–24dp horizontal inset; composer often emits 0–14px → clamp up on app.
+  // App vertical step: honor composer layoutPlan.gap when sane (catalog/travel polish ≈16–18px);
+  // otherwise a calm default so stacks don’t jitter but stay breathable.
+  const APP_GAP_FALLBACK = 14;
+  const APP_GAP_MIN = 10;
+  const APP_GAP_MAX = 22;
+  let appGapPx = APP_GAP_FALLBACK;
+  if (_isAppShell) {
+    const gTry = layoutPlan.gap != null ? +layoutPlan.gap : NaN;
+    if (Number.isFinite(gTry) && gTry >= APP_GAP_MIN && gTry <= APP_GAP_MAX) {
+      appGapPx = Math.round(gTry);
+    }
+  }
+  if (canvas && _isAppShell) {
+    canvas.style.setProperty('--app-stack-gap', appGapPx + 'px');
+  }
+  const _defaultGap = _isAppShell ? appGapPx : 10;
+  const _defaultPadH = _isAppShell ? 22 : 14;
+  const _minPadHApp = 20;
+  canvas.style.gap = wantsPipelineBottomSheet
+    ? '0'
+    : ((_isAppShell ? appGapPx : (layoutPlan.gap != null ? layoutPlan.gap : _defaultGap)) + 'px');
+  const pad = layoutPlan.padding || {};
+  const padT = pad.top != null ? +pad.top : 14;
+  const padB = pad.bottom != null ? +pad.bottom : 14;
+  const padL = pad.left != null ? +pad.left : _defaultPadH;
+  const padR = pad.right != null ? +pad.right : _defaultPadH;
+  var padH = Math.max(Number.isFinite(padL) ? padL : _defaultPadH, Number.isFinite(padR) ? padR : _defaultPadH);
+  if (_isAppShell) padH = Math.max(_minPadHApp, padH);
+  canvas.style.boxSizing = 'border-box';
+  canvas.style.padding = `${Math.max(padT, topReserve + 4)}px ${padH}px ${Math.max(Number.isFinite(padB) ? padB : 14, bottomReserve + 4)}px ${padH}px`;
+
+  // Fill the phone frame vertically: sparse composer output (e.g. 2 short
+  // cards) used to hug the top leaving ~70% empty black space. Stretch the
+  // canvas column to the device's usable viewport and grow primary-task
+  // groups + a flexible hero tile so layouts read "full-screen" rather than a
+  // tiny stamp in the corner.
+  const viewportH = layout && layout.viewport ? layout.viewport.height : (canvas.clientHeight || 978);
+  const usableContentH = Math.max(360, viewportH - topReserve - bottomReserve - 24);
+  canvas.style.minHeight = usableContentH + 'px';
+  canvas.dataset.pipelineFillViewport = '1';
+
+  if (canvas) {
+    if (wantsPipelineBottomSheet) {
+      canvas.dataset.pipelineBottomSheet = '1';
+    } else {
+      delete canvas.dataset.pipelineBottomSheet;
+    }
+  }
+  let sheetMount = canvas;
+  if (canvas && wantsPipelineBottomSheet) {
+    const spacer = document.createElement('div');
+    spacer.className = 'pipeline-bottom-sheet-spacer';
+    spacer.style.cssText = 'flex:1 1 auto;min-height:48px;width:100%;pointer-events:none;';
+    canvas.appendChild(spacer);
+    const host = document.createElement('div');
+    host.className = 'pipeline-bottom-sheet-host';
+    host.setAttribute('role', 'presentation');
+    const handle = document.createElement('div');
+    handle.className = 'pipeline-bottom-sheet-handle';
+    handle.setAttribute('aria-hidden', 'true');
+    host.appendChild(handle);
+    const inner = document.createElement('div');
+    inner.className = 'pipeline-bottom-sheet-inner';
+    host.appendChild(inner);
+    canvas.appendChild(host);
+    sheetMount = inner;
+  }
+
+  const nonChromeGroups = (layoutPlan.groups || []).filter(function (g) {
+    return g && g.role !== 'chrome';
+  });
+  var nContentGroups = Math.max(1, nonChromeGroups.length);
 
   // Content lookup. Plan components are keyed by SLOT (unique) first,
   // and by componentType (may collide) as a fallback. Originally this
@@ -1810,7 +2087,13 @@ function renderPipelineResponse(resp) {
     const isChrome = group.role === 'chrome';
     window.DesignDoc.addNode({
       id:    el.id,
-      role:  child.role || el.dataset.atomicRole || child.componentId,
+      role:
+        el.dataset.atomicRole ||
+        child.role ||
+        child.componentRole ||
+        child.componentId,
+      paletteId: child.componentId || null,
+      semanticConcept: null,
       type:  child.componentId,
       zone:  isChrome
         ? (el.dataset.atomicRole === 'gesture-bar' || el.dataset.atomicRole === 'nav-buttons' ? 'bottomNav' : 'topSystem')
@@ -1906,16 +2189,70 @@ function renderPipelineResponse(resp) {
     // tighter gap) so subject + state + action feel like one task unit
     // instead of three independent cards. supporting groups recede.
     groupEl.dataset.groupRole = group.role || '';
+    groupEl.dataset.pipelineContainer = group.container || 'vertical-stack';
     if (group.purpose) groupEl.dataset.purpose = group.purpose;
     groupEl.style.display = 'flex';
     groupEl.style.flexDirection = (group.container === 'horizontal-stack') ? 'row'
                                 : (group.container === 'grid')             ? 'row'
                                 : 'column';
+    // Row layouts: on app shell, stretch the cross-axis so a shorter itinerary /
+    // glance tile grows to match a taller action column (travel, recipe hero + chips).
+    // Lock/home and non-app surfaces keep top-align so dense widget grids stay compact.
+    if (group.container === 'horizontal-stack') {
+      groupEl.style.alignItems = _isAppShell ? 'stretch' : 'flex-start';
+    } else if (_isAppShell && group.role === 'primary-task' && group.container === 'grid') {
+      groupEl.style.alignItems = 'stretch';
+    }
     if (group.container === 'grid') groupEl.style.flexWrap = 'wrap';
-    groupEl.style.gap = (group.gap ?? 8) + 'px';
+    groupEl.style.gap = (_isAppShell ? appGapPx : (group.gap != null ? group.gap : _defaultGap)) + 'px';
     groupEl.style.width = '100%';
+    if (group.role !== 'chrome') {
+      groupEl.style.boxSizing = 'border-box';
+      groupEl.style.flexShrink = '1';
+      // App shell: pack groups to intrinsic height so flexGrow doesn’t inflate
+      // empty vertical gutters between primary/supporting blocks (One UI rhythm).
+      if (_isAppShell) {
+        groupEl.style.flexGrow = '0';
+        groupEl.style.flexBasis = 'auto';
+        groupEl.style.flexShrink = '0';
+        groupEl.style.minHeight = '0';
+      } else if (group.role === 'primary-task') {
+        groupEl.style.flexGrow = nContentGroups > 1 ? '2' : '1';
+        groupEl.style.flexBasis = '0';
+        groupEl.style.minHeight =
+          nContentGroups === 1
+            ? '0'
+            : Math.max(120, Math.floor(usableContentH * 0.18)) + 'px';
+      } else if (group.role === 'supporting') {
+        groupEl.style.flexGrow = '1';
+        groupEl.style.flexBasis = '0';
+        groupEl.style.minHeight = '0';
+      } else if (group.role === 'tertiary' || group.role === 'meta') {
+        groupEl.style.flexGrow = '0';
+        groupEl.style.flexBasis = 'auto';
+      } else {
+        groupEl.style.flexGrow = '1';
+        groupEl.style.flexBasis = '0';
+      }
+    }
 
-    (group.children || []).forEach(child => {
+    let heroApplied = false;
+    var childrenToRender = group.children || [];
+    if (group.container !== 'horizontal-stack' && group.container !== 'grid') {
+      childrenToRender = clusterTodayGlanceCardsFirst(childrenToRender, _resolveChildContent);
+    }
+    const visibleOrdered = _pipelineVisibleChildrenInOrder(childrenToRender);
+    const visibleCountHS = visibleOrdered.length;
+    const asymHeroActionPair = _pipelineHeroActionAsymPair(group, visibleOrdered, _isAppShell);
+    const splitHorizPrimaryPair =
+      _isAppShell &&
+      group.role === 'primary-task' &&
+      group.container === 'horizontal-stack' &&
+      visibleCountHS === 2;
+    if (group.container === 'grid' && visibleOrdered.length === 4) {
+      groupEl.dataset.gridTileCount = '4';
+    }
+    childrenToRender.forEach(child => {
       if (child.visibility && child.visibility !== 'visible') return;
       const content = _resolveChildContent(child);
       const el = pipelineRenderChild(child, content, group.groupId, uiState, pageHint);
@@ -1935,15 +2272,102 @@ function renderPipelineResponse(resp) {
         // the row minus the gap.
         var cols = (group.gridColumns && +group.gridColumns >= 2) ? +group.gridColumns : 2;
         var pct = 100 / cols;
-        el.style.flex = '1 1 calc(' + pct + '% - 8px)';
+        var gg = _isAppShell ? appGapPx : (group.gap != null ? +group.gap : 10);
+        var gutter = cols > 1 ? (gg * (cols - 1)) / cols : 0;
+        if (asymHeroActionPair && cols === 2 && visibleOrdered.length === 2) {
+          var otherG = visibleOrdered[0] === child ? visibleOrdered[1] : (visibleOrdered[1] === child ? visibleOrdered[0] : null);
+          if (otherG) {
+            var pctCol = _pipelineChildIsSubjectColumn(child, otherG) ? 58 : 42;
+            el.style.flex = '0 1 calc(' + pctCol + '% - ' + gutter + 'px)';
+          } else {
+            el.style.flex = '0 1 calc(' + pct + '% - ' + gutter + 'px)';
+          }
+        } else {
+          // flex-grow: 0 keeps preset tiles at intrinsic height/width ratio —
+          // only shrink-wrap columns within calc(...) basis (no vertical stretching glue).
+          el.style.flex = '0 1 calc(' + pct + '% - ' + gutter + 'px)';
+        }
+      } else if (splitHorizPrimaryPair) {
+        var ggH = appGapPx;
+        var gutterH = ggH / 2;
+        if (asymHeroActionPair) {
+          var otherH = visibleOrdered[0] === child ? visibleOrdered[1] : (visibleOrdered[1] === child ? visibleOrdered[0] : null);
+          if (otherH) {
+            var pctH = _pipelineChildIsSubjectColumn(child, otherH) ? 58 : 42;
+            el.style.flex = '0 1 calc(' + pctH + '% - ' + gutterH + 'px)';
+          } else {
+            el.style.flex = '0 1 calc(50% - ' + gutterH + 'px)';
+          }
+        } else {
+          el.style.flex = '0 1 calc(50% - ' + gutterH + 'px)';
+        }
+        el.style.minWidth = '0';
+        el.style.maxWidth = '100%';
       } else if (group.container !== 'horizontal-stack') {
         el.style.width = '100%';
         el.style.alignSelf = 'stretch';
+      }
+      if (
+        group.role === 'primary-task' &&
+        group.container !== 'horizontal-stack' &&
+        group.container !== 'grid' &&
+        !heroApplied
+      ) {
+        const visOk = !(child.visibility === 'collapsed' || child.visibility === 'hidden');
+        const ar =
+          PIPELINE_BODY_ATOMIC_ROLE[child.componentId] ||
+          el.dataset.atomicRole ||
+          '';
+        const prRaw = child.priority != null ? +child.priority : 2;
+        const isCompactAtomic =
+          ar === 'now-bar' ||
+          child.componentId === 'media_control_bar' ||
+          ar === 'action-row' ||
+          ar === 'toggle-chip' ||
+          child.componentType === 'action_chip_row' ||
+          child.componentType === 'quick_toggle_row';
+        const wantHero =
+          visOk &&
+          !isCompactAtomic &&
+          (
+            prRaw <= 1 ||
+            child.role === 'subject' ||
+            (ar === 'media-card' && prRaw <= 2)
+          );
+        if (wantHero) {
+          // Do NOT flex-grow: filling all free space shoves siblings to ~0 height
+          // and focus-block inner `height:100%` + min-height:0 can paint over the
+          // next card. Extra vertical room is handled by .canvas-group-flex-spacer.
+          el.style.flex = '0 1 auto';
+          el.style.flexGrow = '0';
+          el.style.minHeight = '0';
+          heroApplied = true;
+        }
       }
       groupEl.appendChild(el);
       renderedIndex++;
       _registerNodeWithDesignDoc(child, el, group);
     });
+
+    if (
+      group.role === 'primary-task' &&
+      group.container !== 'horizontal-stack' &&
+      group.container !== 'grid' &&
+      !heroApplied
+    ) {
+      var heroCand = groupEl.querySelector(
+        '.canvas-item.body-atomic[data-atomic-role="focus-block"], .canvas-item.body-atomic[data-atomic-role="media-card"]'
+      );
+      if (heroCand) {
+        heroCand.dataset.priority = '1';
+        heroCand.style.flex = '0 1 auto';
+        heroCand.style.flexGrow = '0';
+        heroCand.style.minHeight = '0';
+      }
+    }
+
+    // Omit bottom flex-spacer — it amplified height fights with QS-style
+    // toggle rows (`height:auto` fixes) under dense pipelines.
 
     // One UI guideline: bottom navigation must always anchor to screen bottom
     if (groupEl.querySelector('.oui-bottomnav')) {
@@ -1951,7 +2375,7 @@ function renderPipelineResponse(resp) {
       groupEl.style.flexShrink = '0';
     }
 
-    if (groupEl.children.length > 0) canvas.appendChild(groupEl);
+    if (groupEl.children.length > 0) sheetMount.appendChild(groupEl);
   });
 
   // Refresh the Scene/Layers panel now that all nodes are registered.
@@ -1994,6 +2418,8 @@ function renderPipelineResponse(resp) {
     if (!r.summary)        _renderPipelineSummaryBlock(explanation, validation);
     if (!anyPanelRendered) output.scrollTop = 0;
   }
+
+  window.__lastPipelineRenderBundle = resp;
 }
 
 // ---------------------------------------------------------------------------
@@ -3632,6 +4058,7 @@ async function pipelineGenerateAutoIterate(initialPrompt) {
 window.pipelineGenerate = pipelineGenerate;
 window.pipelineGenerateSingle = pipelineGenerateSingle;
 window.pipelineGenerateAutoIterate = pipelineGenerateAutoIterate;
+window.renderPipelineResponse = renderPipelineResponse;
 
 // Per-event handler. Each SSE event from /api/pipeline/full/stream is
 // rendered as its own status line + collapsible JSON block.
@@ -3961,6 +4388,7 @@ function generateScreen(scenarioKey, buttonEl) {
     document.querySelectorAll('.scene-btn[data-role="overlay"].active')
       .forEach(function (b) { b.classList.remove('active'); });
     if (typeof window.clearCanvas === 'function') window.clearCanvas();
+    window.__lastPipelineRenderBundle = null;
     _refreshOverlayHint();
     return;
   }
@@ -4314,6 +4742,7 @@ function generateScenario(scenarioKey) {
   }
 
   clearCanvas();
+  window.__lastPipelineRenderBundle = null;
 
   // 3) Tier 1 — Figma-ground-truth rules (Lock / QS / Notif / Dialog).
   //    These have pixel-accurate atomics extracted from Figma designs and
@@ -4389,6 +4818,7 @@ function _startLiveTimerTick() {
     if (!nodes.length) return;
     var now = Date.now();
     nodes.forEach(function (el) {
+      if (el.getAttribute('data-paused') === '1') return;
       var start = parseInt(el.getAttribute('data-start'), 10) || now;
       var elapsed = Math.max(0, Math.floor((now - start) / 1000));
       var h = Math.floor(elapsed / 3600);
@@ -4406,6 +4836,29 @@ if (typeof document !== 'undefined') {
   } else {
     _startLiveTimerTick();
   }
+}
+
+// Pause / resume stopwatch on pipeline now-bar (no ⌘ required).
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest && e.target.closest('[data-timer-pause="1"]');
+    if (!btn) return;
+    e.stopPropagation();
+    var shell = btn.closest('[data-now-bar-shell="1"]');
+    var tel = shell && shell.querySelector('[data-live-timer="1"]');
+    if (!tel) return;
+    var paused = tel.getAttribute('data-paused') === '1';
+    if (!paused) {
+      tel.setAttribute('data-paused', '1');
+      tel.setAttribute('data-pause-began', String(Date.now()));
+    } else {
+      var start = parseInt(tel.getAttribute('data-start'), 10) || Date.now();
+      var pb = parseInt(tel.getAttribute('data-pause-began'), 10) || Date.now();
+      tel.setAttribute('data-start', String(start + (Date.now() - pb)));
+      tel.removeAttribute('data-paused');
+      tel.removeAttribute('data-pause-began');
+    }
+  }, false);
 }
 
 // --------------------------------------------------------------------------

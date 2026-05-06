@@ -226,16 +226,15 @@
     }
 
     // Direct style fallback (so it works without the CSS hook)
-    if (decision.showWallpaper) {
-      frameEl.style.backgroundImage = '';
-      frameEl.style.backgroundColor = '';
-    } else if (decision.backgroundPolicy === 'dialog-surface') {
+    if (decision.backgroundPolicy === 'dialog-surface') {
       frameEl.style.backgroundImage = 'none';
       frameEl.style.backgroundColor = 'var(--dialog-surface, #1c1c1e)';
     } else {
-      // solid-dark or scrim-over-app
-      frameEl.style.backgroundImage = 'none';
-      frameEl.style.backgroundColor = 'var(--canvas-bg-dark, #010102)';
+      // Keep wallpaper continuity for app/composer renders. Surface dimming
+      // should come from overlays/cards, not by replacing the device wallpaper
+      // with a hard black fill at frame level.
+      frameEl.style.backgroundImage = '';
+      frameEl.style.backgroundColor = '';
     }
   }
 

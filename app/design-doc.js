@@ -12,8 +12,10 @@
 //      nodes: [
 //        {
 //          id:       stable string (== DOM data-node-id)
-//          role:     one of ALLOWED_ROLES (e.g., 'expandable-app-bar')
-//          type:     optional palette type (e.g., 'btn-contained'), else null
+//          role:     atomic role — one of ALLOWED_ROLES / renderAtomicForRole
+//          type:     legacy palette registry id (prefer paletteId); optional
+//          paletteId: registry/componentType/componentId canonical id (see docs/genui-data-schema.md)
+//          semanticConcept: optional SEMANTIC_COMPONENT_VOCAB key preserved as _semanticId from server
 //          state:    optional state token (e.g., 'expanded'|'collapsed')
 //          props:    { title, subtitle, placeholder, ... }
 //          styles:   { opacity, backgroundColor, borderRadius, padding, fontSize, ... }
@@ -31,6 +33,8 @@
 //    DesignDoc.hydrateFromPlan(plan, surfaceType)       // surface-layout plan
 //    DesignDoc.hydrateFromRulesPlan(plan, surfaceKey)   // rules-renderer plan
 //    DesignDoc.hydrateFromCanvasDOM()                   // fallback: walk DOM
+//    DesignDoc.hydrateFromPipelineBundle(bundle, opts?)  // persisted v1 envelope
+//    DesignDoc.validateGenUIBundleV1(bundle)           // { ok, errors }
 //    DesignDoc.getNode(id)                              // read-only
 //    DesignDoc.updateNode(id, patch)                    // merge + apply to DOM
 //    DesignDoc.deleteNode(id)                           // remove from doc + DOM
@@ -64,6 +68,23 @@
     return (prefix || 'node') + '-' + Date.now().toString(36) + '-' + _nodeCounter;
   }
 
+  /** Canonical node fields after hydrate (paletteId mirrors legacy type when needed). */
+  function _finalizeNodeShape(n) {
+    if (!n || typeof n !== 'object') return n;
+    var o = Object.assign({ paletteId: null, semanticConcept: null }, n);
+    if (o.paletteId == null && o.type != null) o.paletteId = o.type;
+    return o;
+  }
+
+  /** Optional global: assign from figma-refs/genui_schema_bridge.v1.json for palette→atomic in bundle hydrate. */
+  function _bridgeAtomicForPalette(paletteId) {
+    if (!paletteId || typeof window === 'undefined' || !window.GENUI_SCHEMA_BRIDGE) return null;
+    var br = window.GENUI_SCHEMA_BRIDGE;
+    if (br.body && br.body[paletteId]) return br.body[paletteId];
+    if (br.chrome && br.chrome[paletteId]) return br.chrome[paletteId];
+    return null;
+  }
+
   function _domForNode(id) {
     return document.querySelector('[data-node-id="' + id + '"]');
   }
@@ -93,17 +114,27 @@
     hydrateFromRenderModel: function (renderModel) {
       if (!renderModel) return;
       var nodes = (renderModel.components || []).map(function (c, i) {
-        return {
+        var pal =
+          (c.paletteId != null ? c.paletteId : null) ||
+          (c.registryId != null ? c.registryId : null) ||
+          (c.componentId != null ? c.componentId : null);
+        var sem =
+          (c.semanticConcept != null && String(c.semanticConcept).length
+            ? c.semanticConcept
+            : null) || c._semanticId || null;
+        return _finalizeNodeShape({
           id: c.id || _uid('agent'),
           role: c.role,
           type: c.type || null,
+          paletteId: pal,
+          semanticConcept: sem,
           state: c.state || null,
           props: _extractPropsFromContent(c),
           styles: c.styles && typeof c.styles === 'object' ? Object.assign({}, c.styles) : {},
           content: c.content && typeof c.content === 'object' ? Object.assign({}, c.content) : {},
           zone: c.zone || null,
           html: typeof c.html === 'string' && c.html.length ? c.html : null
-        };
+        });
       });
       _state = {
         surfaceType: renderModel.surfaceType || (renderModel.layout && renderModel.layout.surfaceType) || null,
@@ -118,17 +149,26 @@
     hydrateFromPlan: function (plan, surfaceType) {
       if (!plan) return;
       var nodes = (plan.components || []).map(function (c) {
-        return {
+        var pal =
+          c.componentType ||
+          c.component_type ||
+          c.paletteId ||
+          c.palette_id ||
+          c.type ||
+          null;
+        return _finalizeNodeShape({
           id: c.id || _uid('surface'),
-          role: c.role,
-          type: null,
+          role: c.role || c.atomicRole || 'unknown',
+          type: pal,
+          paletteId: pal,
+          semanticConcept: c.semanticConcept || c.semantic_concept || null,
           state: c.state || null,
           props: {},
           styles: {},
           content: {},
           zone: c.zone || null,
           html: null
-        };
+        });
       });
       _state = {
         surfaceType: surfaceType || plan.surfaceType || null,
@@ -143,10 +183,13 @@
     hydrateFromRulesPlan: function (plan, surfaceKey) {
       if (!plan) return;
       var nodes = (plan.components || []).map(function (c) {
-        return {
+        var pal = c.componentType || c.paletteId || c.type || null;
+        return _finalizeNodeShape({
           id: c.id || _uid('rules'),
           role: c.role,
-          type: null,
+          type: pal,
+          paletteId: pal,
+          semanticConcept: c.semanticConcept || null,
           state: (c.variant && c.variant.state) || null,
           props: _extractPropsFromVariant(c.variant || {}),
           styles: {},
@@ -155,7 +198,7 @@
           cluster: (c.position && c.position._cluster) || null,
           position: c.position || null,
           html: null
-        };
+        });
       });
       _state = {
         surfaceType: surfaceKey || plan.ctx || null,
@@ -176,22 +219,34 @@
         inner.querySelectorAll(':scope > .canvas-item, :scope > .rules-item, :scope > .surface-item')
       );
       var nodes = domItems.map(function (el) {
-        var role = el.dataset.role || el.getAttribute('data-role') || el.dataset.compType || 'unknown';
+        var pal = el.dataset.compType || null;
+        var atomic =
+          el.dataset.atomicRole ||
+          el.getAttribute('data-atomic-role') ||
+          '';
+        var role =
+          atomic ||
+          el.dataset.role ||
+          el.getAttribute('data-role') ||
+          pal ||
+          'unknown';
         var id = el.dataset.nodeId || el.id || _uid('dom');
         // Stamp data-node-id so later edits can find this element
         el.dataset.nodeId = id;
         if (!el.id) el.id = id;
-        return {
+        return _finalizeNodeShape({
           id: id,
           role: role,
-          type: el.dataset.compType || null,
+          type: pal,
+          paletteId: pal,
+          semanticConcept: null,
           state: el.dataset.appBarState || null,
           props: {},
           styles: {},
           content: {},
           zone: null,
           html: null
-        };
+        });
       });
       _state = {
         surfaceType: canvas.dataset.rulesMode ? _state.surfaceType : _state.surfaceType,
@@ -249,7 +304,7 @@
       if (patch.props) node.props = Object.assign({}, node.props, patch.props);
       if (patch.styles) node.styles = Object.assign({}, node.styles, patch.styles);
       if (patch.content) node.content = Object.assign({}, node.content, patch.content);
-      ['role', 'type', 'state', 'zone', 'html'].forEach(function (k) {
+      ['role', 'type', 'state', 'zone', 'html', 'paletteId', 'semanticConcept', 'cluster', 'position'].forEach(function (k) {
         if (patch[k] !== undefined) node[k] = patch[k];
       });
 
@@ -279,9 +334,22 @@
 
     addNode: function (node) {
       var n = Object.assign(
-        { id: _uid('manual'), role: 'unknown', type: null, props: {}, styles: {}, content: {}, state: null, zone: null, html: null },
+        {
+          id: _uid('manual'),
+          role: 'unknown',
+          type: null,
+          paletteId: null,
+          semanticConcept: null,
+          props: {},
+          styles: {},
+          content: {},
+          state: null,
+          zone: null,
+          html: null
+        },
         node
       );
+      n = _finalizeNodeShape(n);
       _state.nodes.push(n);
       _emit('add', { nodeId: n.id });
       return n;
@@ -361,6 +429,158 @@
 
     getSelection: function () { return _selectedNodeId; },
 
+    /**
+     * Structural checks for persisted bundles (draft-07 JSON Schema analogue).
+     */
+    validateGenUIBundleV1: function (bundle) {
+      var errors = [];
+      if (!bundle || typeof bundle !== 'object') errors.push('bundle must be object');
+      if (String(bundle && bundle.genuiBundleVersion) !== '1') {
+        errors.push('genuiBundleVersion required and must be "1"');
+      }
+      var okKinds = {
+        pipelineResult: true,
+        designDoc: true,
+        themeOnly: true,
+        composed: true,
+        '': true
+      };
+      if (bundle && bundle.kind != null && bundle.kind !== '' && !okKinds[bundle.kind]) {
+        errors.push('kind must be pipelineResult | designDoc | themeOnly | composed');
+      }
+
+      function checkNodes(arr, label) {
+        if (!Array.isArray(arr)) return;
+        for (var i = 0; i < arr.length; i++) {
+          var n = arr[i];
+          if (!n || typeof n !== 'object') {
+            errors.push(label + '[' + i + '] must be object');
+            continue;
+          }
+          if (typeof n.id !== 'string' || !n.id) errors.push(label + '[' + i + '].id required');
+          if (typeof n.role !== 'string' || !n.role) errors.push(label + '[' + i + '].role required');
+        }
+      }
+
+      checkNodes(bundle && bundle.nodes, 'nodes');
+      if (bundle && bundle.designDoc) checkNodes(bundle.designDoc.nodes, 'designDoc.nodes');
+
+      return { ok: errors.length === 0, errors: errors };
+    },
+
+    /**
+     * Hydrate from a persisted v1 envelope. Prefers designDoc.nodes; otherwise
+     * builds skeleton nodes from plan.requiredComponents + contentBySlot.
+     */
+    hydrateFromPipelineBundle: function (bundle, opts) {
+      opts = opts || {};
+      if (!opts.skipValidation) {
+        var vr = DesignDoc.validateGenUIBundleV1(bundle);
+        if (!vr.ok) {
+          console.warn('[DesignDoc] hydrateFromPipelineBundle invalid:', vr.errors);
+          return false;
+        }
+      }
+
+      var doc = bundle && bundle.designDoc;
+      var surfaceType =
+        (doc && doc.surfaceType) ||
+        bundle.surfaceType ||
+        (bundle.surface && bundle.surface.surfaceType) ||
+        (bundle.meta && bundle.meta.surfaceType) ||
+        null;
+
+      var layout = Object.assign(
+        {},
+        (doc && doc.layout) || bundle.layout || {}
+      );
+      if (bundle.layoutPlan) layout.layoutPlan = bundle.layoutPlan;
+      if (bundle.plan) layout.persistedPlan = bundle.plan;
+      if (bundle.meta && typeof bundle.meta === 'object') layout.bundleMeta = bundle.meta;
+
+      var nodes = null;
+      var nodesExplicit = false;
+      if (doc && Array.isArray(doc.nodes)) {
+        nodes = doc.nodes.slice();
+        nodesExplicit = true;
+      } else if (Array.isArray(bundle.nodes)) {
+        nodes = bundle.nodes.slice();
+        nodesExplicit = true;
+      }
+
+      if (!nodesExplicit) {
+        var plan = bundle.plan || {};
+        var rc = plan.requiredComponents;
+        var cbs =
+          bundle.contentBySlot ||
+          bundle.content_by_slot ||
+          {};
+
+        nodes = [];
+        if (Array.isArray(rc)) {
+          for (var j = 0; j < rc.length; j++) {
+            var comp = rc[j] || {};
+            var slotKey = String(comp.slot != null ? comp.slot : 'idx-' + j);
+            var extra = {};
+            var slotExtras = cbs[slotKey];
+            if (slotExtras && typeof slotExtras === 'object') extra = slotExtras;
+            var ctype =
+              comp.componentType ||
+              comp.component_type ||
+              comp.componentId ||
+              comp.paletteId ||
+              '';
+            var mergedContent = {};
+            if (comp.content && typeof comp.content === 'object') {
+              mergedContent = Object.assign(mergedContent, comp.content);
+            }
+            if (extra.content && typeof extra.content === 'object') {
+              mergedContent = Object.assign(mergedContent, extra.content);
+            }
+            if (extra.label != null || extra.value != null) {
+              mergedContent = Object.assign(mergedContent, {
+                label: extra.label != null ? extra.label : mergedContent.label,
+                value: extra.value != null ? extra.value : mergedContent.value
+              });
+            }
+
+            var bridged = _bridgeAtomicForPalette(ctype);
+
+            nodes.push(
+              _finalizeNodeShape({
+                id: comp.id || _uid('persist'),
+                role: bridged || 'unknown',
+                type: ctype || null,
+                paletteId: ctype || null,
+                semanticConcept: comp.semanticConcept || null,
+                state: null,
+                props: {
+                  slot: comp.slot || '',
+                  priority: comp.priority,
+                  plannerComponentRole: comp.role || ''
+                },
+                styles: {},
+                content: mergedContent,
+                zone: null,
+                html: null
+              })
+            );
+          }
+        }
+      }
+
+      nodes = (nodes || []).map(_finalizeNodeShape);
+
+      _state = {
+        surfaceType: surfaceType,
+        layout: layout,
+        nodes: nodes
+      };
+      _selectedNodeId = null;
+      _emit('hydrate', { source: 'pipeline-bundle' });
+      return true;
+    },
+
     // --- Observers ---
     subscribe: function (fn) {
       _listeners.add(fn);
@@ -414,6 +634,13 @@
   function _applyPatchToDOM(node, patch) {
     var el = _domForNode(node.id);
     if (!el) return;
+
+    if (patch.role !== undefined && el.dataset) {
+      el.dataset.atomicRole = patch.role || '';
+    }
+    if (patch.paletteId !== undefined && el.dataset) {
+      el.dataset.compType = patch.paletteId || '';
+    }
 
     // ── state (expandable-app-bar) ──
     if (patch.state !== undefined && node.role === 'expandable-app-bar') {

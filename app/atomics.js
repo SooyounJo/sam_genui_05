@@ -61,24 +61,60 @@
     // Unified carrier label: K-Arts across QS, Notif, AND Lock.
     var carrier = p.carrier || 'K-Arts';
 
-    // Wi-Fi (18×18)
-    var wifi =
-      '<div style="position:relative;width:18px;height:18px;flex-shrink:0;overflow:hidden;">' +
-        absImg('wifi.svg', '11.11% -0.11% 11.11% 0.68%') +
-      '</div>';
+    var Lib = (typeof window !== 'undefined' && window.IconLibrary) ? window.IconLibrary : null;
 
-    // Cellular (18×18 with 14×14 centered inside)
-    var cellular =
-      '<div style="position:relative;width:18px;height:18px;flex-shrink:0;overflow:hidden;">' +
-        '<img src="' + ASSET + 'cellular.svg" style="position:absolute;left:50%;top:50%;width:14px;height:14px;transform:translate(-50%,-50%);" alt="" />' +
-      '</div>';
+    function batteryKeyFromPct(pct, override) {
+      if (override && typeof Lib.getIcon === 'function') {
+        var ok = String(override).toLowerCase().replace(/\s+/g, '-');
+        if (Lib.getIcon('status-bar.battery.' + ok)) return ok;
+      }
+      if (pct <= 15) return 'very-low';
+      if (pct <= 30) return 'low';
+      if (pct >= 98) return 'fully-charged';
+      return 'default';
+    }
 
-    // Battery (two subtract SVGs side by side: 15.414×16.515 + 8.808×16.515)
-    var battery =
-      '<div style="display:flex;align-items:center;flex-shrink:0;">' +
-        '<img src="' + ASSET + 'battery-left.svg"  style="width:15.414px;height:16.515px;display:block;" alt="" />' +
-        '<img src="' + ASSET + 'battery-right.svg" style="width:8.808px;height:16.515px;display:block;" alt="" />' +
-      '</div>';
+    var wifi;
+    var cellular;
+    var battery;
+    if (Lib && typeof Lib.getIcon === 'function') {
+      var wStrength = p.wifi != null ? Math.max(0, Math.min(3, parseInt(p.wifi, 10))) : 3;
+      if (!Number.isFinite(wStrength)) wStrength = 3;
+      var cStrength = p.cellular != null ? Math.max(0, Math.min(4, parseInt(p.cellular, 10))) : 4;
+      if (!Number.isFinite(cStrength)) cStrength = 4;
+      var battPct = p.battery != null ? +p.battery : 85;
+      if (!Number.isFinite(battPct)) battPct = 85;
+      var battKey = batteryKeyFromPct(battPct, p.batteryState);
+      var wifiInner = Lib.getIcon('status-bar.wifi.' + wStrength) || '';
+      var cellInner = Lib.getIcon('status-bar.cellular.' + cStrength) || '';
+      var battInner = Lib.getIcon('status-bar.battery.' + battKey) || Lib.getIcon('status-bar.battery.default') || '';
+      wifi =
+        '<div style="position:relative;width:18px;height:18px;flex-shrink:0;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.92);">' +
+          wifiInner +
+        '</div>';
+      cellular =
+        '<div style="position:relative;width:18px;height:18px;flex-shrink:0;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.92);">' +
+          cellInner +
+        '</div>';
+      battery =
+        '<div style="display:flex;align-items:center;flex-shrink:0;color:rgba(255,255,255,0.92);">' +
+          battInner +
+        '</div>';
+    } else {
+      wifi =
+        '<div style="position:relative;width:18px;height:18px;flex-shrink:0;overflow:hidden;">' +
+          absImg('wifi.svg', '11.11% -0.11% 11.11% 0.68%') +
+        '</div>';
+      cellular =
+        '<div style="position:relative;width:18px;height:18px;flex-shrink:0;overflow:hidden;">' +
+          '<img src="' + ASSET + 'cellular.svg" style="position:absolute;left:50%;top:50%;width:14px;height:14px;transform:translate(-50%,-50%);" alt="" />' +
+        '</div>';
+      battery =
+        '<div style="display:flex;align-items:center;flex-shrink:0;">' +
+          '<img src="' + ASSET + 'battery-left.svg"  style="width:15.414px;height:16.515px;display:block;" alt="" />' +
+          '<img src="' + ASSET + 'battery-right.svg" style="width:8.808px;height:16.515px;display:block;" alt="" />' +
+        '</div>';
+    }
 
     // Identical structure to QS/Notif status bar: carrier on left, flex spacer,
     // wifi/cell/battery on right. No account icons (health/samsung/google)

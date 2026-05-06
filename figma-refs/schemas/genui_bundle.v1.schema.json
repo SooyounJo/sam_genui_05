@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/genui_bundle.v1.schema.json",
+  "title": "GenUI persisted bundle v1",
+  "type": "object",
+  "required": ["genuiBundleVersion"],
+  "properties": {
+    "genuiBundleVersion": {
+      "type": "string",
+      "const": "1"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["pipelineResult", "designDoc", "themeOnly", "composed"]
+    },
+    "surfaceType": { "type": "string" },
+    "surface": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "layoutPlan": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "contentBySlot": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/designDocNode" }
+    },
+    "designDoc": {
+      "type": "object",
+      "properties": {
+        "surfaceType": { "type": ["string", "null"] },
+        "layout": { "type": "object", "additionalProperties": true },
+        "nodes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/designDocNode" }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "designDocNode": {
+      "type": "object",
+      "required": ["id", "role"],
+      "properties": {
+        "id": { "type": "string" },
+        "role": { "type": "string" },
+        "paletteId": { "type": ["string", "null"] },
+        "type": { "type": ["string", "null"] },
+        "semanticConcept": { "type": ["string", "null"] },
+        "state": { "type": ["string", "null"] },
+        "zone": { "type": ["string", "null"] },
+        "props": { "type": "object", "additionalProperties": true },
+        "styles": { "type": "object", "additionalProperties": true },
+        "content": { "type": "object", "additionalProperties": true },
+        "html": { "type": ["string", "null"] },
+        "cluster": { "type": ["string", "null"] },
+        "position": { "type": ["object", "null"], "additionalProperties": true },
+        "rect": { "type": ["object", "null"], "additionalProperties": true }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -50,7 +50,7 @@
   --divider: rgba(255,255,255,0.08);
   --glass-bg: rgba(255,255,255,0.06);
   --glass-border: rgba(255,255,255,0.10);
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font: 'One UI Sans APP VF', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --canvas-bg-light: #FCFCFC;
   --canvas-bg-dark: #171717;
 
@@ -60,7 +60,7 @@
      :root — so sidebar/topbar keep readable defaults. Only document-level
      keys like `--oneui-theme-style` live on :root from the same block. */
 
-  --card-radius:                      20px;
+  --card-radius:                      36px; /* design_rules.json radius.dialog — One UI squircle / in-app Gen cards */
   /* Spacing tokens — kept consistent across all themes per user
      direction: theme identity is conveyed via radius/typography/color,
      not via padding. Aligned to Minimal Flat values for a tighter
@@ -484,9 +484,23 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); font-si
 .canvas-frame.tablet .canvas-notch { display:none; }
 .canvas-inner {
   position:absolute; top:0; left:0; right:0; bottom:0;
-  padding:28px 0 0; overflow-y:auto; display:flex; flex-direction:column; gap:0;
+  /* Symmetric side gutter (One UI ~16–20dp class); pipeline JS may override via inline. */
+  padding:28px 18px 0;
+  overflow-y:auto;
+  scrollbar-gutter: stable;
+  display:flex; flex-direction:column; gap:0;
   font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   zoom:0.78;
+  box-sizing: border-box;
+}
+/* Path A pipeline canvas — grow with the device frame so composer flex
+   (primary-task min-height + spacer) can occupy the full viewport. */
+.canvas-inner > #canvas[data-pipeline-fill-viewport="1"] {
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 0;
 }
 .canvas-frame.desktop .canvas-inner { padding:16px; zoom:1; }
 .canvas-frame.watch .canvas-inner { zoom:0.85; }
@@ -1136,11 +1150,27 @@ body.cmd-interact-mode [data-node-id]:hover {
   border-radius:4px;
 }
 
-/* === GROUP WRAPPER === */
+/* GenUI pipeline action-row chips: short press feedback (HTML is stopPropagation-only) */
+button[data-action-chip] {
+  transition: transform 140ms ease, filter 140ms ease;
+}
+button[data-action-chip].genui-action-chip-ack {
+  transform: scale(0.97);
+  filter: brightness(1.12);
+}
+
+/* === GROUP WRAPPER ===
+   Outer “group frame” borders read as an extra phone-in-phone container on
+   Generated previews — keep the wrapper neutral; individual cards own surfaces. */
 .canvas-group {
-  border:1px dashed rgba(100,233,227,0.3); border-radius:18px;
-  padding:12px; background:rgba(100,233,227,0.03);
-  display:flex; flex-direction:column; gap:8px;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
 }
 
 /* === ROLE-AWARE COMPOSITION (pipeline path) ===
@@ -1205,17 +1235,143 @@ body.cmd-interact-mode [data-node-id]:hover {
      it grow vertically regardless of the inline height value. */
   display: flex;
   flex-direction: column;
+  flex-shrink: 0; /* stacked pipeline cards must not compress under flex pressure */
 }
 .canvas-item.body-atomic > * {
   flex: 1 1 auto;
   min-height: 0;   /* allow flex shrink for nested overflow:hidden */
 }
-/* now-bar atomic is a 64-tall pill — let it center horizontally in its
-   group rather than stretching full-width. */
+/* Compact rails (timer pill, chips, toggle row) — do not flex-grow tall or they
+   stack visually over the next full-width card in primary-task layouts. */
+.canvas-item.body-atomic[data-atomic-role="now-bar"] > *,
+.canvas-item.body-atomic[data-atomic-role="media-card"] > *,
+.canvas-item.body-atomic[data-atomic-role="media-half"] > *,
+.canvas-item.body-atomic[data-atomic-role="action-row"] > *,
+.canvas-item.body-atomic[data-atomic-role="toggle-chip"] > *,
+.canvas-item.body-atomic[data-atomic-role="progress-track"] > * {
+  flex: 0 1 auto !important;
+  flex-grow: 0 !important;
+}
+
+/* Grid rows: default top-align on non-app; app primary-task 2-col stretches below. */
+.canvas-group[data-pipeline-container="grid"] > .canvas-item.body-atomic {
+  align-self: flex-start;
+}
+
+/* App primary-task grid (2-col hero + actions, travel strips): match row height. */
+#canvas[data-base-surface="app"] .canvas-group[data-group-role="primary-task"][data-pipeline-container="grid"] > .canvas-item.body-atomic {
+  align-self: stretch;
+}
+/* Default grid tile content height (lock/home + generic); overridden below for app 2-col. */
+.canvas-group[data-pipeline-container="grid"] > .canvas-item.body-atomic > *:first-child {
+  flex: 0 1 auto !important;
+  flex-grow: 0 !important;
+  height: auto !important;
+  max-height: none;
+}
+/* Let the painted card shell grow with the stretched wrapper (not 2×2 compact tiles). */
+#canvas[data-base-surface="app"] .canvas-group[data-group-role="primary-task"][data-pipeline-container="grid"]:not([data-grid-tile-count="4"]) > .canvas-item.body-atomic > *:first-child {
+  flex: 1 1 auto !important;
+  flex-grow: 1 !important;
+  min-height: 0 !important;
+  height: auto !important;
+}
+/* 2×2 dashboard: keep intrinsic tile height; stretch is only for row alignment. */
+#canvas[data-base-surface="app"] .canvas-group[data-pipeline-container="grid"][data-grid-tile-count="4"] > .canvas-item.body-atomic > *:first-child {
+  flex: 0 1 auto !important;
+  flex-grow: 0 !important;
+  height: auto !important;
+  max-height: none;
+}
+
+/* Horizontal hero + action column: inner focus-block fills column height. */
+#canvas[data-base-surface="app"] .canvas-group[data-group-role="primary-task"][data-pipeline-container="horizontal-stack"] > .canvas-item.body-atomic[data-atomic-role="focus-block"] > *:first-child {
+  flex: 1 1 auto !important;
+  flex-grow: 1 !important;
+  min-height: 0 !important;
+}
+/* 2×2 compact dashboard — stretch tiles so both rows read as one grid (One UI widgets). */
+#canvas[data-base-surface="app"] .canvas-group[data-pipeline-container="grid"][data-grid-tile-count="4"] {
+  align-items: stretch;
+}
+#canvas[data-base-surface="app"] .canvas-group[data-pipeline-container="grid"][data-grid-tile-count="4"] > .canvas-item.body-atomic {
+  align-self: stretch;
+}
+
+/* Path A pipeline — bottom sheet shell (system-dialog / dialog-surface). ORCHESTRATION: 26dp top radius. */
+#canvas[data-base-surface="app"][data-pipeline-bottom-sheet="1"] {
+  position: relative;
+}
+.pipeline-bottom-sheet-spacer {
+  flex: 1 1 auto;
+  min-height: 48px;
+  width: 100%;
+  pointer-events: none;
+}
+.pipeline-bottom-sheet-host {
+  flex: 0 0 auto;
+  width: 100%;
+  max-height: min(88vh, calc(100% - 24px));
+  z-index: 15;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 26px 26px 0 0;
+  background: var(--surface);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: none;
+  overflow: hidden;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.pipeline-bottom-sheet-handle {
+  width: 48px;
+  height: 4px;
+  margin: 10px auto 6px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.28);
+  flex-shrink: 0;
+}
+.pipeline-bottom-sheet-inner {
+  flex: 0 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 4px 12px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-stack-gap, 14px);
+  min-height: 0;
+}
+#canvas[data-base-surface="app"][data-pipeline-bottom-sheet="1"] .pipeline-bottom-sheet-inner .canvas-group:not([data-group-role="chrome"]) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.canvas-item.body-atomic[data-atomic-role="toggle-chip"] > * {
+  max-height: 140px;
+}
+.canvas-group > .canvas-item.body-atomic {
+  flex-shrink: 0;
+}
+/* now-bar atomic is a 64-tall pill — on lock/home keep it centered; on app
+   surfaces stretch to the same content width as sibling cards. */
 .canvas-item.body-atomic[data-atomic-role="now-bar"] {
   align-self: center;
   width: auto !important;
   min-width: 248px;
+}
+#canvas[data-base-surface="app"] .canvas-group .canvas-item.body-atomic[data-atomic-role="now-bar"] {
+  align-self: stretch;
+  width: 100% !important;
+  min-width: 0;
+}
+/* Legacy: primary-task already stretches in app — keep explicit override */
+.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-atomic-role="now-bar"] {
+  align-self: stretch;
+  width: 100% !important;
+  min-width: 0;
 }
 .canvas-item.chrome-item[data-atomic-role="status-bar"] {
   /* Sits in the topSystem zone — keep the atomic flush. */
@@ -1234,21 +1390,68 @@ body.cmd-interact-mode [data-node-id]:hover {
   z-index: 50;
 }
 
-/* group: primary-task — the screen's main task unit. Subject + state +
-   action belong here. Substantial card-like surface so the children
-   read as ONE coherent unit rather than three separate stacked cards.
-   Tier 1.4 — added a stronger inset highlight + a subtle outer glow so
-   the primary group reads as the focal layer in the visual stack. */
+/* group: primary-task — logical cluster only; no outer glass “shell” so
+   timers, stats, and CTAs share the same wallpaper edge as One UI. */
 .canvas-group[data-group-role="primary-task"] {
-  border:1px solid rgba(255,255,255,0.12) !important;
-  background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04)) !important;
-  border-radius:28px !important;
-  padding:20px !important;
-  gap:14px !important;
-  box-shadow:
-    0 8px 28px rgba(0,0,0,0.22),
-    0 1px 0 rgba(255,255,255,0.08) inset,
-    0 0 0 1px rgba(255,255,255,0.03);
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  gap: 10px !important;
+  overflow: visible;
+  min-height: 0;
+  align-items: stretch;
+  margin: 0;
+  width: 100%;
+}
+
+/* Path A pipeline — body cards must span the content rail. Default
+   .canvas-item uses width:fit-content + align-self:flex-start (Design tab
+   drag affordance), which left-packs GenUI cards and looks like uneven
+   padding. Force full-bleed within the group for vertical-flow atomics. */
+#canvas[data-base-surface="app"] .canvas-group[data-pipeline-container="vertical-stack"] > .canvas-item.body-atomic,
+#canvas[data-base-surface="app"] .canvas-group:not([data-pipeline-container="grid"]):not([data-pipeline-container="horizontal-stack"]) > .canvas-item.body-atomic {
+  align-self: stretch !important;
+  width: 100% !important;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* App pipeline: supporting groups use horizontal inset padding — without the
+   same inset here, primary-task cards read “full bleed” while supporting tiles
+   look narrower (misaligned rails). Match supporting’s left/right inset only. */
+#canvas[data-base-surface="app"] .canvas-group[data-group-role="primary-task"] {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  box-sizing: border-box !important;
+}
+
+/* App: vertical step — scenes sets --app-stack-gap from layoutPlan.gap (fallback 14px) */
+#canvas[data-base-surface="app"] {
+  --app-stack-gap: 14px;
+}
+#canvas[data-base-surface="app"][data-pipeline-fill-viewport="1"] {
+  gap: var(--app-stack-gap, 14px) !important;
+}
+#canvas[data-base-surface="app"] .canvas-group:not([data-group-role="chrome"]) {
+  gap: var(--app-stack-gap, 14px) !important;
+}
+
+/* supporting had uniform 12px padding → extra strips above/below cards vs primary-task */
+#canvas[data-base-surface="app"] .canvas-group[data-group-role="supporting"] {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+/* tertiary/meta used smaller gaps + asymmetric padding — align to same rail + step */
+#canvas[data-base-surface="app"] .canvas-group[data-group-role="tertiary"],
+#canvas[data-base-surface="app"] .canvas-group[data-group-role="meta"] {
+  padding: 0 12px !important;
+  margin: 0 !important;
+  gap: var(--app-stack-gap, 14px) !important;
 }
 
 /* Dialog-shaped body atomics — clip horizontal overrun inside primary-task */
@@ -1277,8 +1480,8 @@ body.cmd-interact-mode [data-node-id]:hover {
    space below (visible bug in the Fitness screenshot). The selector
    chain explicitly opts in by atomic-role so future atomic types
    default to NO hero treatment unless added here. */
-.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-priority="1"][data-atomic-role="focus-block"],
-.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-priority="1"][data-atomic-role="now-bar"] {
+/* Hero treatment: rich cards only — NOT now-bar/timer pills (they sit in flow). */
+.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-priority="1"][data-atomic-role="focus-block"] {
   /* No min-height — earlier we forced 144px to give hero presence,
      but for sparse cards (section + facets only, no topic) it left a
      tall wrapper with content clustered at the top and 60-80px of
@@ -1286,7 +1489,7 @@ body.cmd-interact-mode [data-node-id]:hover {
      radius + padding + shadow + accent stripe — those read as "hero"
      without forcing a fixed height; cards size naturally to content. */
   position: relative;
-  --card-radius: 24px;
+  --card-radius: 36px;
   --card-padding-v: 20px;
   --card-padding-h: 22px;
   --card-weather-temp-size: 68px;
@@ -1295,9 +1498,22 @@ body.cmd-interact-mode [data-node-id]:hover {
   --card-eta-size: 50px;
   --card-eta-icon-size: 40px;
   --card-nav-distance-size: 28px;
-  --card-input-topic-size: 24px;
-  --card-reminder-task-size: 18px;
+  --card-input-topic-size: 26px;
+  --card-reminder-task-size: 20px;
   --card-message-avatar-size: 38px;
+  box-shadow:
+    0 10px 28px rgba(0,0,0,0.28),
+    0 0 0 1px rgba(255,255,255,0.05);
+}
+
+/* Secondary rich cards — readable but clearly below the hero focal tile */
+.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-priority="2"][data-atomic-role="focus-block"] {
+  --card-reminder-task-size: 16px;
+  --card-input-topic-size: 18px;
+  --card-radius: 18px;
+}
+.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-priority="1"][data-atomic-role="media-card"] {
+  position: relative;
   box-shadow:
     0 10px 28px rgba(0,0,0,0.28),
     0 0 0 1px rgba(255,255,255,0.05);
@@ -1306,7 +1522,8 @@ body.cmd-interact-mode [data-node-id]:hover {
    Uses an ::after so it doesn't interfere with the card's own padding /
    contents. The gradient picks up whatever per-card accent color the
    theme defines (weather=amber, calendar=purple, etc.). */
-.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-priority="1"]::after {
+.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-priority="1"][data-atomic-role="focus-block"]::after,
+.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-priority="1"][data-atomic-role="media-card"]::after {
   content: '';
   position: absolute;
   top: 0; left: 14px; right: 14px;
@@ -1319,6 +1536,14 @@ body.cmd-interact-mode [data-node-id]:hover {
   z-index: 2;
 }
 
+/* focus-block inner templates use height:100%; in a flex column that let
+   one card paint over siblings. Size to content inside primary-task. */
+.canvas-group[data-group-role="primary-task"] .canvas-item.body-atomic[data-atomic-role="focus-block"] > *:first-child {
+  height: auto !important;
+  flex: 0 1 auto !important;
+  max-height: none;
+}
+
 /* Priority 2 cards stay default size. */
 /* Priority 3 — visually receded (smaller, dimmer). */
 .canvas-item.body-atomic[data-priority="3"] {
@@ -1328,30 +1553,11 @@ body.cmd-interact-mode [data-node-id]:hover {
   --card-padding-h: 16px;
 }
 
-/* === URGENCY → ACCENT COLOR (R3-A) ===
-   Applied to the device frame's canvas based on interpretation.context.urgency.
-   "low" gets no special treatment (default surface). "medium" gets a Samsung
-   blue ring around the primary-task group. "high" escalates to a warning red
-   ring + ambient red glow on the canvas — used for urgent contexts (driving,
-   safety alerts, high-stakes confirmations). Set by renderPipelineResponse. */
-#canvas[data-urgency="medium"] .canvas-group[data-group-role="primary-task"] {
-  border-color: rgba(51, 136, 233, 0.48) !important;       /* Samsung blue 40% */
-  box-shadow:
-    0 0 0 1px rgba(51, 136, 233, 0.20),
-    0 6px 20px rgba(0,0,0,0.18),
-    inset 0 1px 0 rgba(255,255,255,0.05) !important;
-}
+/* === URGENCY → ACCENT (R3-A) ===
+   No inset ring on #canvas — it read as an unwanted blue/red frame around previews.
+   Keep subtle title-only cues only when urgency ≠ low. */
 #canvas[data-urgency="medium"] .canvas-item[data-pipeline-role="subject"] .oui-card-title {
-  color: #5DA8F5;                                          /* subtle blue title */
-}
-
-#canvas[data-urgency="high"] .canvas-group[data-group-role="primary-task"] {
-  border-color: rgba(239, 68, 68, 0.55) !important;        /* warning red */
-  box-shadow:
-    0 0 0 2px rgba(239, 68, 68, 0.28),
-    0 0 24px rgba(239, 68, 68, 0.18),
-    0 6px 20px rgba(0,0,0,0.18),
-    inset 0 1px 0 rgba(255,255,255,0.05) !important;
+  color: #5DA8F5;
 }
 #canvas[data-urgency="high"] .canvas-item[data-pipeline-role="subject"] .oui-card-title {
   color: #FCA5A5;                                          /* warning red title */
@@ -1372,8 +1578,8 @@ body.cmd-interact-mode [data-node-id]:hover {
   border:1px dashed rgba(255,255,255,0.08) !important;
   background:rgba(255,255,255,0.018) !important;
   border-radius:24px !important;
-  padding:20px !important;
-  gap:14px !important;
+  padding:12px !important;
+  gap:10px !important;
   opacity:0.94;
 }
 
@@ -1418,10 +1624,15 @@ body.cmd-interact-mode [data-node-id]:hover {
   padding: 22px !important;
 }
 
-/* state — visually attached to the subject above (negative top margin
-   pulls them into a single unit when stacked). Slightly muted. */
-.canvas-item[data-pipeline-role="state"] {
-  margin-top: -6px !important;
+/* state — pipeline cards use natural vertical gap from the canvas-group,
+   Path B atomics excluded. Negative margins caused timer / reminder tiles
+   to overlap focus-blocks (semi-transparent stacking in app layouts). */
+.canvas-item[data-pipeline-role="state"]:not(.body-atomic) {
+  margin-top: 6px !important;
+  opacity: 1;
+}
+.canvas-item.body-atomic[data-pipeline-role="state"] {
+  margin-top: 0 !important;
   opacity: 0.95;
 }
 .canvas-item[data-pipeline-role="state"] .oui-card-title {

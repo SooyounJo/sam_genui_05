@@ -4496,6 +4496,11 @@ const server = http.createServer(async (req, res) => {
       ]);
       const { result: selResult, fallbacks: selFallbacks } = selPair;
       if (bagResult) pipeline.applyContentSwap(selResult.plan, bagResult);
+      try {
+        await pipeline.finalizeAssistantPlanPostProcess(_scenarioText, ipnResult.planningPacket, selResult.plan);
+      } catch (e) {
+        console.warn('[Pipeline/stream] MealDB finalize (non-fatal):', e.message);
+      }
       if (_fastMode) _fastTrim(selResult.plan);
       doneStep(1, {
         plan:            selResult.plan,
