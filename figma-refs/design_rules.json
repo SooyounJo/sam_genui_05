@@ -18,8 +18,8 @@
       "bold":     700
     },
     "size": {
-      "micro":   10,
-      "caption": 12,
+      "micro":   13,
+      "caption": 13,
       "label":   14,
       "body":    15,
       "title":   16,
@@ -30,8 +30,8 @@
       "hero":    112
     },
     "lineHeight": {
-      "tight":   12,
-      "snug":    14,
+      "tight":   16,
+      "snug":    16,
       "normal":  20,
       "hero":    82
     },

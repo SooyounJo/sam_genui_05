@@ -173,7 +173,7 @@ function analyzeHarmony() {
 
   if (issues.length === 0) {
     report += `<div style="color:#2ecc71;">&#10003; Good harmony. Static anchors frame the Gen content well.</div>`;
-    report += `<div style="margin-top:6px;font-size:10px;color:var(--text-3);">Motion: Gen components use Emphasized (0.2,0,0,1) with stagger. Static components use Basic Path (0.22,0.25,0,1). This creates visual hierarchy \u2014 static elements settle first, gen content flows in after.</div>`;
+    report += `<div style="margin-top:6px;font-size:13px;color:var(--text-3);">Motion: Gen components use Emphasized (0.2,0,0,1) with stagger. Static components use Basic Path (0.22,0.25,0,1). This creates visual hierarchy \u2014 static elements settle first, gen content flows in after.</div>`;
   } else {
     issues.forEach(issue => {
       report += `<div style="color:#F9A825;margin-bottom:4px;">&#9888; ${issue}</div>`;
@@ -564,7 +564,7 @@ function _renderAgentPatchPlan(patchPlan) {
   `).join('');
 
   if (refinePatches.length === 0) {
-    list.innerHTML = '<div style="font-size:12px;color:var(--text-3);padding:10px;">No patches returned by agent.</div>';
+    list.innerHTML = '<div style="font-size:13px;color:var(--text-3);padding:10px;">No patches returned by agent.</div>';
   }
 }
 
@@ -708,7 +708,7 @@ function _local_planRefinementPatches() {
   `).join('');
 
   if (refinePatches.length === 0) {
-    list.innerHTML = '<div style="font-size:12px;color:var(--text-3);padding:10px;">No concrete patches generated. Try providing more specific feedback.</div>';
+    list.innerHTML = '<div style="font-size:13px;color:var(--text-3);padding:10px;">No concrete patches generated. Try providing more specific feedback.</div>';
   }
 
   showRefineStep(3);

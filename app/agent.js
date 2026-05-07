@@ -1724,7 +1724,7 @@ function showAgentLoading(message) {
   }
   overlay.innerHTML = `
     <div style="width:32px;height:32px;border:2px solid rgba(255,255,255,0.15);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-    <div style="margin-top:12px;font-size:12px;font-weight:500;color:var(--text-2);letter-spacing:0.3px;">${message || 'Processing...'}</div>
+    <div style="margin-top:12px;font-size:13px;font-weight:500;color:var(--text-2);letter-spacing:0.3px;">${message || 'Processing...'}</div>
   `;
   overlay.style.display = 'flex';
 }

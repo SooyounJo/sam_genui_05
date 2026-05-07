@@ -1948,7 +1948,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         // bubble glyph when no sender)
         var avatarLetter = mSender ? mSender.charAt(0).toUpperCase() : '';
         var avatar = avatarLetter
-          ? '<div style="width:min(var(--card-message-avatar-size,32px),28px);height:min(var(--card-message-avatar-size,32px),28px);border-radius:50%;background:var(--card-message-avatar-grad,linear-gradient(135deg,#34D399,#10B981));display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);font-weight:600;font-size:12px;flex-shrink:0;">' + avatarLetter + '</div>'
+          ? '<div style="width:min(var(--card-message-avatar-size,32px),28px);height:min(var(--card-message-avatar-size,32px),28px);border-radius:50%;background:var(--card-message-avatar-grad,linear-gradient(135deg,#34D399,#10B981));display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);font-weight:600;font-size:13px;flex-shrink:0;">' + avatarLetter + '</div>'
           : '<div style="width:min(var(--card-message-avatar-size,32px),28px);height:min(var(--card-message-avatar-size,32px),28px);border-radius:50%;background:var(--card-message-avatar-grad,linear-gradient(135deg,#34D399,#10B981));display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
               '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12a8 8 0 1 1-3.5-6.6L21 4l-1.4 3.5A8 8 0 0 1 21 12z" fill="#fff"/></svg>' +
             '</div>';
@@ -1969,6 +1969,66 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
               '<div style="' + _T('caption', { color: 'translucentLabel' }) + 'line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + mPreview + '</div>' +
             '</div>' +
           '</div>' +
+        '</div>';
+      }
+
+      // Active trip / commute-in-progress — teal pin + trip lines + centered
+      // progress (car thumb) + End trip. Travel · 교통 reference layout.
+      if (fv.kind === 'active-trip') {
+        var atHead = fv.headline || 'Drive 1 min (500 m)';
+        var atArrival = fv.arrival || '';
+        var atAddr = fv.address || '';
+        var atPct = fv.percent != null ? Number(fv.percent) : 48;
+        if (!Number.isFinite(atPct)) atPct = 48;
+        if (atPct < 0) atPct = 0;
+        if (atPct > 100) atPct = 100;
+        var atEnd = fv.endLabel || 'End Trip';
+        var atTeal = fv.accent || '#14B8A6';
+        var atFill = fv.fillColor || '#0A84FF';
+        var atPinRaw = String(fv.pinIconUrl || '').trim();
+        var atThumbRaw = String(fv.thumbIconUrl || '').trim();
+        var atPinEsc = atPinRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        var atThumbEsc = atThumbRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        var pinGlyph = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:block;">' +
+          '<path d="M12 22s8-8.5 8-14a8 8 0 1 0-16 0c0 5.5 8 14 8 14z" stroke="#fff" stroke-width="1.35" fill="none" stroke-linejoin="round"/>' +
+          '<circle cx="12" cy="9.5" r="2.4" fill="#fff"/></svg>';
+        var pinInner = atPinEsc
+          ? '<img src="' + atPinEsc + '" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;"/>'
+          : pinGlyph;
+        var carGlyph = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="display:block;">' +
+          '<path d="M5 17h14M7 17l1.5-5h7L17 17M6 17v2M18 17v2" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '<circle cx="9" cy="14" r="0.85" fill="#fff"/><circle cx="15" cy="14" r="0.85" fill="#fff"/></svg>';
+        var thumbInner = atThumbEsc
+          ? '<img src="' + atThumbEsc + '" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;"/>'
+          : carGlyph;
+        var atMap = '';
+        var atImgRaw = String(fv.imageUrl || '').trim();
+        if (atImgRaw) {
+          var atImgEsc = atImgRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+          atMap = '<div style="width:100%;height:clamp(88px,22vw,120px);border-radius:14px;overflow:hidden;margin-bottom:8px;flex-shrink:0;">' +
+            '<img src="' + atImgEsc + '" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block;background:rgba(0,0,0,0.15);"' +
+            ' loading="lazy" decoding="async"/></div>';
+        }
+        return '<div style="width:100%;max-width:415px;border-radius:36px;padding:14px 20px 12px;box-sizing:border-box;' +
+          'background:linear-gradient(145deg,#3d2566 0%,#5b21b6 40%,#9d3d7a 100%);' +
+          'color:#fff;font-family:var(--font);display:flex;flex-direction:column;gap:10px;overflow:hidden;position:relative;">' +
+          '<div style="position:absolute;inset:0;background:radial-gradient(120% 80% at 18% 0%,rgba(255,255,255,0.12),transparent 55%);pointer-events:none;"></div>' +
+          atMap +
+          '<div style="position:relative;display:flex;align-items:flex-start;gap:12px;">' +
+            '<div style="width:40px;height:40px;border-radius:50%;background:' + atTeal + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);overflow:hidden;">' + pinInner + '</div>' +
+            '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">' +
+              '<div style="font-size:15px;font-weight:600;line-height:1.2;letter-spacing:0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + atHead + '</div>' +
+              (atArrival ? '<div style="font-size:14px;font-weight:400;line-height:1.2;color:rgba(255,255,255,0.95);">' + atArrival + '</div>' : '') +
+              (atAddr ? '<div style="font-size:12px;font-weight:400;line-height:1.25;color:rgba(255,255,255,0.62);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + atAddr + '</div>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div style="position:relative;display:flex;justify-content:center;padding:6px 2px 4px;box-sizing:border-box;">' +
+            '<div style="width:100%;max-width:100%;height:14px;border-radius:999px;background:rgba(255,255,255,0.28);position:relative;min-width:0;">' +
+              '<div style="position:absolute;left:0;top:0;bottom:0;width:' + atPct + '%;background:' + atFill + ';border-radius:999px;"></div>' +
+              '<div style="position:absolute;left:' + atPct + '%;top:50%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:' + atFill + ';border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.35);overflow:hidden;">' + thumbInner + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="position:relative;text-align:center;font-size:15px;font-weight:600;padding-top:2px;opacity:0.95;">' + atEnd + '</div>' +
         '</div>';
       }
 
@@ -2149,20 +2209,98 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           '<div style="position:absolute;inset:1px;border-radius:calc(var(--card-radius,' + _R('dialog') + ') - 1px);box-shadow:' + wInsetBorder + ';pointer-events:none;"></div>' +
           '<div style="position:relative;z-index:1;grid-column:1;grid-row:1;display:flex;flex-direction:column;align-items:flex-start;">' +
             '<div style="font-size:var(--card-weather-temp-size,32px);font-weight:var(--card-weather-temp-weight,700);line-height:0.95;letter-spacing:var(--card-weather-temp-letterspacing,-1px);color:var(--card-weather-temp-color,var(--text-primary,#fff));">' + wTemp + '</div>' +
-            (wLocation ? '<div style="margin-top:7px;font-size:12px;font-weight:600;line-height:1;color:var(--text-secondary,rgba(255,255,255,0.86));display:flex;align-items:center;gap:4px;"><span style="font-size:11px;">⊙</span><span>' + wLocation + '</span></div>' : '') +
+            (wLocation ? '<div style="margin-top:7px;font-size:13px;font-weight:600;line-height:1;color:var(--text-secondary,rgba(255,255,255,0.86));display:flex;align-items:center;gap:4px;"><span style="font-size:13px;">⊙</span><span>' + wLocation + '</span></div>' : '') +
           '</div>' +
           '<div style="position:relative;z-index:1;grid-column:2;grid-row:1;justify-self:end;width:58px;height:48px;filter:drop-shadow(0 3px 4px rgba(0,0,0,0.18));">' +
             '<div style="width:100%;height:100%;">' + wIcon + '</div>' +
           '</div>' +
           '<div style="position:relative;z-index:1;grid-column:1;grid-row:3;align-self:end;display:flex;flex-direction:column;gap:4px;min-width:0;">' +
-            (wCondition ? '<div style="font-size:12px;font-weight:600;line-height:1.1;color:var(--text-primary,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + wCondition + '</div>' : '') +
-            '<div style="font-size:11px;font-weight:600;line-height:1;color:var(--text-secondary,rgba(255,255,255,0.78));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (wFeels ? 'Feels ' + wFeels : wWind) + '</div>' +
+            (wCondition ? '<div style="font-size:13px;font-weight:600;line-height:1.1;color:var(--text-primary,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + wCondition + '</div>' : '') +
+            '<div style="font-size:13px;font-weight:600;line-height:1;color:var(--text-secondary,rgba(255,255,255,0.78));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (wFeels ? 'Feels ' + wFeels : wWind) + '</div>' +
           '</div>' +
           '<div style="position:relative;z-index:1;grid-column:2;grid-row:3;align-self:end;justify-self:end;text-align:right;display:flex;flex-direction:column;gap:4px;">' +
             '<div style="font-size:13px;font-weight:700;line-height:1;color:var(--text-secondary,rgba(255,255,255,0.90));white-space:nowrap;">' + wDate + '</div>' +
             '<div style="font-size:46px;font-weight:700;line-height:0.86;letter-spacing:-1.6px;color:var(--text-primary,#fff);">' + wTime + '</div>' +
           '</div>' +
           '<div style="position:absolute;left:24px;right:24px;bottom:12px;height:1px;background:color-mix(in srgb, var(--text-primary,#fff) 18%, transparent);transform:translateY(7px);"></div>' +
+        '</div>';
+      }
+
+      // Workout / running session — Samsung Health–style pill (gradient shell,
+      // green accent, progress + Pause / Finish). variant.kind: running | workout
+      if (fv.kind === 'running' || fv.kind === 'workout') {
+        var runHead = fv.title || fv.headline || 'Running - 00:13 / 20:00';
+        var runStats = fv.stats || fv.subtitle || '0.00 km   |   86\'31"   |   0.0km/h';
+        var runPct = fv.percent != null ? Number(fv.percent) : 11;
+        if (runPct < 0) runPct = 0;
+        if (runPct > 100) runPct = 100;
+        var runPause = fv.pauseLabel || 'Pause';
+        var runFinish = fv.finishLabel || 'Finish';
+        var runAccent = fv.accent || '#34d399';
+        var runImgRaw = String(fv.imageUrl || fv.coverUrl || fv.iconUrl || fv.assetUrl || '').trim();
+        var runImgEsc = runImgRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        var runIconSvg =
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:block;">' +
+            '<circle cx="8" cy="16" r="2.5" fill="#fff"/>' +
+            '<path d="M11 5l3 5-2.2 1.5L11 9l-2 1-1.6-2.2L11 5zM14 10l4 8h-3l-2.5-5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>' +
+          '</svg>';
+        var runThumbSvg =
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M8 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" fill="#fff"/><path d="M11 6l2 4-1.5 1L11 9.5 9.5 10.5 8 8l3-2z" fill="#fff"/></svg>';
+        var runHeaderInner = runImgEsc
+          ? '<img src="' + runImgEsc + '" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;"/>'
+          : runIconSvg;
+        var runThumbInner = runImgEsc
+          ? '<img src="' + runImgEsc + '" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;"/>'
+          : runThumbSvg;
+        return '<div style="width:100%;max-width:415px;border-radius:36px;padding:14px 22px 12px;box-sizing:border-box;' +
+          'background:linear-gradient(145deg,#5b21b6 0%,#7c3aed 42%,#db2777 100%);' +
+          'color:#fff;font-family:var(--font);display:flex;flex-direction:column;gap:8px;overflow:hidden;position:relative;">' +
+          '<div style="position:absolute;inset:0;background:radial-gradient(120% 80% at 20% 0%,rgba(255,255,255,0.16),transparent 55%);pointer-events:none;"></div>' +
+          '<div style="position:relative;display:flex;align-items:flex-start;gap:10px;">' +
+            '<div style="width:36px;height:36px;border-radius:50%;background:' + runAccent + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.25);overflow:hidden;">' + runHeaderInner + '</div>' +
+            '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">' +
+              '<div style="font-size:14px;font-weight:600;line-height:1.2;letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + runHead + '</div>' +
+              '<div style="font-size:13px;font-weight:500;line-height:1.25;color:rgba(255,255,255,0.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + runStats + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="position:relative;height:8px;display:flex;align-items:center;padding:2px 15px;box-sizing:border-box;">' +
+            '<div style="flex:1;height:4px;background:rgba(255,255,255,0.22);border-radius:3px;position:relative;min-width:0;">' +
+              '<div style="position:absolute;left:0;top:0;bottom:0;width:' + runPct + '%;background:' + runAccent + ';border-radius:3px;"></div>' +
+              '<div style="position:absolute;left:' + runPct + '%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;background:' + runAccent + ';border:2px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);overflow:hidden;padding:0;">' +
+                runThumbInner +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="position:relative;display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600;padding-top:2px;">' +
+            '<span style="opacity:0.95;">' + runPause + '</span>' +
+            '<span style="opacity:0.95;">' + runFinish + '</span>' +
+          '</div>' +
+        '</div>';
+      }
+
+      // Theme summary tile — minimal “main topic” cell (icon + label + count).
+      // Use in grids for organized / low-density scenarios (scheduled, inbox, …).
+      if (fv.kind === 'theme-summary') {
+        var tsLabel = fv.title || fv.label || 'Scheduled';
+        var tsVal = fv.value != null ? String(fv.value) : (fv.count != null ? String(fv.count) : '0');
+        var tsBg = fv.tileBg || fv.background || 'rgba(44,44,46,0.98)';
+        var tsRad = fv.radius != null ? Number(fv.radius) : 26;
+        if (!Number.isFinite(tsRad) || tsRad <= 0) tsRad = 26;
+        var tsInk = fv.ink || '#ffffff';
+        var tsDots =
+          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+            '<circle cx="9" cy="9" r="2.2" fill="currentColor"/>' +
+            '<circle cx="15" cy="9" r="2.2" fill="currentColor"/>' +
+            '<circle cx="9" cy="15" r="2.2" fill="currentColor"/>' +
+            '<circle cx="15" cy="15" r="2.2" fill="currentColor"/>' +
+          '</svg>';
+        return '<div style="width:100%;height:100%;min-height:72px;box-sizing:border-box;border-radius:' + tsRad + 'px;background:' + tsBg + ';' +
+          'padding:14px 14px 12px;color:' + tsInk + ';font-family:var(--font);display:flex;flex-direction:column;justify-content:space-between;">' +
+          '<div style="display:flex;justify-content:flex-start;line-height:0;opacity:0.95;">' + tsDots + '</div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;">' +
+            '<span style="font-size:14px;font-weight:500;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + tsLabel + '</span>' +
+            '<span style="font-size:15px;font-weight:600;line-height:1;flex-shrink:0;">' + tsVal + '</span>' +
+          '</div>' +
         '</div>';
       }
 
@@ -2260,7 +2398,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var trailingHTML = (badge != null && badge > 0)
         ? '<div style="min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;' +
             'display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;' +
-            'font-size:10px;font-weight:700;font-family:Inter,system-ui,sans-serif;">' + badge + '</div>'
+            'font-size:13px;font-weight:700;font-family:Inter,system-ui,sans-serif;">' + badge + '</div>'
         : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;opacity:0.8;"><path d="M6 9l6 6 6-6" stroke="' + liChevColor + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
       var liNeonChrome = liSurfRoot === 'neon' && liTheme !== 'dark'
@@ -2275,7 +2413,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         '<div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;overflow:hidden;">' +
           '<div style="display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden;">' +
             '<span style="font-size:15px;font-weight:600;color:' + liTitleColor + ';overflow:hidden;text-overflow:ellipsis;">' + title + '</span>' +
-            (time ? '<span style="font-size:12px;font-weight:400;color:' + liTimeColor + ';flex-shrink:0;">' + time + '</span>' : '') +
+            (time ? '<span style="font-size:13px;font-weight:400;color:' + liTimeColor + ';flex-shrink:0;">' + time + '</span>' : '') +
           '</div>' +
           (subtitle
             ? '<div style="font-size:14px;font-weight:400;color:' + liSubColor + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">' + subtitle + '</div>'
@@ -2356,13 +2494,15 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           read: 'book', ingredients: 'book', list: 'book', cookbook: 'book',
           run: 'pin', runner: 'pin', jogging: 'pin', hike: 'pin', hiking: 'pin',
           trail: 'pin', 'checkmark': 'check', tick: 'check',
-          help: 'search', info: 'search'
+          help: 'search', info: 'search',
+          more: 'more-vertical', 'more-options': 'more-vertical', overflow: 'more-vertical', menu: 'more-vertical'
         };
         return aliases[k] || k;
       }
       // Inline glyph set for action chips. Compact 16×16 icons — currentColor.
       var ACTION_ICONS = {
         bookmark:    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 4v17l6-4 6 4V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+        'more-vertical': '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>',
         share:       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="6" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="6" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="18" r="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M8.2 11l7.6-4M8.2 13l7.6 4" stroke="currentColor" stroke-width="1.8"/></svg>',
         edit:        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M16 3l5 5-12 12H4v-5L16 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
         trash:       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
@@ -2417,6 +2557,53 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       }
       var actionRowSkin = _themeSurfaceStyleRoot();
       var actionRowNeon = actionRowSkin === 'neon';
+
+      // One UI Theme=Dark floating tool bar — Figma: 282×53, pad 6, radius 79,
+      // rgba(23,23,26,0.6), blur 14px, row of icon+label columns.
+      var floatingPill =
+        av.layout === 'floating-pill' ||
+        av.layout === 'floating-bar' ||
+        av.style === 'floating-bar' ||
+        av.style === 'floating-pill';
+      if (floatingPill && actions && actions.length) {
+        var fpW = av.width != null ? Number(av.width) : 282;
+        var fpH = av.height != null ? Number(av.height) : 53;
+        if (!Number.isFinite(fpW) || fpW <= 0) fpW = 282;
+        if (!Number.isFinite(fpH) || fpH <= 0) fpH = 53;
+        var fpPad = av.padding != null ? Number(av.padding) : 6;
+        var fpRad = av.borderRadius != null ? Number(av.borderRadius) : 79;
+        var fpBlur = av.blur != null ? Number(av.blur) : 14;
+        var fpBg = av.background || (av.theme === 'light' ? 'rgba(255,255,255,0.92)' : 'rgba(23,23,26,0.6)');
+        var fpShadow = av.boxShadow || '0px 7px 16.2px rgba(0,0,0,0.25)';
+        var fpFg = av.foreground || (av.theme === 'light' ? '#1a1a1a' : '#ffffff');
+        var fpSlots = [];
+        for (var fp = 0; fp < actions.length; fp++) {
+          var fact = actions[fp] || {};
+          var fpLbl = _escActionLbl(fact.label || fact.name || '');
+          if (!fpLbl) continue;
+          var fpIcon = _renderActionIcon(fact.icon, fact);
+          fpSlots.push(
+            '<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:' + fpFg + ';">' +
+              '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex-shrink:0;line-height:0;">' +
+                (fpIcon
+                  ? '<span style="display:inline-flex;transform:scale(1.2);transform-origin:center;">' + fpIcon + '</span>'
+                  : '') +
+              '</span>' +
+              '<span style="font-size:10px;font-weight:500;line-height:1.15;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;">' + fpLbl + '</span>' +
+            '</div>'
+          );
+        }
+        if (fpSlots.length) {
+          return '<div style="width:100%;max-width:' + fpW + 'px;min-height:' + fpH + 'px;height:' + fpH + 'px;box-sizing:border-box;margin:0 auto;' +
+            'display:flex;flex-direction:row;justify-content:center;align-items:center;' +
+            'padding:' + fpPad + 'px;border-radius:' + fpRad + 'px;' +
+            'background:' + fpBg + ';box-shadow:' + fpShadow + ';' +
+            '-webkit-backdrop-filter:blur(' + fpBlur + 'px);backdrop-filter:blur(' + fpBlur + 'px);' +
+            'color:' + fpFg + ';font-family:var(--font);">' +
+            fpSlots.join('') +
+          '</div>';
+        }
+      }
 
       // Data-driven chip row — real `actions[]` from the pipeline. The old
       // Figma gallery mock is opt-in via `variant.previewGallery` (theme
@@ -2528,13 +2715,56 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       '</div>';
     }
 
-    case 'focus-block-group':
-      return '<div style="width:100%;height:100%;display:grid;grid-template-columns:1fr 1fr;gap:' + _S('lg') + ';">' +
-        '<div style="border-radius:' + _R('widget') + ';' + _G('widgetPill') + '"></div>' +
-        '<div style="border-radius:' + _R('widget') + ';' + _G('widgetPill') + '"></div>' +
-        '<div style="border-radius:' + _R('widget') + ';' + _G('widgetPill') + '"></div>' +
-        '<div style="border-radius:' + _R('widget') + ';' + _G('widgetPill') + '"></div>' +
+    case 'focus-block-group': {
+      // “Main topic” summary grid — 3×N charcoal tiles, label + count (minimal info).
+      // variant.items | variant.tiles | content.items: [{ title|label, value|count }, …]
+      var fgv = (comp && comp.variant) || {};
+      var fgc = (comp && comp.content) || {};
+      var rawItems = Array.isArray(fgv.items) ? fgv.items
+        : Array.isArray(fgv.tiles) ? fgv.tiles
+          : Array.isArray(fgc.items) ? fgc.items : null;
+      var cols = fgv.columns != null ? Math.max(2, Math.min(4, +fgv.columns)) : 3;
+      if (!Number.isFinite(cols)) cols = 3;
+      var gapPx = fgv.gap != null ? +fgv.gap : 10;
+      if (!Number.isFinite(gapPx) || gapPx < 0) gapPx = 10;
+      var items = rawItems && rawItems.length ? rawItems.slice(0, 12) : [
+        { label: 'Scheduled', value: '1' },
+        { label: 'Inbox', value: '3' },
+        { label: 'Tasks', value: '5' },
+        { label: 'Music', value: '2' },
+        { label: 'Transit', value: '1' },
+        { label: 'Health', value: '4' }
+      ];
+      var tsDotsFg =
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+          '<circle cx="9" cy="9" r="2.2" fill="currentColor"/>' +
+          '<circle cx="15" cy="9" r="2.2" fill="currentColor"/>' +
+          '<circle cx="9" cy="15" r="2.2" fill="currentColor"/>' +
+          '<circle cx="15" cy="15" r="2.2" fill="currentColor"/>' +
+        '</svg>';
+      var tileBg = fgv.tileBg || 'rgba(44,44,46,0.98)';
+      var tileRad = fgv.tileRadius != null ? +fgv.tileRadius : 26;
+      if (!Number.isFinite(tileRad) || tileRad <= 0) tileRad = 26;
+      var tilesHtml = items.map(function (it) {
+        it = it || {};
+        var lb = String(it.label || it.title || it.name || '—')
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        var vl = String(it.value != null ? it.value : (it.count != null ? it.count : '0'))
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        return '<div style="min-height:88px;border-radius:' + tileRad + 'px;background:' + tileBg + ';' +
+          'padding:14px 14px 12px;box-sizing:border-box;color:#fff;font-family:var(--font);' +
+          'display:flex;flex-direction:column;justify-content:space-between;">' +
+          '<div style="display:flex;justify-content:flex-start;line-height:0;opacity:0.95;">' + tsDotsFg + '</div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:6px;">' +
+            '<span style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + lb + '</span>' +
+            '<span style="font-size:15px;font-weight:600;flex-shrink:0;">' + vl + '</span>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      return '<div style="width:100%;box-sizing:border-box;display:grid;grid-template-columns:repeat(' + cols + ',1fr);gap:' + gapPx + 'px;">' +
+        tilesHtml +
       '</div>';
+    }
 
     case 'list':
     case 'notification-list':
@@ -2682,7 +2912,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
 
       return '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">' +
         iconHTML +
-        '<div style="font-size:10px;font-weight:500;color:var(--text-primary,#fff);line-height:1.35;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px 1px;">' + app + '</div>' +
+        '<div style="font-size:13px;font-weight:500;color:var(--text-primary,#fff);line-height:1.35;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px 1px;">' + app + '</div>' +
       '</div>';
     }
 
@@ -2837,7 +3067,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       return '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;' +
         'padding-top:4px;box-sizing:border-box;color:var(--text-primary,#fff);font-family:var(--font);overflow:visible;">' +
         circle +
-        '<div style="font-size:11px;font-weight:500;text-align:center;line-height:1.25;max-width:86px;' +
+        '<div style="font-size:13px;font-weight:500;text-align:center;line-height:1.25;max-width:86px;' +
           'margin-top:8px;white-space:normal;word-break:keep-all;color:var(--text-secondary,rgba(255,255,255,0.92));">' + label + '</div>' +
       '</div>';
     }
@@ -2971,36 +3201,41 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         'border-radius:53px;color:var(--text-primary,#fff);font-family:var(--font);overflow:hidden;position:relative;';
 
       if (nbType === 'media') {
-        // Song title scrolls as a marquee. Earlier revisions used a
-        // hardcoded "Never Gonna Give You Up · Rick Astley (1987)"
-        // default that leaked into production screens when the AI
-        // didn't supply a marquee (the "Astley (1987)" tail visible
-        // on every music lockscreen generation). Now: if marquee isn't
-        // set, build it from the actual content (title · artist · album),
-        // falling back to just the title. Only use "Now playing" as a
-        // last-ditch placeholder when literally nothing is emitted —
-        // better than a wrong song name.
-        var mSong    = nbv.title || nbv.song || 'Now playing';
-        var mMarquee = nbv.marquee
-          || [nbv.title || nbv.song, nbv.artist, nbv.album].filter(Boolean).join(' \u00B7 ')
-          || mSong;
-        var mImgBg   = nbv.imgBg || '#5b53c8';
-        return '<div style="width:100%;' + common + _G('widgetPill') + 'padding:5px 12px;gap:8px;color:var(--text-primary,#fff);">' +
-          '<div style="width:40px;height:40px;border-radius:37px;background:' + mImgBg + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);">' +
-            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/></svg>' +
-          '</div>' +
-          '<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:10px;">' +
-            // Marquee container: fixed 164 width, overflow-hidden, inner track animates
-            '<div style="width:164px;height:14px;overflow:hidden;position:relative;mask-image:linear-gradient(to right,transparent 0,#000 8px,#000 calc(100% - 8px),transparent 100%);">' +
-              '<div class="nowbar-marquee-track" style="position:absolute;top:0;left:0;white-space:nowrap;font-size:14px;font-weight:600;line-height:14px;color:var(--text-primary,#fff);animation:nowbar-marquee 14s linear infinite;">' +
-                '<span style="padding-right:32px;">' + mMarquee + '</span>' +
-                '<span style="padding-right:32px;">' + mMarquee + '</span>' +
-              '</div>' +
-            '</div>' +
-            '<div style="display:flex;align-items:center;gap:15px;color:var(--text-primary,#fff);">' +
-              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18 5L8 12l10 7V5z" fill="currentColor"/><rect x="5" y="5" width="2" height="14" fill="currentColor"/></svg>' +
-              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="7" y="5" width="3.5" height="14" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" fill="currentColor"/></svg>' +
-              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6 5l10 7-10 7V5z" fill="currentColor"/><rect x="17" y="5" width="2" height="14" fill="currentColor"/></svg>' +
+        // Figma "Type=Media Player" — compact pill: 248×64, padding 5×12,
+        // gap 8, teal glass rgba(3,78,110,0.8), blur 12px, radius 38px.
+        // Two static ellipsis lines for title + artist — marquee + mask clipped
+        // track/artist names in the bottom-docked bar.
+        var mSong = nbv.title || nbv.song || 'Now playing';
+        var mArtist = String(nbv.artist || nbv.album || '').trim();
+        var mTitleEsc = _escHtmlText(mSong);
+        var mArtistEsc = _escHtmlText(mArtist);
+        var mImgBg   = nbv.imgBg || '#0d4a66';
+        var mImgRaw  = String(nbv.imageUrl || nbv.coverUrl || nbv.albumArt || '').trim();
+        var mImgEsc  = mImgRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        var mArt = mImgEsc
+          ? '<img src="' + mImgEsc + '" alt="" referrerpolicy="no-referrer" style="width:40px;height:40px;border-radius:50%;flex-shrink:0;object-fit:cover;display:block;background:rgba(0,0,0,0.15);"/>'
+          : '<div style="width:40px;height:40px;border-radius:50%;background:' + mImgBg + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;">' +
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/></svg>' +
+            '</div>';
+        var mediaChrome = 'width:248px;max-width:100%;margin:0 auto;min-height:68px;height:auto;box-sizing:border-box;' +
+          'display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:38px;' +
+          'background:rgba(3,78,110,0.8);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);' +
+          'border:1px solid rgba(255,255,255,0.14);color:#fff;font-family:var(--font);overflow:hidden;position:relative;';
+        var mTextStack =
+          '<div style="width:100%;min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;">' +
+            '<div style="font-size:14px;font-weight:600;line-height:1.15;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mTitleEsc + '</div>' +
+            (mArtistEsc
+              ? '<div style="font-size:12px;font-weight:500;line-height:1.15;color:rgba(255,255,255,0.88);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mArtistEsc + '</div>'
+              : '') +
+          '</div>';
+        return '<div data-now-bar-shell="1" style="' + mediaChrome + '">' +
+          mArt +
+          '<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:6px;">' +
+            mTextStack +
+            '<div style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%;color:#fff;">' +
+              '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 5L8 12l10 7V5z" fill="currentColor"/><rect x="5" y="5" width="2" height="14" fill="currentColor"/></svg>' +
+              '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="7" y="5" width="3.5" height="14" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" fill="currentColor"/></svg>' +
+              '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 5l10 7-10 7V5z" fill="currentColor"/><rect x="17" y="5" width="2" height="14" fill="currentColor"/></svg>' +
             '</div>' +
           '</div>' +
         '</div>';
@@ -3064,9 +3299,35 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       if (nbType === 'dual-line' || nbType === 'delivery') {
         var dlTitle    = nbv.title    || nbv.label   || '8min away';
         var dlSubtitle = nbv.subtitle || nbv.sub     || nbv.value || 'Arrives 9:45 - 9:50';
-        var dlApp      = nbv.app      || nbv.service || nbv.iconLabel || 'Uber Eats';
-        var dlIconBg   = nbv.iconBg   || '#35D466';
-        var dlTrail    = nbv.trailing || nbv.trailingIcon || 'car';
+        var dlCombined = String(dlTitle) + ' ' + String(dlSubtitle);
+        var dlLc       = dlCombined.toLowerCase();
+        // Safety net: track-style copy ("Artist · Album") must not use delivery stubs (Uber + car).
+        var dlSmellsMusic =
+          /[·•]/.test(dlCombined) &&
+          !/\b(away|arriv(es|ing)?|delivery|order(\s+is)?\s+on|\d+\s*min.*away)\b/i.test(dlLc);
+        var dlApp      = nbv.app      || nbv.service || nbv.iconLabel || (dlSmellsMusic ? '' : 'Uber Eats');
+        var dlIconBg   = nbv.iconBg   || (dlSmellsMusic ? '#5b53c8' : '#35D466');
+        var dlTrail    = nbv.trailing || nbv.trailingIcon || (dlSmellsMusic ? 'none' : 'car');
+        if (dlSmellsMusic) {
+          return '<div style="width:100%;' + common + _G('widgetPill') + 'padding:5px 12px;gap:8px;color:var(--text-primary,#fff);">' +
+            '<div style="width:40px;height:40px;border-radius:37px;background:' + dlIconBg + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text-primary,#fff);">' +
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/></svg>' +
+            '</div>' +
+            '<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:10px;">' +
+              '<div style="width:164px;height:14px;overflow:hidden;position:relative;mask-image:linear-gradient(to right,transparent 0,#000 8px,#000 calc(100% - 8px),transparent 100%);">' +
+                '<div class="nowbar-marquee-track" style="position:absolute;top:0;left:0;white-space:nowrap;font-size:14px;font-weight:600;line-height:14px;color:var(--text-primary,#fff);animation:nowbar-marquee 14s linear infinite;">' +
+                  '<span style="padding-right:32px;">' + dlTitle + ' · ' + dlSubtitle + '</span>' +
+                  '<span style="padding-right:32px;">' + dlTitle + ' · ' + dlSubtitle + '</span>' +
+                '</div>' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:15px;color:var(--text-primary,#fff);">' +
+                '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18 5L8 12l10 7V5z" fill="currentColor"/><rect x="5" y="5" width="2" height="14" fill="currentColor"/></svg>' +
+                '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="7" y="5" width="3.5" height="14" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" fill="currentColor"/></svg>' +
+                '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6 5l10 7-10 7V5z" fill="currentColor"/><rect x="17" y="5" width="2" height="14" fill="currentColor"/></svg>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }
         var dlTrailSvg = dlTrail === 'none' ? '' :
           '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex:none;opacity:0.78;">' +
             '<path d="M5 17h14M7 17l1.45-5h7.1L17 17M6 17v2M18 17v2" stroke="#848487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>' +
@@ -3255,7 +3516,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
               '<path d="M4 10v4h3l4 3.5V6.5L7 10H4z" fill="currentColor"/>' +
               '<path d="M14 9.5a3.5 3.5 0 0 1 0 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/>' +
             '</svg>' +
-            '<span style="font-size:12px;font-weight:400;color:var(--text-primary,#fff);white-space:nowrap;">' + mhOutput + '</span>' +
+            '<span style="font-size:13px;font-weight:400;color:var(--text-primary,#fff);white-space:nowrap;">' + mhOutput + '</span>' +
           '</div>' +
           // 2) Song title row (play-triangle + "No Media Playing")
           '<div style="display:flex;align-items:center;gap:6px;justify-content:center;">' +
@@ -3275,37 +3536,59 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
     }
 
     case 'media-card': {
-      // Full media player (background image + title + progress + 5 controls).
+      // Samsung Music–style media surface — ~415×180, padding 14/29, gap 10,
+      // radius 36, charcoal + optional cover (else vinyl-style placeholder).
       var mcv = (comp && comp.variant) || {};
       var mTitle = mcv.title  || 'Title';
       var mArtist = mcv.artist || 'Artist';
       var mService = mcv.service || 'Samsung Music';
-      return '<div style="width:100%;height:auto;min-height:232px;max-height:none;aspect-ratio:408 / 180;border-radius:' + _R('dialog') + ';padding:14px 29px;box-sizing:border-box;color:#fff;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(135deg,#2A1A5E,#1A0A3E 60%,#3A1A6E);overflow:hidden;position:relative;">' +
+      var mOut = mcv.output || 'Phone speaker';
+      var mLeft = mcv.elapsed || mcv.left || '02:41';
+      var mRight = mcv.remaining || mcv.right || '03:24';
+      var mPct = mcv.percent != null ? Number(mcv.percent) : 45;
+      if (mPct < 0) mPct = 0;
+      if (mPct > 100) mPct = 100;
+      var mCoverRaw = String(mcv.imageUrl || mcv.coverUrl || mcv.albumArt || '').trim();
+      var mCoverEsc = mCoverRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+      var mBg = mCoverEsc
+        ? 'background-image:linear-gradient(180deg,rgba(0,0,0,0.5) 0%,rgba(0,0,0,0.62) 100%),url(' + mCoverEsc + ');background-size:cover,cover;background-position:center,center;background-repeat:no-repeat;'
+        : 'background-color:#2b2b2b;background-image:' +
+            'radial-gradient(ellipse 85% 75% at 50% 48%,rgba(255,255,255,0.07) 0%,transparent 58%),' +
+            'repeating-radial-gradient(circle at 50% 50%,transparent 0 5px,rgba(255,255,255,0.035) 5px 6px);';
+      return '<div style="width:100%;max-width:415px;min-width:min(400px,100%);height:180px;min-height:180px;border-radius:36px;padding:14px 29px;box-sizing:border-box;color:#fff;display:flex;flex-direction:column;align-items:stretch;gap:10px;' +
+        mBg + 'overflow:hidden;position:relative;font-family:var(--font);">' +
         // Service + output row
         '<div style="display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">' +
-          '<div style="display:flex;align-items:center;gap:6px;font-size:12px;letter-spacing:0.24px;">' +
+          '<div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;letter-spacing:0.02em;">' +
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M8 5v12a3 3 0 1 1-3-3m3 0V7l11-3v10a3 3 0 1 1-3-3m3 0V7" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-            '<span>' + mService + '</span>' +
+            '<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mService + '</span>' +
           '</div>' +
-          '<div style="background:rgba(0,0,0,0.2);border-radius:16px;padding:4px 8px;font-size:10px;display:flex;align-items:center;gap:4px;">' +
-            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="2" stroke="#fff" stroke-width="1.5"/></svg>' +
-            '<span>Phone speaker</span>' +
+          '<div style="background:rgba(0,0,0,0.28);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:400;display:flex;align-items:center;gap:5px;max-width:52%;">' +
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><rect x="6" y="3" width="12" height="18" rx="2" stroke="#fff" stroke-width="1.5"/></svg>' +
+            '<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mOut + '</span>' +
           '</div>' +
         '</div>' +
         // Title + artist
-        '<div style="display:flex;flex-direction:column;gap:2px;">' +
-          '<div style="font-size:14px;font-weight:500;letter-spacing:0.28px;">' + mTitle + '</div>' +
-          '<div style="font-size:12px;color:rgba(255,255,255,0.75);letter-spacing:0.24px;">' + mArtist + '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:3px;min-height:0;">' +
+          '<div style="font-size:16px;font-weight:600;letter-spacing:0.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mTitle + '</div>' +
+          '<div style="font-size:13px;color:rgba(255,255,255,0.72);letter-spacing:0.02em;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mArtist + '</div>' +
         '</div>' +
-        // Progress
-        '<div style="display:flex;flex-direction:column;gap:3px;">' +
-          '<div style="height:3px;background:rgba(255,255,255,0.25);border-radius:2px;position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;width:45%;background:#fff;border-radius:2px;"></div><div style="position:absolute;left:45%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 6px rgba(255,255,255,0.5);"></div></div>' +
-          '<div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.75);letter-spacing:0.2px;">' +
-            '<span>02:41</span><span>03:24</span>' +
+        // Progress — elapsed segment reads as a soft “wave” (SVG), remainder flat
+        '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">' +
+          '<div style="height:10px;position:relative;display:flex;align-items:center;padding:0 6px;box-sizing:border-box;">' +
+            '<div style="flex:1;height:3px;background:rgba(255,255,255,0.22);border-radius:2px;position:relative;min-width:0;">' +
+              '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 8" preserveAspectRatio="none" style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:' + mPct + '%;height:8px;overflow:visible;display:block;">' +
+                '<path d="M0 4 Q6.25 1 12.5 4 T25 4 T37.5 4 T50 4 T62.5 4 T75 4 T87.5 4 T100 4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' +
+              '</svg>' +
+              '<div style="position:absolute;left:' + mPct + '%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,0.35);"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:13px;color:rgba(255,255,255,0.72);">' +
+            '<span>' + mLeft + '</span><span>' + mRight + '</span>' +
           '</div>' +
         '</div>' +
         // Controls (shuffle / prev / pause / next / heart)
-        '<div style="display:flex;justify-content:space-between;align-items:center;padding:0 4px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px;margin-top:auto;flex-shrink:0;">' +
           '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 7h3l3 3m6-3h4l-2-2m2 2l-2 2M3 17h3l8-10h4l-2 2m2-2l-2-2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
           '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 5L8 12l10 7V5z" fill="#fff"/><rect x="5" y="5" width="2" height="14" fill="#fff"/></svg>' +
           '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="7" y="5" width="3.5" height="14" fill="#fff"/><rect x="13.5" y="5" width="3.5" height="14" fill="#fff"/></svg>' +
@@ -3384,7 +3667,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         '<div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;overflow:hidden;">' +
           '<div style="display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden;">' +
             '<span style="font-size:15px;font-weight:600;color:' + ncTitleColor + ';overflow:hidden;text-overflow:ellipsis;">' + ncTitle + '</span>' +
-            (ncTime ? '<span style="font-size:12px;font-weight:400;color:' + ncTimeColor + ';flex-shrink:0;">' + ncTime + '</span>' : '') +
+            (ncTime ? '<span style="font-size:13px;font-weight:400;color:' + ncTimeColor + ';flex-shrink:0;">' + ncTime + '</span>' : '') +
           '</div>' +
           (ncShowSub
             ? '<div style="font-size:14px;font-weight:400;color:' + ncSubColor + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">' + ncBody + '</div>'
@@ -3448,7 +3731,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
           (aiTitle || aiTime
             ? '<div style="display:flex;gap:8px;align-items:baseline;white-space:nowrap;overflow:hidden;">' +
                 (aiTitle ? '<span style="font-size:15px;font-weight:600;color:' + aiTitleColor + ';">' + aiTitle + '</span>' : '') +
-                (aiTime  ? '<span style="font-size:12px;color:' + aiTimeColor + ';">' + aiTime + '</span>'   : '') +
+                (aiTime  ? '<span style="font-size:13px;color:' + aiTimeColor + ';">' + aiTime + '</span>'   : '') +
               '</div>'
             : '') +
           (aiSub
@@ -3463,21 +3746,57 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       // Small pill — media device indicator ("Phone speaker").
       var ocv = (comp && comp.variant) || {};
       var ocLabel = ocv.label || 'Phone speaker';
-      return '<div style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(0,0,0,0.35);border-radius:16px;font-size:11px;color:#fff;white-space:nowrap;margin:auto;">' +
+      return '<div style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(0,0,0,0.35);border-radius:16px;font-size:13px;color:#fff;white-space:nowrap;margin:auto;">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="2" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="17" r="1" fill="#fff"/></svg>' +
         '<span>' + ocLabel + '</span>' +
       '</div>';
     }
 
     case 'progress-track': {
-      // Time progress bar with left/right timestamps.
+      // Default: bar + timestamps. variant.layout === 'music-strip' → Figma
+      // music row (353×24 ref): column, padding 0, track fill 100%, ~24px tall.
       var ptv = (comp && comp.variant) || {};
       var left  = ptv.left  || '02:41';
       var right = ptv.right || '03:24';
-      var ptPct = ptv.percent != null ? ptv.percent : 45;
+      var ptPct = ptv.percent != null ? Number(ptv.percent) : 45;
+      if (!Number.isFinite(ptPct)) ptPct = 45;
+      if (ptPct < 0) ptPct = 0;
+      if (ptPct > 100) ptPct = 100;
+      var musicStrip = ptv.layout === 'music-strip' || ptv.layout === 'music_slider' || ptv.kind === 'music-strip';
+      if (musicStrip) {
+        var isLight = ptv.theme === 'light';
+        var trackBg = isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.22)';
+        var fillCol = isLight ? '#1a1a1a' : '#fff';
+        var thumbCol = fillCol;
+        var maxW = ptv.maxWidth != null ? Number(ptv.maxWidth) : 353;
+        var stripH = ptv.height != null ? Number(ptv.height) : 24;
+        if (!Number.isFinite(maxW) || maxW <= 0) maxW = 353;
+        if (!Number.isFinite(stripH) || stripH <= 0) stripH = 24;
+        var gapStack = ptv.stackGap != null ? Number(ptv.stackGap) : (ptv.gap != null ? Number(ptv.gap) : 0);
+        if (!Number.isFinite(gapStack) || gapStack < 0) gapStack = 0;
+        var showWave = ptv.wave === true || ptv.wave === '1' || ptv.style === 'wave';
+        var trackFill = showWave
+          ? '<div style="width:100%;height:' + Math.min(10, Math.max(4, stripH - 6)) + 'px;position:relative;display:flex;align-items:center;flex-shrink:0;padding:0 5px;box-sizing:border-box;">' +
+              '<div style="flex:1;height:4px;background:' + trackBg + ';border-radius:4px;position:relative;min-width:0;">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 8" preserveAspectRatio="none" style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:' + ptPct + '%;height:8px;overflow:visible;display:block;">' +
+                  '<path d="M0 4 Q6.25 1 12.5 4 T25 4 T37.5 4 T50 4 T62.5 4 T75 4 T87.5 4 T100 4" stroke="' + fillCol + '" stroke-width="2" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' +
+                '</svg>' +
+                '<div style="position:absolute;left:' + ptPct + '%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:' + thumbCol + ';box-shadow:0 1px 4px rgba(0,0,0,0.2);"></div>' +
+              '</div>' +
+            '</div>'
+          : '<div style="width:100%;padding:0 5px;box-sizing:border-box;flex-shrink:0;">' +
+              '<div style="height:4px;background:' + trackBg + ';border-radius:4px;position:relative;">' +
+                '<div style="position:absolute;left:0;top:0;bottom:0;width:' + ptPct + '%;background:' + fillCol + ';border-radius:4px;"></div>' +
+                '<div style="position:absolute;left:' + ptPct + '%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:' + thumbCol + ';box-shadow:0 1px 4px rgba(0,0,0,0.2);"></div>' +
+              '</div>' +
+            '</div>';
+        return '<div style="width:100%;max-width:' + maxW + 'px;height:' + stripH + 'px;box-sizing:border-box;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:0;gap:' + gapStack + 'px;font-family:var(--font);">' +
+          trackFill +
+        '</div>';
+      }
       return '<div style="width:100%;height:100%;display:flex;flex-direction:column;gap:3px;justify-content:center;padding:0 4px;box-sizing:border-box;">' +
-        '<div style="height:3px;background:rgba(255,255,255,0.25);border-radius:2px;position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;width:' + ptPct + '%;background:#fff;border-radius:2px;"></div><div style="position:absolute;left:' + ptPct + '%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;"></div></div>' +
-        '<div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.75);">' +
+        '<div style="padding:0 5px;box-sizing:border-box;"><div style="height:3px;background:rgba(255,255,255,0.25);border-radius:2px;position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;width:' + ptPct + '%;background:#fff;border-radius:2px;"></div><div style="position:absolute;left:' + ptPct + '%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;"></div></div></div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:13px;color:rgba(255,255,255,0.75);">' +
           '<span>' + left + '</span><span>' + right + '</span>' +
         '</div>' +
       '</div>';
@@ -3634,7 +3953,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
       var uhv = (comp && comp.variant) || {};
       var uhText = uhv.text != null ? uhv.text : 'Swipe up to unlock';
       var uhArrow = uhv.showArrow !== false;
-      return '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:rgba(255,255,255,0.8);font-family:var(--font);font-size:12px;font-weight:500;text-shadow:0 1px 4px rgba(0,0,0,0.35);">' +
+      return '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:rgba(255,255,255,0.8);font-family:var(--font);font-size:13px;font-weight:500;text-shadow:0 1px 4px rgba(0,0,0,0.35);">' +
         (uhArrow
           ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="color:rgba(255,255,255,0.7);"><path d="M7 15l5-5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
           : '') +
@@ -3864,7 +4183,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         '</div>' +
         '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;overflow:hidden;">' +
           '<div style="font-size:14px;font-weight:600;line-height:1.2;">' + cpTitle + '</div>' +
-          (cpSub ? '<div style="font-size:11px;line-height:1.3;opacity:0.75;">' + cpSub + '</div>' : '') +
+          (cpSub ? '<div style="font-size:13px;line-height:1.3;opacity:0.75;">' + cpSub + '</div>' : '') +
         '</div>' +
         rightBlock +
       '</div>';
@@ -3898,7 +4217,7 @@ window.renderAtomicForRole = function renderAtomicForRole(comp, rect) {
         '<div style="width:40px;height:40px;border-radius:50%;background:#d5d5d5;flex-shrink:0;display:flex;align-items:center;justify-content:center;">' + qatSvg + '</div>' +
         '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;overflow:hidden;">' +
           '<div style="font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + qatTitle + '</div>' +
-          '<div style="font-size:11px;line-height:1.3;opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + qatSub + '</div>' +
+          '<div style="font-size:13px;line-height:1.3;opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + qatSub + '</div>' +
         '</div>' +
       '</div>';
     }

@@ -1,7 +1,7 @@
 {
   "_version": 1,
   "_doc": "Theme presets — each entry is a bundle of CSS variable values that get applied to :root via the customize page. Themes affect both the page chrome and the rendered cards. Custom themes can be added through /customize → Save as Custom.",
-  "_active": "flat",
+  "_active": "grain",
   "themes": [
     {
       "id": "default",

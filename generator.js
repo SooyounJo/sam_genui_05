@@ -2945,7 +2945,7 @@ function statusBar(opts) {
   var o = opts || {};
   var theme = o.theme || 'dark';
   var color = (theme === 'dark') ? 'rgba(255,255,255,0.9)' : '#1a1a1a';
-  return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 16px;height:30px;font-size:12px;font-weight:600;color:' + color + ';"><span>' + (o.time || '9:41') + '</span><span>●●● ▲ ▮▮</span></div>';
+  return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 16px;height:30px;font-size:13px;font-weight:600;color:' + color + ';"><span>' + (o.time || '9:41') + '</span><span>●●● ▲ ▮▮</span></div>';
 }
 
 // ===========================================================================
@@ -3003,7 +3003,7 @@ var FALLBACK_RULES = {
     family: { system: "'One UI Sans APP VF', Inter, sans-serif",
               clock:  "'Space Grotesk', Inter, sans-serif" },
     weight: { regular: 400, medium: 500, semibold: 600, bold: 700 },
-    size:   { caption: 12, label: 14, body: 15, title: 16, heading: 18 },
+    size:   { caption: 13, label: 14, body: 15, title: 16, heading: 18 },
     color:  { primary: '#FFFFFF', secondary: '#CFCCCF', statusBar: 'rgba(255,255,255,0.8)' }
   },
   glass: {

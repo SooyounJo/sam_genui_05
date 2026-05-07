@@ -378,7 +378,7 @@ Figma export values often contain sub-pixel noise (e.g. `63.636px`, `51.666px`, 
 | **Spacing (4dp)** | 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64 | gap / padding / margin |
 | **Size (4dp ⊇ 8dp)** | 24, 32, 40, 48, 56, 64, 72, 88, 96, 128 | icon/tile size |
 | **Radius (One UI radii)** | 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 50(pill) | cornerRadius |
-| **Type scale** | 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 48, 64, 96, 112 | font-size |
+| **Type scale** | 13, 14, 16, 18, 20, 24, 28, 32, 48, 64, 96, 112 | font-size |
 | **Weight** | 400, 500, 600, 700 | fontWeight |
 | **Touch target (min)** | 48 × 48 | interactive |
 

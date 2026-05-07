@@ -723,6 +723,14 @@
               <span>Output log</span>
             </label>
 
+            <details class="genui-user-supplements-details" title="Optional JSON merged into the pipeline after the model runs (music row, uiState, slots)." style="flex-basis:100%;margin-top:6px;border-radius:8px;border:1px solid var(--divider);background:rgba(255,255,255,0.02);padding:8px 10px;">
+              <summary style="cursor:pointer;user-select:none;font-size:11px;color:var(--text-2);font-weight:600;">고급: userSupplements (JSON)</summary>
+              <p style="margin:8px 0 6px;font-size:10px;color:var(--text-3);line-height:1.45;">모델 결과 뒤에 <code style="font-size:10px;">병합</code>됩니다. 예: <code style="font-size:10px;">nowPlaying</code>, <code style="font-size:10px;">uiState</code>(바텀시트), <code style="font-size:10px;">contentBySlot</code>, <code style="font-size:10px;">layoutPlan.floatingSheetTheme</code>.</p>
+              <textarea id="genUserSupplements" rows="5" spellcheck="false"
+                placeholder='{"nowPlaying":{"title":"Blinding Lights","artist":"The Weeknd"},"uiState":{"overlayType":"system-dialog","backgroundPolicy":"dialog-surface","floatingSheetTheme":"light"},"layoutPlan":{"floatingSheetTheme":"light"}}'
+                style="width:100%;min-height:88px;border-radius:10px;border:1px solid var(--divider);background:var(--surface);color:var(--text);font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:1.35;padding:10px;box-sizing:border-box;resize:vertical;"></textarea>
+            </details>
+
             <button id="autoIterStopBtn" onclick="autoIterStop()" style="display:none;padding:6px 12px;border-radius:8px;background:rgba(239,68,68,0.15);color:#FCA5A5;border:1px solid rgba(239,68,68,0.35);font-size:11px;font-weight:600;cursor:pointer;">
               Stop
             </button>

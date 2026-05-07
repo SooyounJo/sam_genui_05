@@ -258,7 +258,7 @@
     if (idx === 2) {
       return '<div style="width:100%;height:100%;background:rgba(255,255,255,0.12);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.15);border-radius:' + ((comp.position.h || 55) / 2) + 'px;display:flex;align-items:center;padding:0 14px;color:#fff;box-sizing:border-box;gap:10px;">' +
                '<div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.85);color:#222;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">&#9741;</div>' +
-               '<div style="min-width:0;"><div style="font-size:13px;font-weight:600;">Bluetooth</div><div style="font-size:11px;opacity:0.65;">Josh\'s Watch7</div></div>' +
+               '<div style="min-width:0;"><div style="font-size:13px;font-weight:600;">Bluetooth</div><div style="font-size:13px;opacity:0.65;">Josh\'s Watch7</div></div>' +
              '</div>';
     }
     var glyph = idx === 0 ? '&#128246;' : '&#8597;';
@@ -283,7 +283,7 @@
     if (idx === 0 || idx === 3) {
       return '<div style="width:100%;height:100%;background:rgba(255,255,255,0.12);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.15);border-radius:' + ((comp.position.h || 60) / 2) + 'px;display:flex;align-items:center;padding:0 14px;color:#fff;box-sizing:border-box;gap:10px;">' +
                '<div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.85);color:#222;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">+</div>' +
-               '<div><div style="font-size:13px;font-weight:600;">Title</div><div style="font-size:11px;opacity:0.65;">Subtitle</div></div>' +
+               '<div><div style="font-size:13px;font-weight:600;">Title</div><div style="font-size:13px;opacity:0.65;">Subtitle</div></div>' +
              '</div>';
     }
     return '<div style="width:100%;height:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.08);border-radius:50%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.55);font-size:18px;">+</div>';
@@ -522,7 +522,7 @@
       badge.dataset.rulesBadge = '1';
       badge.textContent = 'RULES: ' + scenarioKey + ' (' + plan.components.length + ')';
       badge.style.cssText = 'position:absolute;left:8px;top:8px;padding:3px 8px;' +
-        'background:#0FCF6E;color:#000;font-size:9px;font-weight:700;' +
+        'background:#0FCF6E;color:#000;font-size:13px;font-weight:700;' +
         'border-radius:4px;z-index:999999;font-family:ui-monospace,monospace;pointer-events:none;';
       canvas.appendChild(badge);
     }
@@ -535,7 +535,7 @@
       inspect.title = 'Show/hide role, cluster, bounding box labels';
       inspect.style.cssText = 'position:absolute;right:8px;top:8px;padding:3px 10px;' +
         'background:rgba(15,207,110,0.15);color:#0FCF6E;border:1px solid #0FCF6E;' +
-        'font-size:10px;font-weight:600;border-radius:4px;z-index:999999;' +
+        'font-size:13px;font-weight:600;border-radius:4px;z-index:999999;' +
         'font-family:ui-monospace,monospace;cursor:pointer;';
       inspect.addEventListener('click', function (e) {
         e.stopPropagation();
@@ -562,7 +562,7 @@
 
   function fallbackHTML(role) {
     return '<div style="' + fillStyle() + centerFlex() +
-           'border:1px dashed rgba(255,255,255,0.25);color:rgba(255,255,255,0.6);font-size:10px;border-radius:6px;">' +
+           'border:1px dashed rgba(255,255,255,0.25);color:rgba(255,255,255,0.6);font-size:13px;border-radius:6px;">' +
            role + '</div>';
   }
 

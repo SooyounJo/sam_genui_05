@@ -127,8 +127,8 @@ Sky Blue · Ocean Blue · Teal · Lavender · Clover · Saffron · Coral
 | Body Large | SamsungOne | 16 | 18 | 400 | 1.50–1.55 |
 | Body | SamsungOne | 14 | 16 | 400 | 1.50 |
 | Button Text | SamsungOne | 14 | 14 | 700 | 1.43 |
-| Caption | SamsungOne | 12 | 14 | 400 | 1.43 |
-| Disclaimer | SamsungOne | 10 | 12 | 400 | 1.30–1.33 |
+| Caption | SamsungOne | 13 | 14 | 400 | 1.43 |
+| Disclaimer | SamsungOne | 13 | 13 | 400 | 1.30–1.33 |
 
 ### App Typography Scale (One UI 8.5 system surfaces)
 
@@ -147,10 +147,11 @@ Sky Blue · Ocean Blue · Teal · Lavender · Clover · Saffron · Coral
 | Label | 14 | 500 | 18 | Button labels, tab labels |
 | NowBar Title | 19 | 500 | — | Now Bar header text |
 | NowBar Subtitle | 15 | 500 | — | Now Bar metadata |
-| Caption | 12 | 400 | 16 | Timestamps, secondary metadata |
-| Activity Pill | 10 | 600 | — | LiveActivity status pill text (tracking 0.1) |
+| Caption | 13 | 400 | 16 | Timestamps, secondary metadata |
+| Activity Pill | 13 | 600 | — | LiveActivity status pill text (tracking 0.1) |
 
 ### Typography Principles
+- **Minimum UI copy (GenUI / handset canvas)**: do not use body or label text smaller than **13px/sp**; smaller sizes harm legibility and are disallowed for user-visible copy on device surfaces.
 - **Dual-font clarity**: SamsungSharpSans owns headlines; SamsungOne owns body/UI. Never mix roles.
 - **Weight discipline**: headlines at 700 only; body 400 with 600 emphasis. No weights below 400.
 - **Responsive scaling**: headlines compress 64→36, 56→28; body 18→16.

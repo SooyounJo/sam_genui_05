@@ -99,7 +99,7 @@ function _enterCompareView() {
     // Remove stale delete buttons from canvasB
     canvasB.querySelectorAll('.canvas-item-delete, .canvas-delete').forEach(btn => btn.remove());
   } else {
-    canvasB.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:12px;">Not generated</div>';
+    canvasB.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:13px;">Not generated</div>';
   }
   const frameA = document.getElementById('canvasFrame');
   frameB.className = frameA.className;
@@ -186,7 +186,7 @@ function _restoreVariant(v) {
   const frame = document.getElementById('canvasFrame');
   const data = variants[v];
   if (!data.generated) {
-    canvas.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:12px;text-align:center;padding:20px;">Variant ' + v + ' not generated yet</div>';
+    canvas.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:13px;text-align:center;padding:20px;">Variant ' + v + ' not generated yet</div>';
     return;
   }
   canvas.innerHTML = data.html;

@@ -215,7 +215,34 @@ const CONSTRAINT_FRAGMENTS = {
     typography: {
       display: { family: 'SamsungSharpSans', weight: 700 },
       body: { family: 'SamsungOne', weights: [400, 500, 600, 700] },
-      scale: { caption: 11, body: 13, subtitle: 15, title: 20, headline: 28, hero: 36 }
+      /** DESIGN.md § App Typography — sp/px; min on-device copy = caption. */
+      minPx: 13,
+      scale: {
+        caption: 13,
+        sectionLabel: 14,
+        label: 14,
+        tileSubtitle: 14,
+        statusLabel: 15,
+        nowBarSubtitle: 15,
+        body: 16,
+        tileTitle: 16,
+        title: 18,
+        nowBarTitle: 19,
+        subhead: 20,
+        headline: 22,
+        displaySmall: 34,
+        lockClock: 112
+      },
+      lineHeightPx: {
+        caption: 16,
+        label: 18,
+        body: 22,
+        title: 24,
+        headline: 28,
+        displaySmall: 40,
+        lockClock: 82
+      },
+      weight: { regular: 400, medium: 500, semibold: 600, bold: 700 }
     },
     motion: {
       static: { easing: 'cubic-bezier(0.22,0.25,0,1)', duration: '200-300ms' },
@@ -1012,13 +1039,16 @@ Content containers:
                        • kind=secondary → title + body paragraph (editorial)
                        • kind=widget    → title + value + sub (dashboard cell)
                        • (default)      → title + sub (single-source card)
-  focus-block-group    REQ content.items = [ {title, value, sub, accent?} … ].
-                       Each item renders as a kind=widget cell in a grid.
+  focus-block-group    Minimal “main topic” grid: variant.items or content.items =
+                       [{ title|label, value|count }, …]. OPT columns (2–4, default 3), gap (~10).
+                       Renders charcoal tiles (2×2 dot glyph, label + count). Use for organized /
+                       low-detail scenarios. Registry alias: theme_summary_grid.
   list-item            REQ content.title. OPT content.sub, content.icon,
                        content.trailing (right-side value/chevron).
   list                 REQ content.items = [{title, sub?, icon?}] (3+ items).
   paragraph            REQ content.body (1–3 sentences of real prose).
   action-row           REQ content.actions = [{label, icon?}] (2–4 items).
+                       OPT variant.layout=floating-pill (One UI dark glass bar: ~282×53, blur 14, radius 79) or variant.style=floating-bar.
 
 Media / live activity:
   now-bar              variant.type ∈ {media, timer, charging, navigation}.
@@ -1033,6 +1063,9 @@ Media / live activity:
                        content.image.
   media-half           REQ content.title. OPT content.sub (half-width media).
   progress-track       REQ content.value ∈ 0..100. OPT content.label.
+                       For music: variant.layout=music-strip (353×24 ref, track fill 100%);
+                       OPT variant.theme=light|dark, variant.wave=true (wave elapsed), variant.stackGap=20 if stacked with more rows in Figma parent.
+  music_progress_strip → progress-track; pass variant.layout: music-strip + content.value = 0..100.
 
 Notifications / AI:
   notif-card           variant.urgency ∈ {low, medium, high}. REQ content.title
@@ -4276,13 +4309,15 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req, res);
       if (body === null) return;  // 413 already sent
       const scenarioText = body.scenario_text || body.prompt || '';
+      const userSupplements = body.userSupplements || body.user_data || null;
 
       const planResult = await pipeline.runPlan({
         scenarioText,
         llmCall:           (sys, user) => callOpenAI(sys, user, 0.3),
         llmCallFast:       (sys, user) => callOpenAIFast(sys, user, 0.3),
         llmCallContentBag: (sys, user) => callOpenAIContentBag(sys, user, 0.5),
-        embedCall:         callOpenAIEmbedding
+        embedCall:         callOpenAIEmbedding,
+        userSupplements
       });
 
       const validation = pipeline.rollupValidationResults({
@@ -4311,13 +4346,15 @@ const server = http.createServer(async (req, res) => {
       if (body === null) return;  // 413 already sent
       const scenarioText = body.scenario_text || body.prompt || '';
       const viewport     = body.viewport || null;
+      const userSupplements = body.userSupplements || body.user_data || null;
 
       const planResult = await pipeline.runPlan({
         scenarioText,
         llmCall:           (sys, user) => callOpenAI(sys, user, 0.3),
         llmCallFast:       (sys, user) => callOpenAIFast(sys, user, 0.3),
         llmCallContentBag: (sys, user) => callOpenAIContentBag(sys, user, 0.5),
-        embedCall:         callOpenAIEmbedding
+        embedCall:         callOpenAIEmbedding,
+        userSupplements
       });
 
       const layoutResult = await pipeline.runComposeLayout({
@@ -4327,6 +4364,9 @@ const server = http.createServer(async (req, res) => {
         viewport,
         scenarioText
       });
+      if (userSupplements && userSupplements.layoutPlan && layoutResult.composed && layoutResult.composed.layoutPlan) {
+        pipeline.applyUserLayoutPlanHints(layoutResult.composed.layoutPlan, userSupplements.layoutPlan);
+      }
 
       const validation = pipeline.rollupValidationResults({
         planViolations:   planResult.planViolations,
@@ -4362,6 +4402,7 @@ const server = http.createServer(async (req, res) => {
     if (_body === null) return;  // 413 already sent
     const _scenarioText = _body.scenario_text || _body.prompt || '';
     const _viewport     = _body.viewport || null;
+    const _userSupplements = _body.userSupplements || _body.user_data || null;
     // fastMode (A+B+C from the speed-vs-detail tradeoff):
     //   A — trim verbose reasoning arrays (selectionReasoning,
     //       whyThisStructure, priorityPreservation, constraints) to
@@ -4496,6 +4537,12 @@ const server = http.createServer(async (req, res) => {
       ]);
       const { result: selResult, fallbacks: selFallbacks } = selPair;
       if (bagResult) pipeline.applyContentSwap(selResult.plan, bagResult);
+      pipeline.applyUserSupplements(
+        ipnResult.planningPacket,
+        ipnResult.interpretation,
+        selResult.plan,
+        _userSupplements
+      );
       try {
         await pipeline.finalizeAssistantPlanPostProcess(_scenarioText, ipnResult.planningPacket, selResult.plan);
       } catch (e) {
@@ -4528,6 +4575,10 @@ const server = http.createServer(async (req, res) => {
         scenarioText:   _scenarioText,
         fastMode:       _fastMode
       }));
+      if (_userSupplements && _userSupplements.layoutPlan &&
+          layoutResult.composed && layoutResult.composed.layoutPlan) {
+        pipeline.applyUserLayoutPlanHints(layoutResult.composed.layoutPlan, _userSupplements.layoutPlan);
+      }
       if (_fastMode) _fastTrim(layoutResult.composed);
       doneStep(2, {
         layoutPlan:       layoutResult.composed.layoutPlan,
@@ -4620,6 +4671,7 @@ const server = http.createServer(async (req, res) => {
       // fastMode: A+B+C from the speed-vs-detail tradeoff. See the
       // /api/pipeline/full/stream endpoint above for full doc.
       const fastMode = body.fastMode === true;
+      const userSupplements = body.userSupplements || body.user_data || null;
 
       const planResult = await pipeline.runPlan({
         scenarioText,
@@ -4627,7 +4679,8 @@ const server = http.createServer(async (req, res) => {
         llmCallFast:       (sys, user) => callOpenAIFast(sys, user, 0.3),
         llmCallContentBag: (sys, user) => callOpenAIContentBag(sys, user, 0.5),
         embedCall:         callOpenAIEmbedding,
-        fastMode
+        fastMode,
+        userSupplements
       });
 
       const layoutResult = await pipeline.runComposeLayout({
@@ -4638,6 +4691,9 @@ const server = http.createServer(async (req, res) => {
         scenarioText,
         fastMode
       });
+      if (userSupplements && userSupplements.layoutPlan && layoutResult.composed && layoutResult.composed.layoutPlan) {
+        pipeline.applyUserLayoutPlanHints(layoutResult.composed.layoutPlan, userSupplements.layoutPlan);
+      }
 
       const validation = pipeline.rollupValidationResults({
         planViolations:   planResult.planViolations,

@@ -88,6 +88,21 @@ function isReadingBriefScenarioText(scenarioText, planningPacket) {
   );
 }
 
+/** Guided cooking / kitchen session — avoid fragmenting primary into many grid tiles. */
+function isGuidedCookingWorkflowScenario(scenarioText, planningPacket) {
+  const scen = String(scenarioText || '');
+  const ui = (planningPacket && planningPacket.uiState) || {};
+  const tags = Array.isArray(ui.contextTags) ? ui.contextTags.map(String) : [];
+  if (tags.some(t => /hands-busy-cooking|cooking-session/i.test(t))) return true;
+  if (
+    tags.some(t => /assistant-task/i.test(t)) &&
+    /\b(cook|recipe|kitchen|chef|meal|prep|simmer|stove|ingredient)\b/i.test(scen)
+  ) {
+    return true;
+  }
+  return /\b(cook(?:ing)?|recipe|kitchen|\bchef\b|meal\s*prep|guided\s*cook|stove|simmer)\b/i.test(scen);
+}
+
 // ---------------------------------------------------------------------------
 //  CONTEXT-AWARE INJECTION RULES
 //  Maps a context tag (or a regex on tags) to component IDs the runSelect
@@ -2915,6 +2930,7 @@ Selection guidance:
 - Inform-only dashboards (analytics readout, passive feed) → avoid fabricated CTAs.
 - Guided assistants (cooking/recipe/workout/timer/running/tutoring/maps steps) ALWAYS imply the user acts — ALWAYS include ≥1 actionable primitive from the vocab: btn-contained, btn-outlined, btn-flat, chip, action_chip_row, or quick_toggle_row with concrete labels ("Next step", "Start 15 min timer", "Voice tip", "Mark done").
 - Timed / hands-busy flows: ALSO include media_control_bar (timer/session strip semantics) OR pair action_chip_row with timer-flavored chips; do not rely on three passive glance cards alone.
+- **Kitchen / recipe step (in-app):** avoid a **mosaic** of many same-scale \`reminder_card\` / \`input_summary_card\` tiles (step + “today” + “up next” + timer each as its own card). Prefer **one** dominant subject step, timer in \`media_control_bar\` / state, and **one** consolidated action row — not four parallel mini-cards.
 - When the user controls a task (cook, workout, run, navigate, timer), include at least ONE dedicated action primitive — e.g. btn-contained, btn-outlined, btn-flat, action_chip_row, or chip — with real labels ("Start timer", "Next step", "Done", "Pause run"). Do NOT build the whole screen from passive cards only unless the scenario is read-only.
 - Workout / running / health on lock or glance: combine state + context (lock-screen.widget-activity, lock-screen.widget-battery, eta_card, reminder_card) with a now-bar or timer row when appropriate; mix icon chips or actions for start/pause/end.
 - Prefer media-card or media_control_bar when playback or a dominant media surface is the subject; use widget-small only for compact glance tiles.
@@ -2938,6 +2954,7 @@ DIVERSITY RULES (anti-repetition — STRICTLY enforced):
 - If a single concept (e.g. "ingredients ready") would naturally repeat 3+ times, instead express it ONCE in a list/grid component (reminder_list_item or shortcut_tile) — not as 3 separate cards with similar labels.
 - When in doubt between two similar componentTypes for the same slot, pick the MORE SPECIFIC one.
 - Travel / airport / boarding / flight assistant ONLY: NEVER use media_control_bar for music/podcasts/playback unless the user explicitly mentions audio/headphones/Spotify or a gate/boarding countdown. MUST emit MULTIPLE informational components—not only facet chips—with concrete itinerary text: LOCAL departure/arrival (or boarding opens/closes), gate + terminal, seat row if known, baggage or connection note. ALSO include eta_card (time-to-gate) OR navigation_turn_card (terminal cue) unless the scenario is explicitly read-only. Travel action_chip_row MUST use verbs like Lounge, Directions, Offline pass—not recipe chips. Prefer one subject hero PLUS at least calendar_summary_card OR reminder_card with prose bodies (not blank).
+- **City trip + transit pass (metro, OMNY, weekly/unlimited):** Do NOT emit a **second** passive card whose only job is "FARE & PASSES" / payment comparison when the plan already has a pass summary tile — merge into one subject or chips; redundant explainer cards read as clutter.
 - Cooking / kitchen / recipe scenarios: do NOT use \`action_chip_row\` for generic gallery-style shortcuts (e.g. "Videos", "Favorites", "Shared albums") unless the scenario is explicitly a media gallery — prefer timers, substitutions, scaling, step actions, or pair chips with the recipe subject. Use btn-contained/btn-outlined for primary/secondary steps ("Start prep", "Save recipe") when actions are implied.`;
 }
 
@@ -3194,6 +3211,7 @@ One UI fidelity (mandatory for generated layouts):
   - primary-task **defaults** to vertical-stack with subject → state → actions top-to-bottom, **but** use **grid (2 columns)** or **horizontal-stack** when the task pairs a **tall hero** (recipe/media/focus summary, step card, media strip) with a **compact action column** (Repeat, timers, chips, contained buttons) — same pattern as guided cooking, workouts, and reader apps. Follow the Reference Layout order when it already specifies grid/horizontal-stack.
   - **Bottom-sheet / modal flows** (\`overlayType\` implies system dialog, or \`backgroundPolicy\` is \`dialog-surface\` / \`scrim-over-app\`): treat the body as a **sheet-shaped** stack — full-width rounded cards (design token **dialog** radius ≈36px / One UI squircle), primary CTA anchored **low** in the primary-task group, scrim-dimming implied by policy; avoid scattering tiny floating tiles at the top only.
   - **E-book / reading-status / chapter / bookmark flows** — the surface does **not** have to be a full canvas of balanced 2×2 tiles. Valid patterns include: (a) a normal in-app stack/grid when the scenario is a full "reading status" screen; (b) **sheet-only** chrome — when \`uiState\` uses dialog/bottom-sheet (see \`overlayType\` / \`backgroundPolicy\`), use **one** tight primary-task **vertical-stack** (progress/summary + \`action_chip_row\` / \`media_control_bar\` / page \`btn-contained\`) with **no** mosaic of sibling glance tiles; (c) **quick-bar** style — one **meta** or **supporting** horizontal band (compact stats + \`action_chip_row\`) and **minimal** primary-task (or only chrome + that band) when the scenario implies "peek" / "quick controls". Prefer \`media_control_bar\` or dense chip rows for page/skip/bookmark affordances in (b)–(c).
+  - **In-app reader “status” screens** (two glance blocks + bookmark/tools): put **both** \`reminder_card\` / \`input_summary_card\`-style tiles in the **same** \`primary-task\` \`grid\` (\`gridColumns: 2\`) so they sit **side-by-side**; place \`action_chip_row\` (bookmark / typography / search / contents) in a **\`meta\`** band **below** — wide control bar at the bottom, not a third full-width card sandwiched between tiles. Do not leave one tile in \`supporting\` and one in \`primary\` if both are the same scale — one grid group prevents a lopsided left column.
   - On app surfaces, do NOT emit \`quick_toggle_row\` unless the uiState overlay is quick-settings — use \`action_chip_row\` / \`btn-contained\` for Save/Share/Timer-style actions (quick toggles are Quick Settings affordances, not floating app footers).
   - Keep action \`btn-contained\` / chips AFTER chip rows so touch targets do not overlap in the same band.
   - Cooking / recipe: first subject card should be textual step or reminder suitable for a thumbnail (downstream may attach \`content.imageUrl\`). **Maps / commute / running / hiking / trail / GPS**: favor \`navigation_turn_card\`, \`eta_card\`, or a route-style \`reminder_card\`/\`widget-small\`; server post-processing may attach an **OpenStreetMap static preview** to the first eligible card without \`imageUrl\`. You may still set \`content.imageUrl\` to a real https map/hero image when you have one.
@@ -3201,7 +3219,7 @@ One UI fidelity (mandatory for generated layouts):
 PREMIUM DISCOVERY / CATALOG APP (travel · hotels · experiences · food browse · tours — “consumer-grade” density):
   - **Visual hierarchy**: one **hero band** first (priority=1): scenic subject — \`focus-block\` / \`media-card\` / rich \`reminder_card\` with \`content.imageUrl\` when the planner allows imagery — then a **clean vertical-stack** body (not scattered micro-cards repeating the same headline).
   - **Sheet rhythm**: section label (e.g. “Category”) → **pill-tab** / chip filters → **full-width listing cards** with stable proportions (~16:9 hero image feel); overlay location + rating on the image with readable contrast — avoid splitting one destination into three thin rows.
-  - **Spacing contract**: set \`layoutPlan.gap\` to **16–18** and \`layoutPlan.padding\` left/right to **20–22** on these flows so rail + gutters match polished storefront apps; keep vertical spacing uniform band-to-band.
+  - **Spacing contract**: set \`layoutPlan.gap\` to **~10** (8–10 clamped in renderer) and \`layoutPlan.padding\` left/right to **20–22** on these flows; keep vertical spacing uniform band-to-band.
   - **Chrome**: when components include \`bottom-navigation\` / \`pill-tab\`, reflect active state and pin navigation per reference layout; search-field / collapsed-app-bar copy should read like product UI (“Where to?”), not scenario prose.
 
 Structured content for dialog registry rows (when these appear in Selected Components, include in each child’s \`content\` in the downstream content-filling stage):
@@ -3271,10 +3289,13 @@ LAYOUT TEMPLATE INFERENCE (Tier 3 — pick a richer container shape based on the
 - LOCK surface with media playback active → group should still be vertical-stack but reserve a hero slot for the media-card / now-bar.media-player at the top of primary-task.
 - LOCK surface with 4+ small widgets (clock + weather-date + battery + activity + shortcut) → "grid" inside primary-task so they tile 2-up.
 - **2×2 / “two rows of two” dashboards** (running summary + weather + filters + today, briefing tiles): put **all** compact glance cards in **one** \`primary-task\` group with \`container: "grid"\`, \`gridColumns: 2\`. This is valid even when \`attentionMode\` is **glanceable** if every child is a dashboard tile (\`reminder_card\`, \`weather_glance_card\`, \`*_summary_card\`, \`eta_card\`, \`input_summary_card\`, \`widget-small\`). Place a wide **action row** (\`action_chip_row\` or several \`btn-*\`) in a **separate** \`meta\` or \`supporting\` group below — full-width pill cluster, not inside the 2×2 unless it is also a button strip spanning the grid width.
+- **Avoid a lone full-width glance “banner” under a 2-up grid:** When you already have two (or more) dashboard tiles in a \`primary-task\` **grid**, do **not** park another \`reminder_card\` / summary / \`eta_card\` / \`widget-small\` **alone** in the next \`supporting\` or \`tertiary\` \`vertical-stack\` — it stretches edge-to-edge and wastes horizontal space vs the tiles above. Keep **all** same-class glance peers in that **same** \`grid\` (2×N). Use a follow band only for **actions** (chips, buttons) or for a **different** large hero (e.g. map, media-card). Transit passes / fare summaries / ticket status should **tile**, not span solo under paired widgets.
+- **Transit / metro pass / OMNY · MetroCard:** If the hero tile already names the pass (e.g. **7-day unlimited**), do **not** add a second medium **"FARE & PASSES"** / pricing explainer card underneath — fold OMNY vs MetroCard / pay-per-ride into the **same** card, \`action_chip_row\` pills, or **omit**. One pass story → one glance surface; avoid the stacked “medium bar” that only repeats purchase detail.
 - APP surface with 1 dominant subject + other supporting cards → still put the subject FIRST with priority=1 hero; use vertical-stack when a single full-width hero must span above accessory rows.
 - APP surface with chip rows OR action rows → those go in horizontal-stack groups; the rest stays vertical-stack.
 - Food delivery, recipe catalog, takeout, or “order food” flows (when the scenario is NOT flight/travel/airport): structure like a store app — one primary-task group uses **grid** for category/filter tiles (widget-small or compact chips), then ONE large hero subject card beneath (detail + price + quantity + primary CTA). Avoid duplicating the same uppercase section header (“TODAY” / category) across multiple separate cards unless they show genuinely different semantic content.
-- Guided cooking / live recipe steps — and **any** hands-busy app step with the same shape: when a tall **subject** card (ingredients, photo, step headline, media summary) and a narrower **action** cluster (Repeat, timer chips, Next, contained buttons) are BOTH primary-task peers, put them **side-by-side** — primary-task **grid** (2 columns, preferred) or **horizontal-stack** with exactly those two children. The renderer biases ~58% / ~42% width (hero / actions). Use vertical-stack for extra bands below (full-width prose, bottom rails).
+- Guided cooking / live recipe steps — and **any** hands-busy app step with the same shape: when a tall **subject** card (ingredients, photo, step headline, media summary) and a narrower **action** cluster (Repeat, timer chips, Next, contained buttons) are BOTH primary-task peers, put them **side-by-side** — primary-task **grid** (2 columns, preferred) or **horizontal-stack** with **exactly two** children (hero column + action/timer column). The renderer biases ~58% / ~42% width (hero / actions). Use vertical-stack for extra bands below (full-width prose, bottom rails).
+- **Anti-fragmentation — cooking / recipe step / kitchen session:** Do **not** model the screen as many same-scale \`reminder_card\` / \`input_summary_card\` tiles in one \`grid\` (step + “today” peek + “up next” + timer + chips as separate grid cells). That yields a **scattered mosaic**, odd vertical holes, and clipped columns. Instead: **one** dominant current-step card (or step + photo), **one** companion column OR band with timer (\`media_control_bar\` as timer) + optional compact “up next” line **merged into the step card or the column**, then **one** full-width \`action_chip_row\` / \`meta\` strip for Repeat / add time / next / voice — like a single **stove session** surface, not a dashboard of widgets.
 - **2×2 (or 3+) control tiles** — Repeat / timer / ingredient shortcuts / quick actions: prefer \`container: "grid"\`, \`gridColumns: 2\`, **group role \`meta\`**, ordered **after** primary-task + supporting + tertiary so the cluster sits **low on the sheet** (just above the wide \`btn-contained\` primary CTA and gesture bar). If you only have \`action_chip_row\`, still use role \`meta\` for that row when it is a dense control strip. Do not park these grids in the middle of the scroll above the hero unless the scenario is a pure control dashboard.
 - NOTIFICATION-SHADE overlay → vertical-stack with notif-card / notif-card-ai stacked (no grid).
 - Pick container='grid' when groups[].children would otherwise repeat the same component type 3+ times (e.g. 4 toggle chips, 4 widgets) — grid avoids the "wall of identical cards" anti-pattern.
@@ -3884,12 +3905,24 @@ function splitPrimaryMixedStackToGridAndActions(layoutPlan, planningPacket, scen
       return;
     }
     const tail = children.slice(k);
-    if (!tail.some(isActionBand)) {
+    // Reader / book-status UIs: the composer often adds a bookmark / tools row that
+    // is not one of the ACTION_IDS primitives (e.g. custom row). Still split so the
+    // leading glance tiles become a 2-up grid; trail becomes meta (wide bar at bottom).
+    const splitTailOk =
+      tail.some(isActionBand) ||
+      (reading && tail.length > 0 && tail.every(ch => !isTile(ch)));
+    if (!splitTailOk) {
       next.push(g);
       return;
     }
 
     const tiles = children.slice(0, k);
+    const metaContainer =
+      reading &&
+      tail.length === 1 &&
+      (tail[0] && tail[0].componentId) === 'action_chip_row'
+        ? 'horizontal-stack'
+        : 'vertical-stack';
     next.push(
       Object.assign({}, g, {
         groupId:     `${baseId}-tiles-2up`,
@@ -3901,7 +3934,7 @@ function splitPrimaryMixedStackToGridAndActions(layoutPlan, planningPacket, scen
     next.push(
       Object.assign({}, g, {
         groupId:     `${baseId}-actions-trail`,
-        container:   'vertical-stack',
+        container:   metaContainer,
         role:        'meta',
         children:    tail
       })
@@ -3911,6 +3944,204 @@ function splitPrimaryMixedStackToGridAndActions(layoutPlan, planningPacket, scen
 
   if (splits > 0) layoutPlan.groups = next;
   return splits;
+}
+
+/**
+ * When primary-task is already a 2-column tile grid but extra glance cards sit in a
+ * following band (supporting / tertiary / meta) as vertical-stack, each renders
+ * full-bleed — a "banner" under tight 2-up tiles. If that band is **only** more
+ * dashboard tiles, merge into the same grid for a dense 2×N mosaic.
+ */
+function absorbTileOnlyFollowGroupIntoPrimaryGrid(layoutPlan) {
+  if (!layoutPlan || !Array.isArray(layoutPlan.groups)) return 0;
+  const ACTION_BAND = new Set([
+    'action_chip_row',
+    'btn-contained',
+    'btn-outlined',
+    'btn-flat',
+    'fab',
+    'chip',
+    'button.dark',
+    'button.light',
+    'button.accent',
+    'button.galaxy-ai',
+    'button.header-small',
+    'quick_toggle_row'
+  ]);
+  const isVis = ch => ch && (!ch.visibility || ch.visibility === 'visible');
+  const isTile = ch => DASHBOARD_TILE_COMPONENT_IDS.has((ch && ch.componentId) || '');
+  const isActionBand = ch => {
+    if (!ch) return false;
+    if (ch.role === 'action' || ch.role === 'navigation') return true;
+    return ACTION_BAND.has(ch.componentId || '');
+  };
+  const followRoles = new Set(['supporting', 'tertiary', 'meta']);
+  let absorbed = 0;
+  for (let i = 0; i < layoutPlan.groups.length - 1; ) {
+    const g0 = layoutPlan.groups[i];
+    const g1 = layoutPlan.groups[i + 1];
+    if (!g0 || !g1 || g0.role === 'chrome' || g1.role === 'chrome') {
+      i++;
+      continue;
+    }
+    if (g0.role !== 'primary-task' || g0.container !== 'grid') {
+      i++;
+      continue;
+    }
+    if (!followRoles.has(g1.role || '')) {
+      i++;
+      continue;
+    }
+    if (g1.container === 'horizontal-stack' || g1.container === 'grid') {
+      i++;
+      continue;
+    }
+    const v0 = (g0.children || []).filter(isVis);
+    const v1 = (g1.children || []).filter(isVis);
+    if (v0.length < 2 || !v0.every(isTile)) {
+      i++;
+      continue;
+    }
+    if (v1.length < 1 || !v1.every(isTile) || v1.some(isActionBand)) {
+      i++;
+      continue;
+    }
+    g0.children = (g0.children || []).concat(v1);
+    const moved = new Set(v1);
+    g1.children = (g1.children || []).filter(ch => !moved.has(ch));
+    const restVis = (g1.children || []).filter(isVis);
+    if (restVis.length === 0) {
+      layoutPlan.groups.splice(i + 1, 1);
+    } else {
+      i++;
+    }
+    absorbed++;
+  }
+  return absorbed;
+}
+
+/** Resolve plan content by layout child slot / componentId (same idea as scenes.js). */
+function _planContentResolver(plan) {
+  const bySlot = new Map();
+  const byTypeQueue = new Map();
+  (plan && plan.requiredComponents ? plan.requiredComponents : []).forEach(c => {
+    const slot = c.slot || '';
+    const type = c.componentType || '';
+    const content = c.content || {};
+    if (slot) bySlot.set(slot, content);
+    if (type) {
+      if (!byTypeQueue.has(type)) byTypeQueue.set(type, []);
+      byTypeQueue.get(type).push(content);
+    }
+  });
+  return function resolveContent(ch) {
+    if (ch && ch.slot && bySlot.has(ch.slot)) return bySlot.get(ch.slot);
+    const t = ch && ch.componentId;
+    if (t && byTypeQueue.has(t)) {
+      const q = byTypeQueue.get(t);
+      return q.length ? q[0] : {};
+    }
+    return {};
+  };
+}
+
+/**
+ * Transit / metro pass UIs often get a compact pass tile plus a redundant
+ * "FARE & PASSES" explainer card — same story, awkward mid-size strip. Drop
+ * the second when copy clearly elaborates pricing/payment vs the first tile.
+ */
+function suppressRedundantTransitFarePassCard(layoutPlan, plan, scenarioText, planningPacket) {
+  const ui = planningPacket && planningPacket.uiState;
+  if (!ui || ui.baseSurface !== 'app') return 0;
+  if (!layoutPlan || !Array.isArray(layoutPlan.groups)) return 0;
+
+  const scen = String(scenarioText || '');
+  const transitPass =
+    /\b(metro|subway|transit|omny|metrocard|mta|commuter|unlimited|7-?\s*day|weekly\s+pass|fare\s*pass|rail\s*pass|tap-?to-?pay|pay-?per-?ride)\b/i.test(
+      scen
+    ) ||
+    (/\b(new\s+york|nyc|manhattan)\b/i.test(scen) && /\b(trip|travel|visit|getaway)\b/i.test(scen));
+
+  if (!transitPass) return 0;
+
+  const resolve = _planContentResolver(plan);
+  const isVis = ch => ch && (!ch.visibility || ch.visibility === 'visible');
+  const isTile = ch => DASHBOARD_TILE_COMPONENT_IDS.has((ch && ch.componentId) || '');
+
+  const blob = c => String(((c && c.label) || '') + ' ' + ((c && c.value) || '')).toLowerCase();
+
+  const isFarePassExplainer = c => {
+    const b = blob(c);
+    return (
+      (/\bfare\b/.test(b) && /\bpass(es)?\b/.test(b)) ||
+      /\bfare\s*[&+]?\s*pass(es)?\b/.test(b) ||
+      (/\bomny\b/.test(b) && /\bmetrocard\b/.test(b)) ||
+      /\bpay-?per-?ride\b/.test(b) ||
+      (/\btap-?to-?pay\b/.test(b) && /\bmetro|\bomny\b/.test(b)) ||
+      /\bmetrocard\b/.test(b) && /\bvs\.?\b/.test(b) && /\b(ride|fare)\b/.test(b)
+    );
+  };
+
+  const isPassProductSummary = c => {
+    const b = blob(c);
+    return (
+      (/\b(unlimited|7\s*[-–]?\s*day|weekly|monthly)\b/.test(b) &&
+        /\b(pass|metrocard|omny|ride)\b/.test(b)) ||
+      /\b7\s*[-–]?\s*day\b/.test(b) ||
+      /\bmetrocard\b/.test(b) ||
+      /\bomny\b/.test(b)
+    );
+  };
+
+  let removed = 0;
+
+  const hideSecondTileInGroup = g => {
+    if (!g || g.container === 'grid' || g.container === 'horizontal-stack') return;
+    const visTiles = (g.children || []).filter(ch => isVis(ch) && isTile(ch));
+    if (visTiles.length < 2) return;
+    const c0 = resolve(visTiles[0]);
+    const c1 = resolve(visTiles[1]);
+    if (!isPassProductSummary(c0) || !isFarePassExplainer(c1)) return;
+    visTiles[1].visibility = 'hidden';
+    visTiles[1]._suppressReason = 'redundant-fare-pass-explainer';
+    removed++;
+  };
+
+  layoutPlan.groups.forEach(hideSecondTileInGroup);
+
+  for (let i = 0; i < layoutPlan.groups.length - 1; i++) {
+    const g0 = layoutPlan.groups[i];
+    const g1 = layoutPlan.groups[i + 1];
+    if (!g0 || !g1 || g0.role === 'chrome' || g1.role === 'chrome') continue;
+    if (g0.role !== 'primary-task') continue;
+    if (!['supporting', 'tertiary', 'meta'].includes(g1.role || '')) continue;
+
+    const v0 = (g0.children || []).filter(isVis);
+    const v1 = (g1.children || []).filter(isVis);
+    if (v0.length !== 1 || v1.length !== 1) continue;
+    if (!isTile(v0[0]) || !isTile(v1[0])) continue;
+
+    const c0 = resolve(v0[0]);
+    const c1 = resolve(v1[0]);
+    if (!isPassProductSummary(c0) || !isFarePassExplainer(c1)) continue;
+
+    v1[0].visibility = 'hidden';
+    v1[0]._suppressReason = 'redundant-fare-pass-explainer';
+    removed++;
+    if (!(g1.children || []).some(isVis)) {
+      layoutPlan.groups.splice(i + 1, 1);
+      i--;
+    }
+  }
+
+  if (removed) {
+    layoutPlan.groups = layoutPlan.groups.filter(g => {
+      if (g.role === 'chrome') return true;
+      return (g.children || []).some(ch => isVis(ch));
+    });
+  }
+
+  return removed;
 }
 
 /**
@@ -4270,6 +4501,17 @@ async function runComposeLayout({ planningPacket, plan, llmCall, viewport, scena
     composed.layoutPlan.groups = tagged.map(x => x.g);
   }
 
+  // Split mixed stacks **before** coalescing so primary becomes a tile-only grid band;
+  // otherwise a stray tile in `supporting` never merges into a mixed primary stack.
+  const splitMixed = splitPrimaryMixedStackToGridAndActions(composed.layoutPlan, planningPacket, scenario);
+  if (splitMixed > 0) {
+    composed.composerNotes = composed.composerNotes || {};
+    composed.composerNotes.primaryTileActionSplit = splitMixed;
+    console.log(
+      '[pipeline] composer post-fix: split ' + splitMixed + ' mixed primary stack(s) → 2-up grid + action trail'
+    );
+  }
+
   const dashCoalesced = coalesceDashboardTilesForWidgetGrid(
     composed.layoutPlan,
     planningPacket,
@@ -4281,24 +4523,16 @@ async function runComposeLayout({ planningPacket, plan, llmCall, viewport, scena
     console.log('[pipeline] composer post-fix: coalesced ' + dashCoalesced + ' dashboard tile(s) into one tile-only group for 2-col grid');
   }
 
-  const splitMixed = splitPrimaryMixedStackToGridAndActions(composed.layoutPlan, planningPacket, scenario);
-  if (splitMixed > 0) {
-    composed.composerNotes = composed.composerNotes || {};
-    composed.composerNotes.primaryTileActionSplit = splitMixed;
-    console.log(
-      '[pipeline] composer post-fix: split ' + splitMixed + ' mixed primary stack(s) → 2-up grid + action trail'
-    );
-    if (composed.layoutPlan && Array.isArray(composed.layoutPlan.groups)) {
-      const BAND = { chrome: 0, 'primary-task': 1, supporting: 2, tertiary: 3, meta: 4 };
-      const tagged = composed.layoutPlan.groups.map((g, i) => ({ g, i }));
-      tagged.sort((a, b) => {
-        const ba = BAND[a.g.role] != null ? BAND[a.g.role] : 15;
-        const bb = BAND[b.g.role] != null ? BAND[b.g.role] : 15;
-        if (ba !== bb) return ba - bb;
-        return a.i - b.i;
-      });
-      composed.layoutPlan.groups = tagged.map(x => x.g);
-    }
+  if ((splitMixed > 0 || dashCoalesced > 0) && composed.layoutPlan && Array.isArray(composed.layoutPlan.groups)) {
+    const BAND = { chrome: 0, 'primary-task': 1, supporting: 2, tertiary: 3, meta: 4 };
+    const tagged = composed.layoutPlan.groups.map((g, i) => ({ g, i }));
+    tagged.sort((a, b) => {
+      const ba = BAND[a.g.role] != null ? BAND[a.g.role] : 15;
+      const bb = BAND[b.g.role] != null ? BAND[b.g.role] : 15;
+      if (ba !== bb) return ba - bb;
+      return a.i - b.i;
+    });
+    composed.layoutPlan.groups = tagged.map(x => x.g);
   }
 
   // ── Auto-grid: mixed glance cards + repeated tile-safe types ──────
@@ -4378,6 +4612,21 @@ async function runComposeLayout({ planningPacket, plan, llmCall, viewport, scena
         if (!allDashboardTiles && !isReadingBriefScenarioText(scenario, planningPacket)) return;
       }
 
+      // Cooking / hands-busy kitchen: never promote a mixed primary stack to a 2×N
+      // auto-grid (many equal-weight glance cards + timer + chips) — reads as a
+      // scattered mosaic and clips on narrow rails. Keep vertical-stack for composer /
+      // split heuristics; pure dashboard-tile grids are still allowed.
+      if (
+        isGuidedCookingWorkflowScenario(scenario, planningPacket) &&
+        g.role === 'primary-task' &&
+        children.length >= 3
+      ) {
+        const allDashCook = children.every(c =>
+          DASHBOARD_TILE_COMPONENT_IDS.has((c && c.componentId) || '')
+        );
+        if (!allDashCook) return;
+      }
+
       const subjectActionSideBySide =
         planningPacket &&
         planningPacket.uiState &&
@@ -4441,6 +4690,29 @@ async function runComposeLayout({ planningPacket, plan, llmCall, viewport, scena
     }
   }
 
+  const tileBandAbsorb = absorbTileOnlyFollowGroupIntoPrimaryGrid(composed.layoutPlan);
+  if (tileBandAbsorb > 0) {
+    composed.composerNotes = composed.composerNotes || {};
+    composed.composerNotes.tileBandAbsorbedIntoPrimaryGrid = tileBandAbsorb;
+    console.log(
+      '[pipeline] composer post-fix: absorbed ' + tileBandAbsorb + ' tile-only follow band(s) into primary grid (avoid full-width glance strip)'
+    );
+  }
+
+  const farePassDupDrop = suppressRedundantTransitFarePassCard(
+    composed.layoutPlan,
+    plan,
+    scenario,
+    planningPacket
+  );
+  if (farePassDupDrop > 0) {
+    composed.composerNotes = composed.composerNotes || {};
+    composed.composerNotes.redundantFarePassCardDropped = farePassDupDrop;
+    console.log(
+      '[pipeline] composer post-fix: hid ' + farePassDupDrop + ' redundant transit fare/pass explainer card(s)'
+    );
+  }
+
   const bottomPins = pinDenseActionGridsToBottom(composed.layoutPlan, planningPacket);
   if (bottomPins > 0) {
     composed.composerNotes = composed.composerNotes || {};
@@ -4476,7 +4748,7 @@ async function runComposeLayout({ planningPacket, plan, llmCall, viewport, scena
           purpose:    `Backfilled missing ${fallbackRole} components`,
           role:       fallbackRole,
           container:  'vertical-stack',
-          gap:        12,
+          gap:        10,
           children:   []
         };
         groups.push(g);
@@ -5536,6 +5808,132 @@ function applyContentSwap(plan, bag) {
   return plan;
 }
 
+/** Safe top-level keys on layoutPlan the client may override post-compose. */
+const USER_LAYOUT_PLAN_KEYS = [
+  ['floatingSheetTheme', ['floatingSheetTheme', 'floating_sheet_theme']],
+  ['backgroundPolicy', ['backgroundPolicy', 'background_policy']],
+  ['gap', ['gap']],
+  ['padding', ['padding']],
+  ['pipelineFillViewport', ['pipelineFillViewport', 'pipeline_fill_viewport']]
+];
+
+/**
+ * After compose: merge whitelisted layout hints (bottom-sheet theme, gap, …).
+ * Does not replace groups[] — only scalar hints the renderer reads.
+ */
+function applyUserLayoutPlanHints(layoutPlan, hints) {
+  if (!layoutPlan || !hints || typeof hints !== 'object') return;
+  for (let i = 0; i < USER_LAYOUT_PLAN_KEYS.length; i++) {
+    const dest = USER_LAYOUT_PLAN_KEYS[i][0];
+    const keys = USER_LAYOUT_PLAN_KEYS[i][1];
+    for (let j = 0; j < keys.length; j++) {
+      const k = keys[j];
+      if (hints[k] != null) {
+        layoutPlan[dest] = hints[k];
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Merge explicit user data after content-bag swap / before imagery finalize.
+ * Accept POST field `userSupplements` or `user_data` (same shape).
+ *
+ * Supported keys:
+ * - uiState — shallow-merged into planningPacket.uiState + interpretation.uiState
+ * - contentBySlot — { slotId: { label, value, … } } merged into matching plan row.content
+ * - patchComponents — [{ componentType, content?, variant? }] first matching row each
+ * - nowPlaying | now_playing | music — convenience for media_control_bar (title/artist/label/value/imageUrl)
+ * - mediaCard — merged into first media-card row
+ * - layoutPlan — only used if server calls applyUserLayoutPlanHints after compose (see stream handler)
+ */
+function applyUserSupplements(planningPacket, interpretation, plan, supplements) {
+  if (!supplements || typeof supplements !== 'object') return;
+  const supp = supplements;
+
+  const ui = supp.uiState || supp.ui_state;
+  if (ui && typeof ui === 'object') {
+    if (planningPacket) {
+      planningPacket.uiState = Object.assign({}, planningPacket.uiState || {}, ui);
+    }
+    if (interpretation) {
+      interpretation.uiState = Object.assign({}, interpretation.uiState || {}, ui);
+    }
+  }
+
+  const rows = plan && Array.isArray(plan.requiredComponents) ? plan.requiredComponents : null;
+  if (!rows) return;
+
+  const bySlot = supp.contentBySlot || supp.content_by_slot;
+  if (bySlot && typeof bySlot === 'object') {
+    Object.keys(bySlot).forEach(function slotMerge(slot) {
+      const patch = bySlot[slot];
+      if (!patch || typeof patch !== 'object') return;
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (row && row.slot === slot) {
+          row.content = Object.assign({}, row.content || {}, patch);
+          break;
+        }
+      }
+    });
+  }
+
+  const patches = supp.patchComponents || supp.patch_components;
+  if (Array.isArray(patches)) {
+    for (let pi = 0; pi < patches.length; pi++) {
+      const p = patches[pi];
+      if (!p || !p.componentType) continue;
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (row && row.componentType === p.componentType) {
+          if (p.content && typeof p.content === 'object') {
+            row.content = Object.assign({}, row.content || {}, p.content);
+          }
+          if (p.variant && typeof p.variant === 'object') {
+            row.variant = Object.assign({}, row.variant || {}, p.variant);
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  const np = supp.nowPlaying || supp.now_playing || supp.music;
+  if (np) {
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || row.componentType !== 'media_control_bar') continue;
+      row.content = row.content || {};
+      if (typeof np === 'string') {
+        row.content.label = np;
+      } else if (typeof np === 'object') {
+        if (np.title != null) row.content.label = String(np.title);
+        if (np.label != null) row.content.label = String(np.label);
+        if (np.artist != null) row.content.value = String(np.artist);
+        if (np.value != null && (row.content.value == null || row.content.value === '')) {
+          row.content.value = String(np.value);
+        }
+        const art = np.imageUrl || np.coverUrl || np.albumArt;
+        if (art) row.content.imageUrl = String(art);
+      }
+      break;
+    }
+  }
+
+  const mc = supp.mediaCard || supp.media_card;
+  if (mc && typeof mc === 'object') {
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (row && row.componentType === 'media-card') {
+        row.content = Object.assign({}, row.content || {}, mc);
+        break;
+      }
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 //  ORCHESTRATOR — runPlan = runInterpretAndNormalize + (runSelect ‖ runContentBag)
 //  Composition wrapper for non-streaming consumers (/api/pipeline/full,
@@ -5543,7 +5941,15 @@ function applyContentSwap(plan, bag) {
 //  separately so each emits its own step_done event for progressive UI.
 // ---------------------------------------------------------------------------
 
-async function runPlan({ scenarioText, llmCall, llmCallFast, llmCallContentBag, embedCall, fastMode }) {
+async function runPlan({
+  scenarioText,
+  llmCall,
+  llmCallFast,
+  llmCallContentBag,
+  embedCall,
+  fastMode,
+  userSupplements
+}) {
   const ipn = await runInterpretAndNormalize({ scenarioText, llmCall, llmCallFast, fastMode });
 
   // Stages 3 (select) and 3.5 (content bag) fire in PARALLEL so the bag
@@ -5571,6 +5977,7 @@ async function runPlan({ scenarioText, llmCall, llmCallFast, llmCallContentBag, 
 
   // Swap is best-effort — runs after both calls resolve, before validation.
   if (bag) applyContentSwap(sel.plan, bag);
+  applyUserSupplements(ipn.planningPacket, ipn.interpretation, sel.plan, userSupplements);
 
   try {
     await finalizeAssistantPlanPostProcess(scenarioText, ipn.planningPacket, sel.plan);
@@ -5626,6 +6033,9 @@ function _mealDbSearchQueryFromScenario(scenarioText, plan) {
   const s = scenarioText || '';
   const make = s.match(/\b(?:make|cook|bake|prep(?:are)?)\s+([^.!?\n]{3,56})/i);
   if (make) return make[1].trim().split(/[,;]/)[0].trim();
+  // Korean: "김치찌개 만들기", "라자냐 레시피"
+  const makeKo = s.match(/([가-힣]{2,14})\s*(?:만들|레시피|조리)\w*/);
+  if (makeKo && makeKo[1]) return makeKo[1].trim();
   const rows = (plan && plan.requiredComponents) || [];
   const reminder = rows.find(r =>
     r.componentType === 'reminder_card' &&
@@ -5770,7 +6180,8 @@ function _shouldAttachMapRaster(content) {
 
 /**
  * Runs server-side after runSelect + runContentBag.merge.
- * - Cooking: first eligible card (reminder_card, widget-small) without a real hero image gets a TheMealDB thumbnail.
+ * - Cooking: first eligible summary/focus row without a real hero image gets a TheMealDB thumbnail
+ *   (reminder_card, message_summary_card, input_summary_card, widget-small, semantic tiles, focus-block raw).
  * - Commute/travel/navigation/running: first map-eligible card gets `GENUI_DUMMY_MAP_PREVIEW_URL` by default (bundled PNG); set `PIPELINE_MAP_DUMMY=off` for live OSM tiles.
  */
 async function finalizeAssistantPlanPostProcess(scenarioText, planningPacket, plan) {
@@ -5793,13 +6204,30 @@ async function finalizeAssistantPlanPostProcess(scenarioText, planningPacket, pl
   const mapContext = dom.travel || mapMotion || mapRunHike ||
     (dom.workout && /(러닝|달리기|조깅|트레일|트랙|야외|공원\s*런|running|jog|trail|gps|route|5k|10k|marathon)/i.test(mapBlob));
 
-  if (dom.cooking && !dom.travel) {
+  // Recipe thumbnails: selector often places the hero on reminder_card, but
+  // guided cooking slots may use message_summary_card / input_summary_card /
+  // raw focus-block — previously only reminder_card + widget-small got MealDB.
+  const cookingAttach =
+    dom.cooking &&
+    (!dom.travel ||
+      /\b(recipe|kitchen|cook|chef|meal|ingredient|pasta|simmer|restaurant|dining|food\b|요리|레시피|요리법|재료|찌개|볶음|맛집|식당)\b/i.test(
+        mapBlob
+      ));
+  if (cookingAttach) {
     const q = _mealDbSearchQueryFromScenario(scenarioText, plan);
     const url = await _mealDbThumbForQuery(q);
     // Only attach food thumbnails from TheMealDB — generic placeholders like picsum
     // seeds produced unrelated wildlife/scenery photos ("deer on cooking screen").
     if (url) {
-      const COOK_ATTACH_TYPES = ['reminder_card', 'widget-small'];
+      const COOK_ATTACH_TYPES = [
+        'reminder_card',
+        'message_summary_card',
+        'input_summary_card',
+        'widget-small',
+        'contextual_summary_card',
+        'information_glance_tile',
+        'focus-block'
+      ];
       let row = null;
       for (let ci = 0; ci < COOK_ATTACH_TYPES.length; ci++) {
         const wantT = COOK_ATTACH_TYPES[ci];
@@ -5928,6 +6356,8 @@ module.exports = {
   runSelect,
   runContentBag,
   applyContentSwap,
+  applyUserSupplements,
+  applyUserLayoutPlanHints,
   runComposeLayout,
   runExplain,
   finalizeAssistantPlanPostProcess,

@@ -136,7 +136,7 @@ function addComp(type) {
       { w: 380, h: 80 }
     );
   } else {
-    wrapper.innerHTML = '<div style="padding:12px;color:var(--text-2);font-size:12px;">' + type + '</div>';
+    wrapper.innerHTML = '<div style="padding:12px;color:var(--text-2);font-size:13px;">' + type + '</div>';
   }
   // Click / hover: centralized via interaction-state.js canvas-level tracker.
   wrapper.setAttribute('draggable', 'true');

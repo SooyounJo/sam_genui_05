@@ -231,7 +231,7 @@
       var labelBox =
         '<div style="position:absolute;left:0;right:0;bottom:0;top:' + Math.round(48 * 0.75) + 'px;' +
           'display:flex;align-items:center;justify-content:center;' +
-          'font-family:' + FONT_SEMI + ';font-weight:600;font-size:12px;line-height:12px;' +
+          'font-family:' + FONT_SEMI + ';font-weight:600;font-size:13px;line-height:16px;' +
           'color:rgba(255,255,255,0.85);">' + label + '</div>';
 
       return '<div style="position:relative;width:50px;height:48px;flex-shrink:0;">' +
@@ -254,7 +254,7 @@
                    absImg(glyphAsset, '15.1%') +
                  '</div>' +
                '</div>' +
-               '<span style="font-family:' + FONT_SEMI + ';font-weight:600;font-size:10px;color:rgba(255,255,255,0.86);text-align:center;white-space:nowrap;">' + text + '</span>' +
+               '<span style="font-family:' + FONT_SEMI + ';font-weight:600;font-size:13px;color:rgba(255,255,255,0.86);text-align:center;white-space:nowrap;">' + text + '</span>' +
              '</div>';
     }
 
@@ -335,7 +335,7 @@
              iconSlot +
              '<div style="flex:1 0 0;min-width:0;display:flex;flex-direction:column;gap:6px;color:#FFFFFF;">' +
                '<div style="font-family:' + FONT_SEMI + ';font-weight:600;font-size:16px;line-height:14px;">' + primary + '</div>' +
-               '<div style="font-family:' + FONT_REGULAR + ';font-weight:500;font-size:12px;line-height:14px;">' + secondary + '</div>' +
+               '<div style="font-family:' + FONT_REGULAR + ';font-weight:500;font-size:13px;line-height:14px;">' + secondary + '</div>' +
              '</div>' +
              trailing +
            '</div>';
@@ -744,24 +744,24 @@
           '<div style="display:flex;align-items:center;justify-content:space-between;">' +
             '<div style="display:flex;gap:6px;align-items:center;">' +
               '<div style="position:relative;width:14px;height:14px;overflow:hidden;">' + nfAbsImg('music-note.svg', '50% 20.1%') + '</div>' +
-              '<span style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:12px;line-height:normal;color:#FFFFFF;letter-spacing:0.24px;">Samsung Music</span>' +
+              '<span style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:13px;line-height:normal;color:#FFFFFF;letter-spacing:0.24px;">Samsung Music</span>' +
             '</div>' +
             '<div style="display:flex;gap:4px;align-items:center;justify-content:center;padding:4px 6px;background:rgba(0,0,0,0.2);border-radius:30.72px;">' +
               '<div style="position:relative;width:14px;height:14px;overflow:hidden;">' + nfAbsImg('device-icon.svg', '13.02% 24.48%') + '</div>' +
-              '<span style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:10px;line-height:normal;color:#FFFFFF;">Phone speaker</span>' +
+              '<span style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:13px;line-height:normal;color:#FFFFFF;">Phone speaker</span>' +
             '</div>' +
           '</div>' +
           // Title / artist
           '<div style="display:flex;flex-direction:column;gap:2px;">' +
             '<p style="font-family:' + FONT_REGULAR + ';font-weight:500;font-size:14px;line-height:normal;color:#FFFFFF;letter-spacing:0.28px;margin:0;">Title</p>' +
-            '<p style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:12px;line-height:normal;color:rgba(255,255,255,0.75);letter-spacing:0.24px;margin:0;">Artist</p>' +
+            '<p style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:13px;line-height:normal;color:rgba(255,255,255,0.75);letter-spacing:0.24px;margin:0;">Artist</p>' +
           '</div>' +
           // Progress bar + timestamps
           '<div style="display:flex;flex-direction:column;gap:3px;align-items:center;width:100%;">' +
             '<div style="position:relative;width:347px;height:19.5px;">' +
               '<img src="' + NF_ASSET + 'media-progress.svg" style="position:absolute;inset:0 -1.3%;width:102.6%;height:100%;display:block;" alt="">' +
             '</div>' +
-            '<div style="display:flex;justify-content:space-between;width:100%;font-family:' + FONT_REGULAR + ';font-weight:400;font-size:10px;line-height:normal;color:rgba(255,255,255,0.75);letter-spacing:0.2px;">' +
+            '<div style="display:flex;justify-content:space-between;width:100%;font-family:' + FONT_REGULAR + ';font-weight:400;font-size:13px;line-height:normal;color:rgba(255,255,255,0.75);letter-spacing:0.2px;">' +
               '<span>02:41</span>' +
               '<span>03:24</span>' +
             '</div>' +
@@ -800,7 +800,7 @@
         '<div style="flex:1 0 0;min-width:0;display:flex;flex-direction:column;overflow:hidden;">' +
           '<div style="display:flex;gap:8px;align-items:flex-end;white-space:nowrap;overflow:hidden;">' +
             '<p style="font-family:' + FONT_SEMI + ';font-weight:600;font-size:15px;line-height:normal;color:#EFEEF2;margin:0;">Title</p>' +
-            '<p style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:12px;line-height:normal;color:#D5D5D5;margin:0;">8:21 AM</p>' +
+            '<p style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:13px;line-height:normal;color:#D5D5D5;margin:0;">8:21 AM</p>' +
           '</div>' +
           '<p style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:14px;line-height:normal;color:#CFCCCF;margin:0;">Subtitle</p>' +
         '</div>' +
@@ -818,7 +818,7 @@
             '<div style="flex:1 0 0;min-width:0;display:flex;flex-direction:column;overflow:hidden;">' +
               '<div style="display:flex;gap:8px;align-items:flex-end;width:189px;white-space:nowrap;overflow:hidden;">' +
                 '<p style="font-family:' + FONT_SEMI + ';font-weight:600;font-size:15px;line-height:normal;color:#EFEEF2;margin:0;">Title</p>' +
-                '<p style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:12px;line-height:normal;color:#D5D5D5;margin:0;">8:21 AM</p>' +
+                '<p style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:13px;line-height:normal;color:#D5D5D5;margin:0;">8:21 AM</p>' +
               '</div>' +
               '<p style="font-family:' + FONT_REGULAR + ';font-weight:400;font-size:14px;line-height:normal;color:#CFCCCF;margin:0;white-space:nowrap;">Subtitle</p>' +
             '</div>' +
@@ -858,7 +858,7 @@
   //     ground-truth-extracted yet; will be replaced when those Figma frames
   //     are captured). Stubs so renderers don't crash. ---
   function notYetExtracted(role) {
-    return '<div style="' + FILL + 'display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);font-size:10px;border:1px dashed rgba(255,255,255,0.15);border-radius:8px;">' + role + ' (pending Figma extraction)</div>';
+    return '<div style="' + FILL + 'display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);font-size:13px;border:1px dashed rgba(255,255,255,0.15);border-radius:8px;">' + role + ' (pending Figma extraction)</div>';
   }
 
   root.GalaxyAtomics = {
